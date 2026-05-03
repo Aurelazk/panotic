@@ -1,0 +1,1223 @@
+PANOTIC
+Plateforme Numérique de Panneautique & Transformation Urbaine
+
+CAHIER DES CHARGES TECHNIQUE
+Application Mobile — React Native
+iOS & Android
+
+Version
+
+1.0
+
+Date
+
+Avril 2025
+
+Statut
+
+Document de référence
+
+Périmètre initial
+
+Bénin & Togo (Lomé)
+
+Cible long terme
+
+Panafricain & International
+
+Confidentiel — Usage interne et partenaires agréés
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+Table des matières
+Table des matières .................................................................................................................................. 2
+1. Présentation du projet ......................................................................................................................... 4
+1.1 Contexte et vision .......................................................................................................................... 4
+1.2 Problèmes adressés ...................................................................................................................... 4
+1.3 Périmètre géographique ................................................................................................................ 4
+1.4 Publics cibles ................................................................................................................................. 4
+2. Objectifs de l'application ..................................................................................................................... 5
+O1 — Information & cartographie en temps réel ............................................................................. 5
+O2 — Formation et professionnalisation ......................................................................................... 5
+O3 — Relais publicitaire innovant .................................................................................................... 5
+O4 — Impact social & environnemental .......................................................................................... 5
+3. Stack technologique ............................................................................................................................ 6
+3.1 Application mobile — React Native ............................................................................................... 6
+3.2 Librairies et dépendances clés ...................................................................................................... 6
+3.3 Backend & Infrastructure ............................................................................................................... 6
+4. Fonctionnalités détaillées .................................................................................................................... 8
+4.1 Signalement citoyen (Core Feature) ............................................................................................. 8
+Description fonctionnelle .................................................................................................................. 8
+Flux utilisateur .................................................................................................................................. 8
+Spécifications techniques ................................................................................................................ 8
+Note opérationnelle importante ........................................................................................................ 8
+4.2 Cartographie interactive ................................................................................................................ 8
+Description fonctionnelle .................................................................................................................. 8
+Fonctionnalités cartographiques ...................................................................................................... 8
+4.3 Relais publicitaire .......................................................................................................................... 9
+Pour les régies et annonceurs ......................................................................................................... 9
+Pour les régies (côté gestionnaire) .................................................................................................. 9
+4.4 Formations en panneautique ......................................................................................................... 9
+Catalogue de formations .................................................................................................................. 9
+Fonctionnalités pédagogiques ......................................................................................................... 9
+Paiement et accès ......................................................................................................................... 10
+4.5 Conseils & assistance technique ................................................................................................. 10
+4.6 Contenu généré par les utilisateurs (UGC) ................................................................................. 10
+Description fonctionnelle ................................................................................................................ 10
+Les trois thématiques ..................................................................................................................... 10
+Fonctionnalités du fil ...................................................................................................................... 10
+5. Architecture de l'application .............................................................................................................. 11
+5.1 Architecture générale .................................................................................................................. 11
+Couches techniques ...................................................................................................................... 11
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+5.2 Authentification et sécurité .......................................................................................................... 11
+5.3 Mode hors-ligne ........................................................................................................................... 11
+6. Interfaces utilisateur & UX ................................................................................................................ 12
+6.1 Principes de design ..................................................................................................................... 12
+6.2 Écrans principaux ........................................................................................................................ 12
+6.3 Gestion des rôles ......................................................................................................................... 12
+7. Modèle économique et monétisation ................................................................................................ 13
+7.1 Sources de revenus..................................................................................................................... 13
+7.2 Intégrations de paiement prioritaires ........................................................................................... 13
+8. Exigences non fonctionnelles ........................................................................................................... 14
+8.1 Performance ................................................................................................................................ 14
+8.2 Compatibilité ................................................................................................................................ 14
+8.3 Sécurité & conformité .................................................................................................................. 14
+8.4 Accessibilité ................................................................................................................................. 14
+9. Phases de développement et roadmap ................................................... Erreur ! Signet non défini.
+9.1 Phase 0 — Cadrage & Design (M1–M2) ............................................ Erreur ! Signet non défini.
+9.2 Phase 1 — MVP (M3–M6) — Lancement Bénin & Lomé .................. Erreur ! Signet non défini.
+9.3 Phase 2 — Enrichissement (M7–M10)............................................... Erreur ! Signet non défini.
+9.4 Phase 3 — Expansion (M11–M18) .................................................... Erreur ! Signet non défini.
+10. Stratégie de qualité et tests ................................................................... Erreur ! Signet non défini.
+10.1 Niveaux de tests ............................................................................... Erreur ! Signet non défini.
+10.2 Processus de livraison...................................................................... Erreur ! Signet non défini.
+11. Ressources et équipe recommandée ............................................................................................. 15
+12. Partenariats stratégiques recommandés ........................................................................................ 16
+12.1 Partenariats techniques prioritaires ........................................................................................... 16
+12.2 Partenariats institutionnels ........................................................................................................ 16
+13. Indicateurs de performance clés (KPIs) .......................................................................................... 17
+14. Analyse des risques ........................................................................................................................ 18
+15. Glossaire ......................................................................................................................................... 19
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+1. Présentation du projet
+1.1 Contexte et vision
+Panotic est une plateforme numérique internationale, hybride et collaborative, dédiée à la panneautique
+— la conception, l'installation, la maintenance et la gestion des panneaux publicitaires et du mobilier
+urbain de publicité. Elle représente une réponse innovante aux défis de modernisation de l'affichage
+extérieur en Afrique de l'Ouest et au-delà.
+La vision est de faire de Panotic le référent panafricain, puis international, de la panneautique moderne
+et responsable, en alliant business, formation, signalement citoyen et impact social.
+
+1.2 Problèmes adressés
+•
+•
+•
+•
+•
+
+Absence de cartographie fiable du mobilier urbain publicitaire en Afrique de l'Ouest
+Manque de formation professionnelle certifiante et accessible dans le secteur de la
+panneautique
+Déconnexion entre régies publicitaires, annonceurs et espaces disponibles
+Absence d'outil citoyen structuré pour signaler les dégradations visuelles et
+environnementales
+Lenteur de la transition numérique dans l'affichage extérieur
+
+1.3 Périmètre géographique
+Phase 1 — Lancement pilote :
+•
+•
+
+Bénin (Cotonou et principales villes)
+Togo — Lomé en priorité
+
+Phase 2+ — Extension progressive :
+•
+•
+•
+
+Afrique de l'Ouest francophone (Sénégal, Côte d'Ivoire, Mali, Burkina Faso…)
+Afrique subsaharienne anglophone
+Déploiement international
+
+1.4 Publics cibles
+Fonctionnalité
+
+Description
+
+Citoyens & riverains
+
+Signalement, consultation, contenu UGC
+
+Principal
+
+Professionnels
+panneautique
+
+Formation, assistance technique, business
+
+Principal
+
+Annonceurs & régies
+
+Réservation, inventaire géolocalisé
+
+Secondaire
+
+Autorités locales
+
+Diagnostic, gestion mobilier urbain
+
+Secondaire
+
+Formateurs & apprenants
+
+Création et consommation de formations
+
+Confidentiel — © Panotic 2025
+
+Priorité
+
+|
+
+Page •
+
+Tertiaire
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+2. Objectifs de l'application
+Quatre piliers stratégiques de Panotic
+O1 — Information & cartographie en temps réel
+Fournir une cartographie interactive actualisée du mobilier urbain de publicité (panneaux classiques,
+obsolètes, digitaux, abribus, totems…) permettant aux autorités, professionnels et citoyens de
+visualiser l'état du parc publicitaire urbain.
+
+O2 — Formation et professionnalisation
+Offrir des formations certifiantes et pratiques accessibles via mobile money, carte bancaire ou tout
+moyen de paiement local, couvrant la conception, les normes techniques, l'installation, la maintenance
+et la transition vers le digital.
+
+O3 — Relais publicitaire innovant
+Mettre en relation directe régies publicitaires et annonceurs avec un inventaire géolocalisé et vérifié du
+mobilier urbain disponible, valorisant ainsi les espaces de qualité.
+
+O4 — Impact social & environnemental
+Transformer les utilisateurs en acteurs du changement en leur permettant de dénoncer les
+dysfonctionnements et de sensibiliser autour de trois thématiques : protection de l'environnement,
+cadre de vie sain, et environnement familial convenable.
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+3. Stack technologique
+3.1 Application mobile — React Native
+Justification du choix React Native
+React Native est retenu comme framework principal pour les raisons suivantes :
+•
+•
+•
+•
+•
+
+Code base unique pour iOS et Android (réduction des coûts de développement d'environ
+40%)
+Écosystème JavaScript mature avec une large communauté de développeurs en Afrique
+Performance native suffisante pour les fonctionnalités de géolocalisation, caméra et vidéo
+Support natif des cartes (react-native-maps), du paiement mobile et de la caméra
+Publication simultanée sur App Store (Apple) et Google Play Store
+
+3.2 Librairies et dépendances clés
+Module
+
+Librairie recommandée
+
+Usage
+
+Navigation
+
+React Navigation 6+
+
+Stack, Tab, Drawer navigation
+
+Cartographie
+
+react-native-maps + MapBox
+
+Carte interactive, markers géolocalisés
+
+Caméra & médias
+
+react-native-camera / visioncamera
+
+Photos, vidéos, signalements
+
+État global
+
+Redux Toolkit + RTK Query
+
+Gestion d'état et API calls
+
+Authentification
+
+Firebase Auth / Supabase Auth
+
+Email, phone, OAuth social
+
+Paiement
+
+Stripe + CinetPay
+
+Carte + Mobile Money (MTN, Moov,
+Flooz)
+
+Push notifications
+
+Firebase Cloud Messaging
+
+Alertes signalements, formations
+
+Stockage local
+
+AsyncStorage / MMKV
+
+Cache hors-ligne, préférences
+
+Géolocalisation
+
+react-native-geolocation-service
+
+Position utilisateur, signalement
+
+Vidéo / Feed
+
+react-native-video
+
+Lecture flux UGC
+
+i18n
+
+react-i18next
+
+Français, Anglais, langues locales
+
+Tests
+
+Jest + Detox
+
+Tests unitaires et E2E
+
+3.3 Backend & Infrastructure
+Composant
+
+Technologie
+
+Détail
+
+API Backend
+
+Node.js + NestJS
+
+REST + WebSocket, scalable
+
+Base de données
+
+PostgreSQL + PostGIS
+
+Données géospatiales natives
+
+Stockage médias
+
+AWS S3 / Cloudflare R2
+
+Photos et vidéos UGC
+
+CDN
+
+Cloudflare
+
+Performance Afrique
+
+Temps réel
+
+Socket.io
+
+Signalements live, feed
+
+Cache
+
+Redis
+
+Sessions, géo-cache
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+Hébergement
+
+AWS / Scaleway
+
+Régions Europe + Afrique
+
+CI/CD
+
+GitHub Actions + Fastlane
+
+Déploiement automatisé
+
+Monitoring
+
+Sentry + Datadog
+
+Crash reports, performances
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+4. Fonctionnalités détaillées
+4.1 Signalement citoyen (Core Feature)
+F01 — Module de signalement géolocalisé
+Description fonctionnelle
+Le module de signalement constitue le cœur fonctionnel de l'application. Il permet à tout utilisateur
+enregistré de géolocaliser et de documenter l'état d'un panneau ou d'un élément de mobilier urbain
+publicitaire.
+
+Flux utilisateur
+1.
+2.
+3.
+4.
+5.
+6.
+
+L'utilisateur ouvre l'application et se positionne sur la carte
+Il sélectionne un panneau existant ou en crée un nouveau sur la carte
+Il choisit le type de signalement (état dégradé, obsolète, dangereux, illégal, etc.)
+Il ajoute photo(s), vidéo(s) et commentaire(s)
+L'application génère un rapport synthétique horodaté et géolocalisé
+Le signalement est publié sur la carte communautaire et dans le fil de signalements
+
+Spécifications techniques
+•
+•
+•
+•
+•
+•
+•
+
+Géolocalisation GPS native avec précision ≤ 10m
+Upload photos : JPEG/PNG, max 10 Mo, compression automatique avant envoi
+Upload vidéos : MP4/MOV, max 100 Mo, 30 secondes maximum
+Génération PDF du rapport côté serveur
+Mode hors-ligne : mise en file d'attente et envoi différé à la reconnexion
+Types de statuts : Bon état / Dégradé / Obsolète / Dangereux / Illégal / En travaux
+Système de vote communautaire (confirmer / infirmer un signalement)
+
+Note opérationnelle importante
+Cette fonctionnalité est pleinement optimale avec des panneaux à affichage digital (lecture temps réel
+via géolocalisation). Dans les zones à panneaux classiques (majorité en Afrique de l'Ouest), elle reste
+fonctionnelle via signalement manuel. Il est recommandé de nouer des partenariats techniques avec
+au moins une ville équipée en panneaux digitaux dès le lancement.
+
+4.2 Cartographie interactive
+F02 — Carte du mobilier urbain publicitaire
+Description fonctionnelle
+Une carte interactive et actualisée, accessible en temps réel, répertoriant l'ensemble du mobilier urbain
+publicitaire selon différents critères de filtrage.
+
+Fonctionnalités cartographiques
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+•
+•
+•
+•
+•
+•
+•
+•
+•
+
+Affichage de tous les panneaux géolocalisés avec icônes différenciées par type
+Filtres par type : panneau classique, panneau digital, abribus, totem, etc.
+Filtres par statut : bon état, dégradé, obsolète, disponible à la location
+Fiche détaillée par panneau au clic : photos, historique, signalements, disponibilité
+Clustering automatique à faible zoom pour éviter la surcharge visuelle
+Recherche par adresse, quartier, ou zone
+Mode hors-ligne avec tuiles de carte pré-chargées
+Vue satellite et vue standard
+Heatmap des zones dégradées pour les autorités
+
+4.3 Relais publicitaire
+F03 — Inventaire et réservation d'espaces publicitaires
+Pour les régies et annonceurs
+•
+•
+•
+•
+•
+•
+
+Inventaire géolocalisé et actualisé en temps réel des espaces disponibles
+Fiche technique par espace : dimensions, type, audience estimée, photos, tarifs
+Système de réservation directement depuis l'application
+Gestion de campagnes : calendrier, plages horaires, budget
+Vérification communautaire de la présence et de l'état réel du panneau
+Tableau de bord de suivi des campagnes
+
+Pour les régies (côté gestionnaire)
+•
+•
+•
+•
+
+Interface de gestion de l'inventaire (ajout, modification, suppression de panneaux)
+Gestion des disponibilités et des réservations
+Rapports et statistiques de performance
+Accès API pour intégration avec les systèmes existants
+
+4.4 Formations en panneautique
+F04 — Plateforme de formation certifiante
+Catalogue de formations
+•
+•
+•
+•
+
+Initiation à la panneautique (concepts de base, vocabulaire, acteurs du secteur)
+Conception et normes techniques (dimensions, matériaux, normes locales et internationales)
+Installation et maintenance (procédures, sécurité, outillage)
+Réglementation et sécurité (lois locales, autorisations, responsabilités)
+
+Fonctionnalités pédagogiques
+•
+•
+•
+•
+
+Modules sous la forme de cours digitaux textes, quiz interactifs, études de cas
+Progression sauvegardée et reprise où l'utilisateur s'était arrêté
+Certificats numériques vérifiables à la fin de chaque module
+Forum de discussion par module (questions/réponses entre apprenants et formateurs)
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+•
+•
+
+Mode hors-ligne : téléchargement des cours pour consultation sans connexion
+Cours en frnaçais (v.1.0)
+
+Paiement et accès
+•
+•
+
+Paiement sécurisé : Mobile Money (MTN, Moov, Flooz), carte bancaire (Visa/Mastercard)
+après paiement complet de la formation
+Abonnements mensuels, annuels ou accès par module
+
+4.5 Conseils & assistance technique
+F05 — Module d'assistance et consultation
+
+•
+•
+•
+
+Formulaire de demande de devis (matériaux, installation, conformité)
+Audit numérique du parc de mobilier urbain pour les collectivités
+Consultation via réunion google meet ou entendu en présentiel après paiement de la
+consultation suite à l’analyse de la requête de consultation enclenché par l’utilisateur
+
+4.6 Contenu généré par les utilisateurs (UGC)
+F06 — Fil social et conscientisation citoyenne
+Description fonctionnelle
+Le cœur social de l'application. Les utilisateurs publient librement du contenu (texte, photo, vidéo,
+audio) interpellant sur les trois thématiques phares de Panotic.
+
+Les trois thématiques
+•
+•
+•
+
+Protection de l'environnement
+Besoin d'un cadre de vie sain
+Besoin d'un environnement familial approprié et convenable
+
+Fonctionnalités du fil
+•
+•
+•
+•
+•
+•
+•
+•
+
+Feed algorithmique (par thématique, popularité, géolocalisation)
+Formats supportés : texte, photo, vidéo courte (≤ 60s), audio
+Reactions, commentaires, partage (WhatsApp, Facebook, X, Instagram)
+Tagging de localisation et de thématique obligatoire à la publication
+Signalement de contenu inapproprié avec modération humaine et IA
+Contenu mis en avant : publications avec fort impact citoyen
+Notifications push pour les réponses et interactions
+Système de niveaux / badges pour encourager les contributions actives
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+5. Architecture de l'application
+5.1 Architecture générale
+L'application adopte une architecture mobile-first basée sur React Native avec un backend API REST.
+La communication se fait via HTTPS avec authentification JWT et rafraîchissement de token
+automatique.
+
+Architecture en couches : Mobile → API Gateway → Services → Base de données
+Couches techniques
+•
+•
+•
+•
+•
+•
+•
+
+Couche présentation : React Native (iOS + Android), composants réutilisables
+Couche logique métier : Redux Toolkit, services React Native
+Couche réseau : RTK Query + Axios, gestion de cache et synchronisation offline
+API Gateway : NestJS, authentification, rate limiting, logging
+Microservices : Signalement, Formation, Publicité, UGC, Notification
+Base de données : PostgreSQL + PostGIS pour les données géospatiales
+Stockage médias : AWS S3 / Cloudflare R2 + CDN Cloudflare
+
+5.2 Authentification et sécurité
+•
+•
+•
+•
+•
+
+Inscription : email/mot de passe, numéro de téléphone (SMS OTP), Google/Apple Sign-In
+Authentification à deux facteurs (2FA) par mail
+Token JWT avec expiration courte (15min) + refresh token longue durée (30 jours)
+Chiffrement des données sensibles au repos (AES-256) et en transit (TLS 1.3)
+Conformité RGPD et lois locales sur la protection des données personnelles
+Modération de contenu : algorithme IA + modérateurs humains
+
+5.3 Mode hors-ligne
+Critique pour le contexte africain où la connectivité peut être intermittente :
+•
+•
+•
+•
+
+Carte de base téléchargeable pour consultation hors-ligne
+Signalements mis en file d'attente et envoyés à la reconnexion
+Modules de formation téléchargeables pour lecture sans connexion
+Synchronisation intelligente en arrière-plan
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+6. Interfaces utilisateur & UX
+6.1 Principes de design
+•
+•
+•
+•
+•
+•
+
+Design System : composants réutilisables, thème sombre/clair
+Accessibilité : conformité WCAG 2.1 niveau AA
+Performances : temps de chargement < 3s sur réseau 3G
+Taille APK/IPA optimisée : < 30 Mo au premier téléchargement
+Police principale : Inter ou Nunito (lisibilité sur petits écrans)
+Palette : Bleu marine (confiance), Orange (action), Vert (validation)
+
+6.2 Écrans principaux
+Fonctionnalité
+
+Description
+
+Priorité
+
+Onboarding
+
+Présentation 3 slides + inscription/connexion
+
+Critique
+
+Accueil / Tableau de bord
+
+Résumé carte, signalements récents, fil UGC
+
+Critique
+
+Carte interactive
+
+Carte plein écran, filtres, fiche panneau
+
+Critique
+
+Signalement
+
+Formulaire guidé, photo/vidéo, type de problème
+
+Critique
+
+Formations
+
+Catalogue, lecteur de cours, quiz, certificats
+
+Haute
+
+Fil social UGC
+
+Feed algorithmique, publication, interactions
+
+Haute
+
+Espace publicitaire
+
+Inventaire, réservation, tableau de bord régie
+
+Haute
+
+Assistance
+
+Chat expert, FAQ pour ceux qui ont souscrit à la formation
+
+Profil utilisateur
+
+Infos, signalements, formations, badges
+
+Haute
+
+Paramètres
+
+Notifications, langue, vie privée, paiement
+
+Moyenne
+
+Tableau de bord admin
+
+Gestion contenu, modération, statistiques
+
+Haute
+
+Moyenne
+
+6.3 Gestion des rôles
+Rôle
+
+Accès et permissions
+
+Citoyen (gratuit)
+
+Signalement, carte, fil UGC, module d'initiation gratuit
+
+Professionnel
+
+Toutes fonctionnalités citoyennes + formations payantes + assistance technique
+
+Régie / Annonceur
+
+Gestion inventaire publicitaire, réservations, tableau de bord campagnes
+
+Formateur
+
+Création et gestion de modules de formation, forum apprenant
+
+Autorité locale
+
+Accès aux rapports agrégés, heatmap dégradations, export de données
+
+Super Administrateur
+
+Gestion complète de la plateforme, modération, statistiques globales
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+7. Modèle économique et monétisation
+7.1 Sources de revenus
+Fonctionnalité
+
+Description
+
+Priorité
+
+Formations payantes
+
+Vente de modules, abonnements mensuels/annuels, certifications
+
+Critique
+
+Commissions
+réservations pub
+
+5–15% sur chaque réservation d'espace publicitaire via la
+plateforme
+
+Haute
+
+Abonnement
+Professionnel
+
+Pack mensuel donnant accès à toutes les fonctionnalités
+avancées
+
+Haute
+
+Abonnement Régie
+
+Pack mensuel pour la gestion de l'inventaire et des campagnes
+
+Haute
+
+Assistance technique
+premium
+
+Conseil personnalisé, audit de parc, devis
+
+Données & rapports
+
+Vente de rapports d'état du marché aux autorités et investisseurs
+
+7.2 Intégrations de paiement prioritaires
+•
+•
+•
+•
+•
+•
+
+MTN Mobile Money (Bénin, Togo, Côte d'Ivoire, Ghana…)
+Moov Money / Flooz (Bénin, Togo)
+Celtis (exclusivement Bénin)
+Carte bancaire via Stripe (international) ou CinetPay (Afrique)
+Orange Money (extension phase 2)
+Wave (extension phase 2 — Sénégal, CI)
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+Moyenne
+Faible
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+8. Exigences non fonctionnelles
+8.1 Performance
+•
+•
+•
+•
+•
+•
+
+Temps de démarrage de l'application : < 3 secondes
+Chargement de la carte : < 4 secondes sur réseau 3G
+Chargement du fil UGC : < 2 secondes (10 premiers éléments)
+Upload d'un signalement photo : < 5 secondes sur 3G
+Disponibilité du service : 99.5% minimum (SLA)
+Capacité : 10 000 utilisateurs simultanés minimum dès le lancement
+
+8.2 Compatibilité
+•
+•
+•
+•
+•
+
+iOS : version 14.0 et supérieure (iPhone 6s et plus récents)
+Android : version 5.0 (API 26) et supérieure
+Support des tablettes (iPad, tablettes Android)
+Mode portrait et paysage
+Compatibilité RTL pour l'arabe (extensibilité future)
+
+8.3 Sécurité & conformité
+•
+•
+•
+•
+•
+•
+
+Chiffrement TLS 1.3 pour toutes les communications réseau
+Chiffrement AES-256 des données sensibles en base
+Conformité RGPD (droit à l'oubli, export de données, consentement)
+Conformité loi sur la protection des données du Bénin et du Togo
+Audit de sécurité (OWASP Mobile Top 10) avant chaque version majeure
+Pas de stockage de données bancaires côté application (tokenisation via Stripe/CinetPay)
+
+8.4 Accessibilité
+•
+•
+•
+•
+
+Support des lecteurs d'écran (VoiceOver iOS, TalkBack Android)
+Taille de police ajustable
+Contraste des couleurs conforme WCAG 2.1 AA (ratio > 4.5:1)
+Alternatives textuelles pour toutes les images
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+9. Ressources et équipe recommandée
+Fonctionnalité
+
+Description
+
+Lead Developer (React
+Native)
+
+Architecture, code review, performance, sécurité
+
+Critique
+
+Développeur React Native
+Senior
+
+Fonctionnalités mobile, intégrations API
+
+Critique
+
+Développeur Backend
+(Node.js/NestJS)
+
+API, base de données, authentification
+
+Critique
+
+Développeur Backend
+Junior
+
+Microservices, tests, documentation API
+
+Haute
+
+UI/UX Designer
+
+Design system, wireframes, tests utilisateurs
+
+Critique
+
+DevOps Engineer
+
+Infrastructure cloud, CI/CD, monitoring
+
+Haute
+
+Product Manager
+
+Roadmap, backlog, relation parties prenantes
+
+Haute
+
+QA Engineer
+
+Stratégie de tests, tests manuels et automatisés
+
+Moyenne
+
+Community Manager /
+Modérateur
+
+Animation UGC, modération de contenu
+
+Moyenne
+
+Confidentiel — © Panotic 2025
+
+Priorité
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+10. Partenariats stratégiques recommandés
+10.1 Partenariats techniques prioritaires
+•
+•
+•
+•
+
+Opérateurs mobile money : MTN Bénin, Moov Africa, Flooz, Celtis — intégration API
+paiement
+Fournisseur de cartographie : MapBox ou HERE Maps — couverture Afrique optimisée
+Opérateur de panneaux digitaux (au moins 1 ville pour valider la lecture temps réel)
+Hébergeur cloud avec présence en Afrique (Scaleway, AWS Lagos, Oracle Johannesburg)
+
+11.2 Partenariats institutionnels
+•
+•
+•
+•
+
+Mairie de Cotonou et Mairie de Lomé — validation du périmètre pilote
+Agences de communication extérieure locales — alimentation de l'inventaire publicitaire
+Écoles de formation professionnelle — co-certification des modules
+ONG environnementales — renforcement du volet social et UGC
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+12. Indicateurs de performance clés (KPIs)
+Indicateur
+Utilisateurs actifs mensuels
+
+Cible M6
+
+Cible M18
+2 000
+
+25 000
+
+Signalements soumis
+
+500 / mois
+
+5 000 / mois
+
+Formations complétées
+
+150 / mois
+
+2 000 / mois
+
+Publications UGC
+
+300 / mois
+
+8 000 / mois
+
+Espaces pub réservés via app
+
+20 / mois
+
+500 / mois
+
+Note App Store / Play Store
+
+≥ 4.0 / 5
+
+≥ 4.3 / 5
+
+Taux de rétention (J30)
+
+≥ 25%
+
+≥ 40%
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+13. Analyse des risques
+Fonctionnalité
+
+Description
+
+Connectivité intermittente
+
+Mode hors-ligne complet, compression des données, cache
+agressif
+
+Haute
+
+Adoption utilisateurs
+lente
+
+Stratégie de lancement communautaire, partenariats
+ONG/mairies
+
+Haute
+
+Fraude signalements
+
+Vérification communautaire croisée, IA détection abus
+
+Moyenne
+
+Paiement Mobile Money
+instable
+
+Multi-opérateurs, fallback carte bancaire, file d'attente paiement
+
+Haute
+
+Contenu UGC inapproprié
+
+Modération hybride IA + humain, signalement utilisateur rapide
+
+Moyenne
+
+Scalabilité rapide
+
+Architecture microservices, auto-scaling cloud, CDN
+
+Moyenne
+
+Cadre réglementaire local
+
+Veille juridique, partenariats institutionnels, conformité données
+
+Confidentiel — © Panotic 2025
+
+Priorité
+
+|
+
+Page •
+
+Faible
+
+PANOTIC — Cahier des Charges Technique v1.0 | React Native — iOS & Android
+
+15. Glossaire
+Terme
+
+Définition
+
+Panneautique
+
+Secteur d'activité lié à la conception, installation, maintenance et gestion des
+panneaux publicitaires et du mobilier urbain de publicité
+
+Mobilier urbain
+
+Ensemble des équipements installés sur la voie publique : abribus, panneaux,
+totems, kiosques, colonnes Morris, etc.
+
+UGC
+
+User Generated Content — contenu créé et publié par les utilisateurs de la
+plateforme
+
+Régie publicitaire
+
+Entreprise spécialisée dans la commercialisation d'espaces publicitaires
+
+Mobile Money
+
+Service de paiement mobile permettant des transactions financières via
+téléphone portable, très répandu en Afrique de l'Ouest
+
+PostGIS
+
+Extension géospatiale de PostgreSQL permettant le stockage et le traitement
+de données de localisation
+
+MVP
+
+Minimum Viable Product — version minimale d'une application permettant de
+valider les hypothèses fondamentales du produit
+
+React Native
+
+Framework JavaScript open-source développé par Meta permettant de créer
+des applications mobiles natives pour iOS et Android depuis un code base
+unique
+
+OTP
+
+One-Time Password — code à usage unique envoyé par SMS pour
+l'authentification
+
+CDN
+
+Content Delivery Network — réseau de serveurs distribués permettant la
+livraison rapide de contenus aux utilisateurs selon leur localisation
+géographique
+
+— Fin du Cahier des Charges Panotic v1.0 —
+
+Confidentiel — © Panotic 2025
+
+|
+
+Page •
+
+

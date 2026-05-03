@@ -1,0 +1,66 @@
+PANOTIC - RÉCAPITULATIF DES COÛTS DE LANCEMENT ET HÉBERGEMENT (ESTIMATIONS EN XOF)
+===========================================================================
+
+Rapport basé sur l'analyse du Cahier des Charges Panotic v1.0.
+Taux de conversion estimé : 1 USD = 610 XOF.
+
+1. FRAIS DE PUBLICATION (STORES) - OBLIGATOIRE
+----------------------------------------------
+- Google Play Store (Android) : 15 250 XOF (Paiement unique à vie)
+- Apple App Store (iOS)       : 60 400 XOF (Abonnement annuel)
+----------------------------------------------
+TOTAL LANCEMENT STORES : 75 650 XOF initial + 60 400 XOF/an
+
+
+2. HÉBERGEMENT INFRASTRUCTURE (AWS / SCALEWAY)
+----------------------------------------------
+Note : La plupart des services cloud offrent une offre gratuite ("Free Tier") la première année.
+
+- Serveur API (Node.js/NestJS) : ~12 200 XOF / mois
+- Base de Données (PostgreSQL/PostGIS) : ~15 000 XOF / mois (Dimensionnée pour 10k utilisateurs)
+- Stockage Médias (Amazon S3 / Cloudflare R2) : ~1 000 XOF / mois (Basé sur 20 Go de données initiales)
+- Nom de domaine (.com / .net) : ~9 200 XOF / an
+- Certificat SSL (HTTPS) : Gratuit (Via Let's Encrypt / AWS Certificate Manager)
+----------------------------------------------
+TOTAL HÉBERGEMENT (HORS FREE TIER) : ~30 000 - 40 000 XOF / mois
+
+
+3. SERVICES TIERS ET API (SELON STACK TECHNIQUE)
+------------------------------------------------
+- Cartographie (MapBox) :
+    * Jusqu'à 25 000 Utilisateurs Actifs Mensuels (MAU) : Gratuit (SDK Mobile)
+    * Au-delà : Facturation à l'usage
+- SMS OTP (Authentification Firebase/Twilio) :
+    * Estimation pour le Bénin/Togo : ~35 XOF à 50 XOF par SMS envoyé.
+    * Pour 2 000 utilisateurs (Cible M6) : ~80 000 XOF
+- Monitoring (Sentry / Datadog) : Offre gratuite suffisante pour le lancement.
+----------------------------------------------
+
+
+4. RÉCAPITULATIF FINANCIER (ESTIMATIONS)
+----------------------------------------
+
+A. COÛTS DE LANCEMENT (UNE SEULE FOIS)
+- Frais Store Android : 15 250 XOF
+- Configuration initiale & Nom de domaine : ~10 000 XOF
+- Campagne SMS initiale (Authentification) : Selon volume (~40 000 XOF pour 1000 utilisateurs)
+----------------------------------------
+ESTIMATION LANCEMENT : ~65 000 XOF
+
+
+B. COÛTS RÉCURRENTS (MENSUELS/ANNUELS)
+- Apple Developer Program : 60 400 XOF / an
+- Hébergement Cloud (Moyen terme) : ~35 000 XOF / mois
+- Frais de transaction (CinetPay/Stripe) : ~2% à 3.5% sur les paiements reçus (Pas de coût fixe)
+----------------------------------------
+ESTIMATION RÉCURRENTE : ~40 000 XOF / mois + 60 400 XOF annuel
+
+
+5. POINTS DE VIGILANCE (GROWTH)
+-------------------------------
+Si l'application atteint les 10 000 utilisateurs simultanés (KPI M18 du document) :
+- Les coûts SMS OTP peuvent devenir un poste de dépense important (~400 000 XOF au total).
+- L'infrastructure serveur devra être "scalée", augmentant le coût mensuel vers ~100 000 XOF / mois.
+- MapBox pourrait commencer à facturer si le volume de requêtes explose.
+
+========================= FIN DU RAPPORT =========================
