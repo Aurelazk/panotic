@@ -1,69 +1,58 @@
-import React, { useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import axios from 'axios';
 import * as Keychain from 'react-native-keychain';
 import { store, RootState } from './src/store';
-import { setCredentials, logout, setLoading } from './src/store/slices/authSlice';
-import { API_BASE_URL } from './src/config/api';
-import TabNavigator from './src/navigation/TabNavigator';
-import AuthNavigator from './src/navigation/AuthNavigator';
+import { setCredentials, logout } from './src/store/slices/authSlice';
+import RootNavigator from './src/navigation/RootNavigator';
+import { COLORS } from './src/constants/theme';
+import { api } from './src/api/client';
 
-function RootNavigation() {
+function AppInitializer({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch();
-  const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
+    const initializeAuth = async () => {
       try {
-        const creds = await Keychain.getGenericPassword();
-        if (cancelled) return;
-        if (creds?.password) {
-          const res = await axios.get(`${API_BASE_URL}/users/me`, {
-            headers: { Authorization: `Bearer ${creds.password}` },
-          });
-          if (!cancelled) {
-            dispatch(setCredentials({ user: res.data, token: creds.password }));
-          }
-        } else {
-          dispatch(setLoading(false));
+        const credentials = await Keychain.getGenericPassword();
+        if (credentials && credentials.password) {
+          // Attempt to fetch current user to verify token
+          const { data } = await api.get('/users/me');
+          dispatch(setCredentials({ user: data, token: credentials.password }));
         }
-      } catch {
+      } catch (error) {
+        console.log('Auth initialization failed:', error);
         await Keychain.resetGenericPassword();
-        if (!cancelled) {
-          dispatch(logout());
-        }
+        dispatch(logout());
+      } finally {
+        setIsInitializing(false);
       }
-    })();
-    return () => {
-      cancelled = true;
     };
+
+    initializeAuth();
   }, [dispatch]);
 
-  if (isLoading) {
+  if (isInitializing) {
     return (
       <View style={styles.boot}>
-        <ActivityIndicator size="large" color="#FF6600" />
+        <ActivityIndicator size="large" color={COLORS.secondary} />
       </View>
     );
   }
 
-  return (
-    <NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor="#003366" />
-      {isAuthenticated ? <TabNavigator /> : <AuthNavigator />}
-    </NavigationContainer>
-  );
+  return <>{children}</>;
 }
 
 function App() {
   return (
     <Provider store={store}>
       <SafeAreaProvider>
-        <RootNavigation />
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <AppInitializer>
+          <RootNavigator />
+        </AppInitializer>
       </SafeAreaProvider>
     </Provider>
   );
@@ -74,8 +63,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#003366',
+    backgroundColor: COLORS.primary,
   },
 });
 
 export default App;
+

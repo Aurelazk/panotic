@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { COLORS } from '../constants/theme';
 
 // Screens
 import HomeScreen from '../screens/Home/HomeScreen';
@@ -21,21 +22,27 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-          if (route.name === 'Dashboard') iconName = focused ? 'home' : 'home-outline';
+          let iconName = 'help-circle-outline';
+          if (route.name === 'Dashboard') iconName = focused ? 'grid' : 'grid-outline';
           else if (route.name === 'Carte') iconName = focused ? 'map' : 'map-outline';
-          else if (route.name === 'Social') iconName = focused ? 'newspaper' : 'newspaper-outline';
+          else if (route.name === 'Social') iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           else if (route.name === 'Formation') iconName = focused ? 'school' : 'school-outline';
           else if (route.name === 'Publicité') iconName = focused ? 'megaphone' : 'megaphone-outline';
           else if (route.name === 'Signalement') iconName = focused ? 'add-circle' : 'add-circle-outline';
-          else if (route.name === 'Profil') iconName = focused ? 'person' : 'person-outline';
+          else if (route.name === 'Profil') iconName = focused ? 'person-circle' : 'person-circle-outline';
           
           return <Icon name={iconName} size={size} color={color} />;
         },
-        tabBarActiveTintColor: '#FF6600',
-        tabBarInactiveTintColor: 'gray',
-        headerStyle: { backgroundColor: '#003366' },
-        headerTintColor: '#fff',
+        tabBarActiveTintColor: COLORS.secondary,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        tabBarStyle: {
+          borderTopWidth: 0,
+          backgroundColor: COLORS.white,
+          height: 60,
+          paddingBottom: 10,
+        },
+        headerStyle: { backgroundColor: COLORS.primary },
+        headerTintColor: COLORS.white,
         headerShown: false,
       })}
     >
@@ -45,9 +52,6 @@ const TabNavigator = () => {
       <Tab.Screen name="Formation" component={FormationNavigator} />
       <Tab.Screen name="Publicité" component={PubliciteNavigator} />
       <Tab.Screen name="Signalement" component={ReportScreen} />
-      <Tab.Screen name="Notifications" component={NotificationScreen} options={{ tabBarButton: () => null }} />
-      <Tab.Screen name="Admin" component={AdminDashboardScreen} options={{ tabBarButton: () => null }} />
-      <Tab.Screen name="Pricing" component={PricingScreen} options={{ tabBarButton: () => null }} />
       <Tab.Screen name="Profil" component={ProfileScreen} />
     </Tab.Navigator>
   );

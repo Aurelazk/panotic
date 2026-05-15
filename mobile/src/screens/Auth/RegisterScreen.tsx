@@ -2,175 +2,216 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
+  SafeAreaView,
   ScrollView,
-  ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../store/slices/authSlice';
+import { useSignupMutation } from '../../store/api/authApi';
 import * as Keychain from 'react-native-keychain';
-import { api, getApiErrorMessage } from '../../api/client';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { COLORS, SHADOWS } from '../../constants/theme';
+import CustomInput from '../../components/CustomInput';
+import CustomButton from '../../components/CustomButton';
+import SocialButtons from '../../components/SocialButtons';
+import { getApiErrorMessage } from '../../api/client';
 
 const RegisterScreen = ({ navigation }: any) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
+    fullName: '',
+    phone: '',
   });
-  const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
   const dispatch = useDispatch();
+  const [signup, { isLoading }] = useSignupMutation();
 
   const handleRegister = async () => {
-    if (!formData.email || !formData.password || !formData.confirmPassword) {
-      Alert.alert('Erreur', 'Veuillez remplir les champs obligatoires.');
+    if (!formData.email || !formData.password || !formData.fullName) {
+      Alert.alert('Champs requis', 'Veuillez remplir tous les champs obligatoires.');
       return;
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      const { data } = await api.post('/auth/signup', {
-        email: formData.email,
-        password: formData.password,
-        firstName: formData.firstName || undefined,
-        lastName: formData.lastName || undefined,
-      });
-      await Keychain.setGenericPassword(formData.email, data.access_token);
-      dispatch(setCredentials({ user: data.user, token: data.access_token }));
+      const result = await signup(formData).unwrap();
+      
+      await Keychain.setGenericPassword(formData.email, result.access_token);
+      
+      dispatch(setCredentials({ 
+        user: result.user, 
+        token: result.access_token 
+      }));
+      
+      Alert.alert('Succès', 'Votre compte a été créé avec succès !');
+      
     } catch (error) {
-      Alert.alert('Erreur', getApiErrorMessage(error, 'Inscription impossible.'));
-    } finally {
-      setSubmitting(false);
+      const message = getApiErrorMessage(error, 'Une erreur est survenue lors de l\'inscription.');
+      Alert.alert('Erreur', message);
     }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.logo}>PANOTIC</Text>
-      <Text style={styles.subtitle}>Créez votre compte citoyen</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <View style={styles.iconCircle}>
+              <Icon name="account-plus-outline" size={36} color={COLORS.primary} />
+            </View>
+          </View>
+          <Text style={styles.title}>PANOTIC</Text>
+          <Text style={styles.tagline}>Rejoignez la révolution urbaine</Text>
+        </View>
 
-      <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nom"
-          value={formData.lastName}
-          onChangeText={(text) => setFormData({ ...formData, lastName: text })}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Prénom"
-          value={formData.firstName}
-          onChangeText={(text) => setFormData({ ...formData, firstName: text })}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={formData.email}
-          onChangeText={(text) => setFormData({ ...formData, email: text })}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Mot de passe"
-          value={formData.password}
-          onChangeText={(text) => setFormData({ ...formData, password: text })}
-          secureTextEntry
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmer le mot de passe"
-          value={formData.confirmPassword}
-          onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
-          secureTextEntry
-        />
+        <View style={styles.card}>
+          <Text style={styles.welcomeText}>Créer un compte</Text>
+          <Text style={styles.subtitle}>Devenez un acteur du changement dans votre ville.</Text>
 
-        <TouchableOpacity
-          style={[styles.button, submitting && styles.buttonDisabled]}
-          onPress={handleRegister}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>S'inscrire</Text>
-          )}
-        </TouchableOpacity>
+          <CustomInput
+            icon="account-outline"
+            placeholder="Nom complet"
+            value={formData.fullName}
+            onChangeText={(text) => setFormData({ ...formData, fullName: text })}
+          />
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-          <Text style={styles.link}>Déjà un compte ? Se connecter</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <CustomInput
+            icon="email-outline"
+            placeholder="Adresse email"
+            value={formData.email}
+            onChangeText={(text) => setFormData({ ...formData, email: text })}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <CustomInput
+            icon="phone-outline"
+            placeholder="+229 90 00 00 00"
+            value={formData.phone}
+            onChangeText={(text) => setFormData({ ...formData, phone: text })}
+            keyboardType="phone-pad"
+          />
+
+          <CustomInput
+            icon="lock-outline"
+            placeholder="Mot de passe"
+            value={formData.password}
+            onChangeText={(text) => setFormData({ ...formData, password: text })}
+            secureTextEntry
+            showPasswordToggle
+            isPasswordVisible={showPassword}
+            onPasswordToggle={() => setShowPassword(!showPassword)}
+          />
+
+          <CustomButton
+            title="S'inscrire"
+            onPress={handleRegister}
+            loading={isLoading}
+          />
+
+          <SocialButtons />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Déjà un compte ? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.loginText}>Se connecter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#003366',
+    backgroundColor: COLORS.background,
   },
-  content: {
-    padding: 30,
-    paddingTop: 80,
-    paddingBottom: 50,
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
-  logo: {
-    fontSize: 32,
+  header: {
+    alignItems: 'center',
+    marginTop: 60,
+    marginBottom: 40,
+  },
+  logoContainer: {
+    marginBottom: 15,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(123, 97, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  pinOverlay: {
+    position: 'absolute',
+    bottom: 22,
+    right: 22,
+    backgroundColor: 'transparent',
+  },
+  tagline: {
+    fontSize: 12,
+    color: COLORS.secondary,
+    fontWeight: '600',
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  title: {
+    fontSize: 28,
     fontWeight: '900',
-    color: '#fff',
+    color: COLORS.primary,
+    letterSpacing: 2,
+    marginTop: 8,
+  },
+  card: {
+    backgroundColor: COLORS.white,
+    borderRadius: 30,
+    padding: 30,
+    ...SHADOWS.medium,
+  },
+  welcomeText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.text,
     textAlign: 'center',
-    letterSpacing: 4,
+    marginBottom: 8,
   },
   subtitle: {
-    color: '#FF6600',
-    textAlign: 'center',
-    marginBottom: 40,
     fontSize: 14,
-    fontWeight: '600',
-  },
-  form: {
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 25,
-  },
-  input: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    marginBottom: 15,
-    paddingVertical: 8,
-    fontSize: 16,
-  },
-  button: {
-    backgroundColor: '#FF6600',
-    paddingVertical: 15,
-    borderRadius: 8,
-    marginTop: 20,
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#fff',
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
+    marginBottom: 30,
   },
-  link: {
-    color: '#003366',
-    textAlign: 'center',
-    marginTop: 20,
-    fontWeight: '600',
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 25,
+  },
+  footerText: {
+    color: COLORS.textSecondary,
+    fontSize: 14,
+  },
+  loginText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 
 export default RegisterScreen;
+

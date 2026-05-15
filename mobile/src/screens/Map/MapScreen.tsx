@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   Image,
@@ -10,7 +9,6 @@ import {
   PermissionsAndroid,
   Platform,
   ActivityIndicator,
-  Animated,
   TextInput,
   Modal,
 } from 'react-native';
@@ -21,37 +19,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Geolocation from 'react-native-geolocation-service';
 
-const LAYERS = [
-  { id: 'signalements', label: 'Signalements', icon: 'alert-circle-outline' },
-  { id: 'panels', label: 'Panneaux', icon: 'easel-outline' },
-  { id: 'zones', label: 'Zones', icon: 'map-outline' },
-  { id: 'heatmap', label: 'Chaleur', icon: 'flame-outline' },
-];
-
-const PANEL_TYPES = [
-  { label: 'Tous Types', value: 'tous', icon: 'apps-outline' },
-  { label: 'Grand Format', value: 'grand_format', icon: 'tablet-landscape-outline' },
-  { label: 'Mobilier Urbain', value: 'mobilier_urbain', icon: 'library-outline' },
-  { label: 'Petit Format', value: 'petit_format', icon: 'browsers-outline' },
-  { label: 'Enseigne', value: 'enseigne', icon: 'megaphone-outline' },
-];
-
-const PANEL_STATUSES = [
-  { label: 'Tous États', value: 'tous' },
-  { label: 'Bon État', value: 'bon', color: '#4CAF50' },
-  { label: 'Dégradé', value: 'degrade', color: '#FFC107' },
-  { label: 'À Remplacer', value: 'a_remplacer', color: '#F44336' },
-];
-
-const SIGNALEMENT_FILTERS = [
-  { label: 'Tous', value: 'tous' },
-  { label: 'Bon État', value: 'bon_etat', color: '#4CAF50' },
-  { label: 'Dégradé', value: 'degrade', color: '#FFA500' },
-  { label: 'Obsolète', value: 'obsolete', color: '#808080' },
-  { label: 'Dangereux', value: 'dangereux', color: '#FF0000' },
-  { label: 'Illégal', value: 'illegal', color: '#800080' },
-  { label: 'En Travaux', value: 'travaux', color: '#2196F3' },
-];
+import { COLORS } from '../../constants/theme';
+import { LAYERS, PANEL_TYPES, PANEL_STATUSES, SIGNALEMENT_FILTERS } from './MapConstants';
+import { styles } from './MapStyles';
 
 const MapScreen = () => {
   const mapRef = useRef<MapView>(null);
@@ -77,35 +47,55 @@ const MapScreen = () => {
   }, []);
 
   const requestPermission = async () => {
-    if (Platform.OS === 'android') {
-      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
-    } else {
-      await Geolocation.requestAuthorization('whenInUse');
+    try {
+      if (Platform.OS === 'android') {
+        await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION);
+      } else {
+        await Geolocation.requestAuthorization('whenInUse');
+      }
+    } catch (e) {
+      console.warn('Permission error', e);
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      if (activeLayer === 'signalements') {
-        const res = await api.get(`/signalements?type=${sigFilter}`);
-        setSignalements(res.data);
-      } else if (activeLayer === 'panels') {
-        const res = await api.get(`/mapping/panels?type=${panelTypeFilter}&etat=${panelStatusFilter}`);
-        setPanels(res.data);
-      } else if (activeLayer === 'zones') {
-        const res = await api.get('/mapping/zones');
-        setZones(res.data);
-      } else if (activeLayer === 'heatmap') {
-        const res = await api.get('/signalements/heatmap');
-        setHeatmapData(res.data);
+      let endpoint = '';
+      switch (activeLayer) {
+        case 'signalements':
+          endpoint = `/signalements?type=${sigFilter}`;
+          break;
+        case 'panels':
+          endpoint = `/mapping/panels?type=${panelTypeFilter}&etat=${panelStatusFilter}`;
+          break;
+        case 'zones':
+          endpoint = '/mapping/zones';
+          break;
+        case 'heatmap':
+          endpoint = '/signalements/heatmap';
+          break;
+      }
+
+      if (endpoint) {
+        const { data } = await api.get(endpoint);
+        if (activeLayer === 'signalements') setSignalements(data);
+        if (activeLayer === 'panels') setPanels(data);
+        if (activeLayer === 'zones') setZones(data);
+        if (activeLayer === 'heatmap') setHeatmapData(data);
       }
     } catch (error) {
       console.error('Fetch error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeLayer, sigFilter, panelTypeFilter, panelStatusFilter]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
 
   const performSearch = async () => {
     if (searchQuery.length < 2) {
@@ -114,8 +104,8 @@ const MapScreen = () => {
     }
     setLoading(true);
     try {
-      const res = await api.get(`/mapping/search?q=${searchQuery}`);
-      setSearchResults(res.data);
+      const { data } = await api.get(`/mapping/search?q=${searchQuery}`);
+      setSearchResults(data);
     } catch (e) {
       console.error('Search error', e);
     } finally {
@@ -124,23 +114,15 @@ const MapScreen = () => {
   };
 
   const centerOnCoordinate = (lat: number, lng: number) => {
-    if (mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: lat,
-        longitude: lng,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      }, 1000);
-    }
+    mapRef.current?.animateToRegion({
+      latitude: lat,
+      longitude: lng,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    }, 1000);
     setSearchResults(null);
     setSearchQuery('');
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchData();
-    }, [activeLayer, sigFilter, panelTypeFilter, panelStatusFilter])
-  );
 
   const centerOnUser = () => {
     Geolocation.getCurrentPosition(
@@ -158,20 +140,14 @@ const MapScreen = () => {
     );
   };
 
-  const getSignalementColor = (type: string) => {
-    const found = SIGNALEMENT_FILTERS.find((t) => t.value === type);
-    return found ? found.color : '#003366';
-  };
+  const getSignalementColor = (type: string) => 
+    SIGNALEMENT_FILTERS.find((t) => t.value === type)?.color || COLORS.primary;
 
-  const getPanelIcon = (type: string) => {
-    const found = PANEL_TYPES.find((t) => t.value === type);
-    return found ? found.icon : 'radio-button-on-outline';
-  };
+  const getPanelIcon = (type: string) => 
+    PANEL_TYPES.find((t) => t.value === type)?.icon || 'radio-button-on-outline';
 
-  const getPanelColor = (etat: string) => {
-    const found = PANEL_STATUSES.find((s) => s.value === etat);
-    return found ? found.color : '#003366';
-  };
+  const getPanelColor = (etat: string) => 
+    PANEL_STATUSES.find((s) => s.value === etat)?.color || COLORS.primary;
 
   const getZoneColor = (type: string) => {
     switch (type) {
@@ -188,9 +164,10 @@ const MapScreen = () => {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
-          <Icon name="search-outline" size={20} color="#666" />
+          <Icon name="search-outline" size={20} color={COLORS.placeholder} />
           <TextInput
-            placeholder="Rechercher panneaus, zones..."
+            placeholder="Rechercher panneaux, zones..."
+            placeholderTextColor={COLORS.placeholder}
             style={styles.searchInput}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -199,7 +176,7 @@ const MapScreen = () => {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => { setSearchQuery(''); setSearchResults(null); }}>
-              <Icon name="close-circle" size={20} color="#999" />
+              <Icon name="close-circle" size={20} color={COLORS.placeholder} />
             </TouchableOpacity>
           )}
         </View>
@@ -207,18 +184,18 @@ const MapScreen = () => {
           <ScrollView style={styles.searchResults}>
             {searchResults.panels.map((p, i) => (
               <TouchableOpacity key={`p-${i}`} style={styles.searchResultItem} onPress={() => centerOnCoordinate(p.location.coordinates[1], p.location.coordinates[0])}>
-                <Icon name="easel" size={16} color="#003366" />
+                <Icon name="easel" size={16} color={COLORS.primary} />
                 <Text style={styles.searchResultText}>Panneau {p.type.replace('_', ' ')} - {p.format}</Text>
               </TouchableOpacity>
             ))}
             {searchResults.zones.map((z, i) => (
               <TouchableOpacity key={`z-${i}`} style={styles.searchResultItem} onPress={() => centerOnCoordinate(z.boundary.coordinates[0][0][1], z.boundary.coordinates[0][0][0])}>
-                <Icon name="map" size={16} color="#2196F3" />
+                <Icon name="map" size={16} color={COLORS.secondary} />
                 <Text style={styles.searchResultText}>{z.name}</Text>
               </TouchableOpacity>
             ))}
             {searchResults.panels.length === 0 && searchResults.zones.length === 0 && (
-              <Text style={{padding: 10, color: '#666', textAlign: 'center'}}>Aucun résultat</Text>
+              <Text style={{padding: 10, color: COLORS.textSecondary, textAlign: 'center'}}>Aucun résultat</Text>
             )}
           </ScrollView>
         )}
@@ -233,7 +210,7 @@ const MapScreen = () => {
               onPress={() => setActiveLayer(l.id)}
               style={[styles.layerTab, activeLayer === l.id && styles.activeTab]}
             >
-              <Icon name={l.icon} size={18} color={activeLayer === l.id ? '#fff' : '#666'} />
+              <Icon name={l.icon} size={18} color={activeLayer === l.id ? '#fff' : COLORS.textSecondary} />
               <Text style={[styles.tabText, activeLayer === l.id && styles.activeTabText]}>{l.label}</Text>
             </TouchableOpacity>
           ))}
@@ -244,10 +221,10 @@ const MapScreen = () => {
             style={styles.optionBtn} 
             onPress={() => setMapType(mapType === 'standard' ? 'satellite' : 'standard')}
           >
-            <Icon name={mapType === 'standard' ? 'map-outline' : 'earth-outline'} size={24} color="#003366" />
+            <Icon name={mapType === 'standard' ? 'map-outline' : 'earth-outline'} size={24} color={COLORS.primary} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.optionBtn} onPress={centerOnUser}>
-            <Icon name="locate-outline" size={24} color="#FF6600" />
+            <Icon name="locate-outline" size={24} color={COLORS.secondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -257,7 +234,7 @@ const MapScreen = () => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         mapType={mapType}
-        clusterColor="#003366"
+        clusterColor={COLORS.primary}
         initialRegion={{
           latitude: 6.3653,
           longitude: 2.4183,
@@ -336,10 +313,6 @@ const MapScreen = () => {
                     <Icon name="business-outline" size={14} color="#666" />
                     <Text style={styles.infoText}>Régime: {item.regime.toUpperCase()}</Text>
                   </View>
-                  <View style={styles.infoRow}>
-                    <Icon name="bulb-outline" size={14} color={item.estEclaire ? '#FFC107' : '#ccc'} />
-                    <Text style={styles.infoText}>{item.estEclaire ? 'Éclairé' : 'Non éclairé'}</Text>
-                  </View>
                 </View>
               </View>
             </Callout>
@@ -358,14 +331,14 @@ const MapScreen = () => {
             strokeColor="rgba(0,0,0,0.5)"
             strokeWidth={1}
             tappable
-            onPress={() => Alert.alert('Zone Info', `${item.name}\nType: ${item.type}\nFacteur Tarif: x${item.tariffFactor}`)}
+            onPress={() => Alert.alert('Zone Info', `${item.name}\nType: ${item.type}`)}
           />
         ))}
       </MapView>
 
       {/* Bottom Filters */}
       <View style={styles.bottomControls}>
-        {loading && <ActivityIndicator size="small" color="#FF6600" style={{ marginBottom: 10 }} />}
+        {loading && <ActivityIndicator size="small" color={COLORS.secondary} style={{ marginBottom: 10 }} />}
         
         {activeLayer === 'signalements' && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
@@ -375,7 +348,7 @@ const MapScreen = () => {
                 onPress={() => setSigFilter(t.value)}
                 style={[
                   styles.filterChip,
-                  sigFilter === t.value && { backgroundColor: t.color || '#003366' },
+                  sigFilter === t.value && { backgroundColor: t.color || COLORS.primary },
                 ]}
               >
                 <Text style={[styles.filterText, sigFilter === t.value && { color: '#fff' }]}>{t.label}</Text>
@@ -396,7 +369,7 @@ const MapScreen = () => {
                     panelTypeFilter === t.value && styles.activePanelFilter,
                   ]}
                 >
-                  <Icon name={t.icon} size={14} color={panelTypeFilter === t.value ? '#fff' : '#666'} />
+                  <Icon name={t.icon} size={14} color={panelTypeFilter === t.value ? '#fff' : COLORS.textSecondary} />
                   <Text style={[styles.filterText, { marginLeft: 5 }, panelTypeFilter === t.value && { color: '#fff' }]}>{t.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -408,7 +381,7 @@ const MapScreen = () => {
                   onPress={() => setPanelStatusFilter(s.value)}
                   style={[
                     styles.statusChip,
-                    panelStatusFilter === s.value && { backgroundColor: s.color || '#003366', borderColor: s.color || '#003366' },
+                    panelStatusFilter === s.value && { backgroundColor: s.color || COLORS.primary, borderColor: s.color || COLORS.primary },
                   ]}
                 >
                   <View style={[styles.statusDot, { backgroundColor: s.color || '#ccc' }]} />
@@ -419,7 +392,7 @@ const MapScreen = () => {
           </View>
         )}
       </View>
-    </View>
+
       <Modal visible={!!selectedPanel} animationType="slide" transparent>
         <View style={styles.modalBg}>
           <View style={styles.modalContent}>
@@ -427,7 +400,7 @@ const MapScreen = () => {
               <Icon name="close" size={24} color="#333" />
             </TouchableOpacity>
             {selectedPanel && (
-              <>
+              <ScrollView showsVerticalScrollIndicator={false}>
                 <Text style={styles.modalTitle}>Détails du Panneau</Text>
                 <Image source={{ uri: 'https://via.placeholder.com/300x150.png?text=Photo+du+Panneau' }} style={styles.modalImage} />
                 <View style={styles.infoRow}><Text style={styles.boldText}>Type:</Text><Text> {selectedPanel.type.replace('_',' ')}</Text></View>
@@ -437,7 +410,7 @@ const MapScreen = () => {
                 <TouchableOpacity style={styles.modalBtn} onPress={() => { Alert.alert('Réservation', 'Demande envoyée.'); setSelectedPanel(null); }}>
                   <Text style={styles.modalBtnText}>Réserver / Signaler</Text>
                 </TouchableOpacity>
-              </>
+              </ScrollView>
             )}
           </View>
         </View>
@@ -445,288 +418,5 @@ const MapScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  topControls: {
-    position: 'absolute',
-    top: 120,
-    left: 15,
-    right: 15,
-    zIndex: 10,
-  },
-  layerTabs: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 15,
-    padding: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  layerTab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  activeTab: {
-    backgroundColor: '#003366',
-  },
-  tabText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#666',
-    marginLeft: 6,
-  },
-  activeTabText: {
-    color: '#fff',
-  },
-  searchContainer: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 20,
-    left: 15,
-    right: 15,
-    zIndex: 20,
-  },
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    height: 48,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 15,
-    color: '#333',
-  },
-  searchResults: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginTop: 5,
-    maxHeight: 200,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  searchResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  searchResultText: {
-    marginLeft: 10,
-    fontSize: 14,
-    color: '#333',
-  },
-  modalBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    minHeight: 350,
-  },
-  modalClose: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    zIndex: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#003366',
-  },
-  modalImage: {
-    width: '100%',
-    height: 150,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  boldText: {
-    fontWeight: 'bold',
-    width: 70,
-  },
-  modalBtn: {
-    backgroundColor: '#FF6600',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  modalBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  mapOptions: {
-    position: 'absolute',
-    top: 60,
-    right: 0,
-    alignItems: 'center',
-  },
-  optionBtn: {
-    backgroundColor: '#fff',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  bottomControls: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-  },
-  filterScroll: {
-    paddingHorizontal: 15,
-  },
-  filterChip: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginRight: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 5,
-  },
-  statusChip: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#eee',
-    elevation: 2,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  activePanelFilter: {
-    backgroundColor: '#FF6600',
-  },
-  filterText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#333',
-  },
-  customMarker: {
-    padding: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#fff',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-  },
-  panelMarker: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    padding: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-  },
-  panelIconBg: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  calloutCard: {
-    width: 220,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  calloutHeader: {
-    padding: 8,
-    alignItems: 'center',
-  },
-  calloutTitle: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  calloutBody: {
-    padding: 12,
-  },
-  calloutDesc: {
-    fontSize: 13,
-    color: '#444',
-    marginBottom: 10,
-    lineHeight: 18,
-  },
-  calloutImage: {
-    width: '100%',
-    height: 100,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  calloutDate: {
-    fontSize: 11,
-    color: '#999',
-    textAlign: 'right',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#555',
-    marginLeft: 8,
-    fontWeight: '500',
-  },
-});
 
 export default MapScreen;
