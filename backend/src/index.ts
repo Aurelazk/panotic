@@ -10,6 +10,7 @@ import mappingRoutes from './routes/mapping.routes';
 import notificationsRoutes from './routes/notifications.routes';
 import publiciteRoutes from './routes/publicite.routes';
 import paymentsRoutes from './routes/payments.routes';
+import crowdsourcingRoutes from './routes/crowdsourcing.routes';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ app.use('/mapping', mappingRoutes);
 app.use('/notifications', notificationsRoutes);
 app.use('/publicite', publiciteRoutes);
 app.use('/payments', paymentsRoutes);
+app.use('/api/crowdsourcing', crowdsourcingRoutes);
 
 // Middleware for logging
 app.use((req: Request, res: Response, next: NextFunction) => {

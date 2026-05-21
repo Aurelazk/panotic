@@ -12,7 +12,7 @@ import {
   TextInput,
   Modal,
 } from 'react-native';
-import { Marker, Callout, Polygon, PROVIDER_GOOGLE, Region, Heatmap } from 'react-native-maps';
+import { Marker, Callout, Polygon, Region, Heatmap, UrlTile } from 'react-native-maps';
 import MapView from 'react-native-map-clustering';
 import { api } from '../../api/client';
 import { useFocusEffect } from '@react-navigation/native';
@@ -231,9 +231,8 @@ const MapScreen = () => {
 
       <MapView
         ref={mapRef}
-        provider={PROVIDER_GOOGLE}
         style={styles.map}
-        mapType={mapType}
+        mapType={mapType === 'standard' ? (Platform.OS === 'android' ? 'none' : 'standard') : mapType}
         clusterColor={COLORS.primary}
         initialRegion={{
           latitude: 6.3653,
@@ -242,6 +241,13 @@ const MapScreen = () => {
           longitudeDelta: 0.05,
         }}
       >
+        {mapType === 'standard' && (
+          <UrlTile
+            urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            maximumZ={19}
+            tileSize={256}
+          />
+        )}
         {/* Heatmap Layer */}
         {activeLayer === 'heatmap' && heatmapData.length > 0 && (
           <Heatmap

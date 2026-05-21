@@ -7,13 +7,15 @@ export const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: -1,
   },
   topControls: {
     position: 'absolute',
     top: 120,
     left: 15,
     right: 15,
-    zIndex: 10,
+    zIndex: 100,
+    elevation: 10,
   },
   layerTabs: {
     flexDirection: 'row',
@@ -47,7 +49,8 @@ export const styles = StyleSheet.create({
     top: Platform.OS === 'ios' ? 50 : 20,
     left: 15,
     right: 15,
-    zIndex: 20,
+    zIndex: 200,
+    elevation: 20,
   },
   searchBox: {
     flexDirection: 'row',
@@ -150,7 +153,8 @@ export const styles = StyleSheet.create({
     bottom: 40,
     left: 0,
     right: 0,
-    zIndex: 10,
+    zIndex: 100,
+    elevation: 10,
   },
   filterScroll: {
     paddingHorizontal: 15,
