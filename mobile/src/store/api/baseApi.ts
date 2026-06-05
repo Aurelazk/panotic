@@ -10,7 +10,7 @@ const DEV_HOST = Platform.select({
 
 const BASE_URL = __DEV__
   ? `http://${DEV_HOST}:3000`
-  : 'https://api.panotic.app';
+  : 'https://panotic.onrender.com';
 
 export const baseApi = createApi({
   reducerPath: 'api',
