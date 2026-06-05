@@ -1,9 +1,0 @@
-node_modules
-mobile
-docs
-.git
-.gitignore
-.gitattributes
-*.md
-*.apk
-*.aab
