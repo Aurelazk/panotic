@@ -29,7 +29,7 @@ export const getPosts = async (req: Request, res: Response) => {
     const { page = 1, limit = 10, sortBy = 'recent', theme } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const where = theme ? { theme: theme as string } : {};
+    const where: any = theme ? { theme: theme as string } : {};
     
     const [posts, total] = await prisma.$transaction([
       prisma.post.findMany({

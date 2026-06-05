@@ -58,7 +58,7 @@ export const getSignalements = async (req: Request, res: Response) => {
 
 export const getSignalementById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const signalement = await prisma.signalement.findUnique({
       where: { id },
       include: { author: true },
@@ -82,7 +82,7 @@ export const getSignalementById = async (req: Request, res: Response) => {
 
 export const voteSignalement = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const signalement = await prisma.signalement.update({
       where: { id },
       data: { votesCount: { increment: 1 } },

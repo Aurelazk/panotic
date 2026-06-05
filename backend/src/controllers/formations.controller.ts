@@ -18,7 +18,7 @@ export const getFormations = async (req: Request, res: Response) => {
 
 export const getFormationById = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const userId = req.user?.id;
 
     const formation = await prisma.formation.findUnique({
@@ -39,7 +39,7 @@ export const getFormationById = async (req: AuthRequest, res: Response) => {
 
 export const enrollInFormation = async (req: AuthRequest, res: Response) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params as { id: string };
     const userId = req.user?.id;
 
     if (!userId) return res.sendStatus(401);
