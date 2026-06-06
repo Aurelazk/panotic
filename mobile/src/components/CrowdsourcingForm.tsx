@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import { launchCamera, MediaType, PhotoQuality } from 'react-native-image-picker';
+import { API_BASE_URL } from '../config/api';
 
 interface CrowdsourcingFormProps {
   userId: number; // passed down from auth context or parent
@@ -111,8 +112,7 @@ export const CrowdsourcingForm: React.FC<CrowdsourcingFormProps> = ({ userId }) 
           formData.append('longitude', String(longitude));
           formData.append('photo', photoFile as any);
 
-          // Change this URL to match your backend's actual network IP address
-          const apiUrl = 'http://10.0.2.2:3000/api/crowdsourcing/submit'; 
+          const apiUrl = `${API_BASE_URL}/api/crowdsourcing/submit`; 
           
           const response = await fetch(apiUrl, {
             method: 'POST',
