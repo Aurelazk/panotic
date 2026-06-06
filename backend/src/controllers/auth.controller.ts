@@ -5,7 +5,20 @@ import { prisma } from '../index';
 
 export const signup = async (req: Request, res: Response) => {
   try {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, fullName, firstName, lastName, phone } = req.body;
+
+    // Accepte fullName (mobile) ou firstName+lastName (autres clients)
+    let first = firstName;
+    let last = lastName;
+    if (fullName && !firstName) {
+      const parts = fullName.trim().split(' ');
+      first = parts[0] || fullName;
+      last = parts.slice(1).join(' ') || '';
+    }
+
+    if (!email || !password || (!fullName && !firstName)) {
+      return res.status(400).json({ error: 'Email, mot de passe et nom sont requis' });
+    }
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -17,20 +30,22 @@ export const signup = async (req: Request, res: Response) => {
       data: {
         email,
         password: hashedPassword,
-        firstName,
-        lastName,
+        firstName: first,
+        lastName: last,
+        ...(phone ? { phone } : {}),
       },
     });
 
-    const token = jwt.sign(
+    const access_token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET as string,
       { expiresIn: '30d' }
     );
 
     const { password: _, ...userWithoutPassword } = user;
-    res.status(201).json({ user: userWithoutPassword, token });
+    res.status(201).json({ user: userWithoutPassword, access_token });
   } catch (error) {
+    console.error('Signup error:', error);
     res.status(500).json({ error: 'Erreur lors de l\'inscription' });
   }
 };
@@ -49,15 +64,16 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Identifiants invalides' });
     }
 
-    const token = jwt.sign(
+    const access_token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET as string,
       { expiresIn: '30d' }
     );
 
     const { password: _, ...userWithoutPassword } = user;
-    res.json({ user: userWithoutPassword, token });
+    res.json({ user: userWithoutPassword, access_token });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Erreur lors de la connexion' });
   }
 };
