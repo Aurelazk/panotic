@@ -1,19 +1,643 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
 const router = express.Router();
 
-// Authentification & Profil
-// TODO: implémenter les routes
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-router.post('/auth/register', (req, res) => {
-  res.json({ message: 'Register - W-D' });
+const ROLES = Object.freeze({
+  CITOYEN: 'CITOYEN',
+  PROFESSIONNEL: 'PROFESSIONNEL',
+  REGIE: 'REGIE',
+  FORMATEUR: 'FORMATEUR',
+  AUTORITE: 'AUTORITE',
+  ADMIN: 'ADMIN',
 });
 
-router.post('/auth/login', (req, res) => {
-  res.json({ message: 'Login - W-D' });
+const SUBSCRIPTIONS = Object.freeze({
+  FREE: 'FREE',
+  PREMIUM: 'PREMIUM',
+  PROFESSIONAL: 'PROFESSIONAL',
+  ENTERPRISE: 'ENTERPRISE',
 });
 
-router.get('/profile', (req, res) => {
-  res.json({ message: 'Profile - W-D' });
+const BCRYPT_ROUNDS = 12;
+const ACCESS_TOKEN_EXPIRY = '15m';
+const REFRESH_TOKEN_EXPIRY = '7d';
+const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;    // 1h
+
+const ACCESS_SECRET = process.env.AANID_ACCESS_SECRET;
+const REFRESH_SECRET = process.env.AANID_REFRESH_SECRET;
+
+if (!ACCESS_SECRET || !REFRESH_SECRET) {
+  console.error('[AANID] FATAL: AANID_ACCESS_SECRET and AANID_REFRESH_SECRET must be set in environment');
+  if (process.env.NODE_ENV === 'production') process.exit(1);
+}
+
+// Fallback only for development — never ship with these
+const _ACCESS_SECRET = ACCESS_SECRET || 'dev-only-access-secret-CHANGE-ME';
+const _REFRESH_SECRET = REFRESH_SECRET || 'dev-only-refresh-secret-CHANGE-ME';
+
+// ─── In-memory stores ─────────────────────────────────────────────────────────
+// Replace with Prisma/PostgreSQL in production
+
+/** @type {Map<string, object>} email → user */
+const users = new Map();
+
+/** @type {Set<string>} valid refresh tokens */
+const refreshTokens = new Set();
+
+/** @type {Map<string, { email: string, expiresAt: number }>} */
+const verificationTokens = new Map();
+
+/** @type {Map<string, { email: string, expiresAt: number }>} */
+const passwordResetTokens = new Map();
+
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// Replace with express-rate-limit + Redis in production
+
+/** @type {Map<string, { count: number, resetAt: number }>} */
+const rateLimitStore = new Map();
+
+function checkRateLimit(key, maxAttempts, windowMs) {
+  const now = Date.now();
+  const record = rateLimitStore.get(key);
+
+  if (!record || now > record.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+  if (record.count >= maxAttempts) return false;
+  record.count++;
+  return true;
+}
+
+function resetRateLimit(key) {
+  rateLimitStore.delete(key);
+}
+
+// Purge expired rate limit records every hour
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, record] of rateLimitStore) {
+    if (now > record.resetAt) rateLimitStore.delete(key);
+  }
+}, 60 * 60 * 1000);
+
+// ─── Validation ───────────────────────────────────────────────────────────────
+
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,253}\.[^\s@]{2,}$/;
+// Min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,128}$/;
+
+function validateEmail(email) {
+  return typeof email === 'string' && EMAIL_RE.test(email.trim());
+}
+
+function validatePassword(password) {
+  return typeof password === 'string' && PASSWORD_RE.test(password);
+}
+
+function validateFullName(name) {
+  return typeof name === 'string' && name.trim().length >= 2 && name.trim().length <= 100;
+}
+
+function normalizeEmail(email) {
+  return email.trim().toLowerCase();
+}
+
+// ─── Token helpers ────────────────────────────────────────────────────────────
+
+function generateAccessToken(user) {
+  return jwt.sign(
+    {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      subscription: user.subscription,
+    },
+    _ACCESS_SECRET,
+    { expiresIn: ACCESS_TOKEN_EXPIRY, issuer: 'aanid', audience: 'aanid-app' }
+  );
+}
+
+function generateRefreshToken(userId) {
+  const token = jwt.sign(
+    { sub: userId },
+    _REFRESH_SECRET,
+    { expiresIn: REFRESH_TOKEN_EXPIRY, issuer: 'aanid', audience: 'aanid-app' }
+  );
+  refreshTokens.add(token);
+  return token;
+}
+
+function generateOpaqueToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+// ─── Auth middleware ──────────────────────────────────────────────────────────
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token d\'accès manquant' });
+  }
+
+  const token = authHeader.slice(7);
+  try {
+    const payload = jwt.verify(token, _ACCESS_SECRET, {
+      issuer: 'aanid',
+      audience: 'aanid-app',
+    });
+    req.user = payload;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Token invalide ou expiré' });
+  }
+}
+
+function authorizeRoles(...roles) {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès refusé : droits insuffisants' });
+    }
+    next();
+  };
+}
+
+// ─── Helper: strip sensitive fields ──────────────────────────────────────────
+
+function safeUser(user) {
+  const { passwordHash, ...rest } = user;
+  return rest;
+}
+
+// ─── Helper: get client IP ────────────────────────────────────────────────────
+
+function clientIp(req) {
+  return (
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    req.socket?.remoteAddress ||
+    'unknown'
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTES — Authentification
+// ─────────────────────────────────────────────────────────────────────────────
+
+// POST /auth/register
+router.post('/auth/register', async (req, res) => {
+  try {
+    const { fullName, email, password, role } = req.body ?? {};
+
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ error: 'fullName, email et password sont requis' });
+    }
+
+    if (!validateFullName(fullName)) {
+      return res.status(400).json({ error: 'Le nom complet doit contenir entre 2 et 100 caractères' });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+    if (!validateEmail(normalizedEmail)) {
+      return res.status(400).json({ error: 'Adresse email invalide' });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({
+        error: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&-_#)',
+      });
+    }
+
+    const assignedRole =
+      role && Object.values(ROLES).includes(role) && role !== ROLES.ADMIN
+        ? role
+        : ROLES.CITOYEN;
+
+    if (users.has(normalizedEmail)) {
+      // Generic delay to prevent email enumeration via timing
+      await bcrypt.hash(password, BCRYPT_ROUNDS);
+      return res.status(409).json({ error: 'Cet email est déjà utilisé' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    const userId = crypto.randomUUID();
+    const verificationToken = generateOpaqueToken();
+
+    const user = {
+      id: userId,
+      fullName: fullName.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      role: assignedRole,
+      subscription: SUBSCRIPTIONS.FREE,
+      emailVerified: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    users.set(normalizedEmail, user);
+    verificationTokens.set(verificationToken, {
+      email: normalizedEmail,
+      expiresAt: Date.now() + VERIFICATION_TOKEN_TTL_MS,
+    });
+
+    // TODO: send verification email via transactional email service
+    // emailService.sendVerification(normalizedEmail, verificationToken)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[AANID:DEV] Verification token for ${normalizedEmail}: ${verificationToken}`);
+    }
+
+    return res.status(201).json({
+      message: 'Compte créé. Vérifiez votre email pour activer votre compte.',
+      userId: user.id,
+    });
+  } catch (err) {
+    console.error('[AANID] register error:', err.message);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
+
+// POST /auth/login
+router.post('/auth/login', async (req, res) => {
+  const ip = clientIp(req);
+  const rateLimitKey = `login:${ip}`;
+
+  if (!checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000)) {
+    return res.status(429).json({
+      error: 'Trop de tentatives de connexion. Réessayez dans 15 minutes.',
+    });
+  }
+
+  try {
+    const { email, password } = req.body ?? {};
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email et mot de passe requis' });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+    const user = users.get(normalizedEmail);
+
+    if (!user) {
+      // Constant-time response to prevent email enumeration
+      await bcrypt.hash(password, BCRYPT_ROUNDS);
+      return res.status(401).json({ error: 'Identifiants incorrects' });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Identifiants incorrects' });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        error: 'Email non vérifié. Consultez votre boîte mail ou demandez un nouvel email.',
+        code: 'EMAIL_NOT_VERIFIED',
+      });
+    }
+
+    resetRateLimit(rateLimitKey);
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user.id);
+
+    return res.status(200).json({
+      accessToken,
+      refreshToken,
+      user: safeUser(user),
+    });
+  } catch (err) {
+    console.error('[AANID] login error:', err.message);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// POST /auth/refresh
+router.post('/auth/refresh', (req, res) => {
+  const { refreshToken } = req.body ?? {};
+
+  if (!refreshToken || typeof refreshToken !== 'string') {
+    return res.status(400).json({ error: 'Refresh token requis' });
+  }
+
+  if (!refreshTokens.has(refreshToken)) {
+    return res.status(401).json({ error: 'Refresh token invalide ou révoqué' });
+  }
+
+  try {
+    const payload = jwt.verify(refreshToken, _REFRESH_SECRET, {
+      issuer: 'aanid',
+      audience: 'aanid-app',
+    });
+
+    const user = [...users.values()].find((u) => u.id === payload.sub);
+    if (!user) {
+      refreshTokens.delete(refreshToken);
+      return res.status(401).json({ error: 'Utilisateur introuvable' });
+    }
+
+    // Token rotation: revoke old, issue new pair
+    refreshTokens.delete(refreshToken);
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user.id);
+
+    return res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+  } catch {
+    refreshTokens.delete(refreshToken);
+    return res.status(401).json({ error: 'Refresh token expiré ou invalide' });
+  }
+});
+
+// POST /auth/logout
+router.post('/auth/logout', authenticateToken, (req, res) => {
+  const { refreshToken } = req.body ?? {};
+  if (refreshToken && typeof refreshToken === 'string') {
+    refreshTokens.delete(refreshToken);
+  }
+  return res.status(200).json({ message: 'Déconnexion réussie' });
+});
+
+// GET /auth/verify-email/:token
+router.get('/auth/verify-email/:token', (req, res) => {
+  const { token } = req.params;
+  const record = verificationTokens.get(token);
+
+  if (!record || Date.now() > record.expiresAt) {
+    verificationTokens.delete(token);
+    return res.status(400).json({ error: 'Lien de vérification invalide ou expiré' });
+  }
+
+  const user = users.get(record.email);
+  if (!user) {
+    verificationTokens.delete(token);
+    return res.status(404).json({ error: 'Compte introuvable' });
+  }
+
+  user.emailVerified = true;
+  user.updatedAt = new Date().toISOString();
+  verificationTokens.delete(token);
+
+  return res.status(200).json({ message: 'Email vérifié avec succès. Vous pouvez vous connecter.' });
+});
+
+// POST /auth/resend-verification
+router.post('/auth/resend-verification', async (req, res) => {
+  const ip = clientIp(req);
+  if (!checkRateLimit(`resend:${ip}`, 3, 60 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Trop de demandes. Réessayez dans une heure.' });
+  }
+
+  const { email } = req.body ?? {};
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+
+  const normalizedEmail = normalizeEmail(email);
+  const user = users.get(normalizedEmail);
+
+  // Generic response to prevent enumeration
+  if (!user || user.emailVerified) {
+    return res.status(200).json({ message: 'Si un compte non vérifié existe, un email a été envoyé.' });
+  }
+
+  const verificationToken = generateOpaqueToken();
+  verificationTokens.set(verificationToken, {
+    email: normalizedEmail,
+    expiresAt: Date.now() + VERIFICATION_TOKEN_TTL_MS,
+  });
+
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[AANID:DEV] New verification token for ${normalizedEmail}: ${verificationToken}`);
+  }
+
+  return res.status(200).json({ message: 'Si un compte non vérifié existe, un email a été envoyé.' });
+});
+
+// POST /auth/forgot-password
+router.post('/auth/forgot-password', async (req, res) => {
+  const ip = clientIp(req);
+  if (!checkRateLimit(`pwd-reset:${ip}`, 3, 60 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Trop de demandes. Réessayez dans une heure.' });
+  }
+
+  const { email } = req.body ?? {};
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+
+  const normalizedEmail = normalizeEmail(email);
+  const user = users.get(normalizedEmail);
+
+  if (user) {
+    const resetToken = generateOpaqueToken();
+    passwordResetTokens.set(resetToken, {
+      email: normalizedEmail,
+      expiresAt: Date.now() + PASSWORD_RESET_TOKEN_TTL_MS,
+    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[AANID:DEV] Password reset token for ${normalizedEmail}: ${resetToken}`);
+    }
+  }
+
+  return res.status(200).json({ message: 'Si un compte existe, un email de réinitialisation a été envoyé.' });
+});
+
+// POST /auth/reset-password
+router.post('/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body ?? {};
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
+    }
+
+    const record = passwordResetTokens.get(token);
+    if (!record || Date.now() > record.expiresAt) {
+      passwordResetTokens.delete(token);
+      return res.status(400).json({ error: 'Lien de réinitialisation invalide ou expiré' });
+    }
+
+    if (!validatePassword(newPassword)) {
+      return res.status(400).json({
+        error: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial',
+      });
+    }
+
+    const user = users.get(record.email);
+    if (!user) {
+      passwordResetTokens.delete(token);
+      return res.status(404).json({ error: 'Compte introuvable' });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.updatedAt = new Date().toISOString();
+    passwordResetTokens.delete(token);
+
+    // Revoke all refresh tokens for this user
+    for (const rt of refreshTokens) {
+      try {
+        const payload = jwt.verify(rt, _REFRESH_SECRET, { issuer: 'aanid', audience: 'aanid-app' });
+        if (payload.sub === user.id) refreshTokens.delete(rt);
+      } catch {
+        refreshTokens.delete(rt);
+      }
+    }
+
+    return res.status(200).json({ message: 'Mot de passe réinitialisé avec succès.' });
+  } catch (err) {
+    console.error('[AANID] reset-password error:', err.message);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTES — Profil
+// ─────────────────────────────────────────────────────────────────────────────
+
+// GET /profile
+router.get('/profile', authenticateToken, (req, res) => {
+  const user = [...users.values()].find((u) => u.id === req.user.sub);
+  if (!user) return res.status(404).json({ error: 'Profil introuvable' });
+
+  return res.status(200).json({ user: safeUser(user) });
+});
+
+// PATCH /profile
+router.patch('/profile', authenticateToken, async (req, res) => {
+  try {
+    const user = [...users.values()].find((u) => u.id === req.user.sub);
+    if (!user) return res.status(404).json({ error: 'Profil introuvable' });
+
+    const { fullName } = req.body ?? {};
+
+    if (fullName !== undefined) {
+      if (!validateFullName(fullName)) {
+        return res.status(400).json({ error: 'Nom invalide (2 à 100 caractères)' });
+      }
+      user.fullName = fullName.trim();
+    }
+
+    user.updatedAt = new Date().toISOString();
+    return res.status(200).json({ user: safeUser(user) });
+  } catch (err) {
+    console.error('[AANID] update profile error:', err.message);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// PATCH /profile/password
+router.patch('/profile/password', authenticateToken, async (req, res) => {
+  const ip = clientIp(req);
+  if (!checkRateLimit(`pwd-change:${req.user.sub}:${ip}`, 3, 30 * 60 * 1000)) {
+    return res.status(429).json({ error: 'Trop de tentatives. Réessayez dans 30 minutes.' });
+  }
+
+  try {
+    const user = [...users.values()].find((u) => u.id === req.user.sub);
+    if (!user) return res.status(404).json({ error: 'Profil introuvable' });
+
+    const { currentPassword, newPassword } = req.body ?? {};
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Mot de passe actuel et nouveau mot de passe requis' });
+    }
+
+    const match = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!match) {
+      return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
+    }
+
+    if (!validatePassword(newPassword)) {
+      return res.status(400).json({
+        error: 'Le nouveau mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial',
+      });
+    }
+
+    const samePassword = await bcrypt.compare(newPassword, user.passwordHash);
+    if (samePassword) {
+      return res.status(400).json({ error: 'Le nouveau mot de passe doit être différent de l\'actuel' });
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.updatedAt = new Date().toISOString();
+
+    // Revoke all refresh tokens for this user (force re-login on other devices)
+    for (const rt of refreshTokens) {
+      try {
+        const payload = jwt.verify(rt, _REFRESH_SECRET, { issuer: 'aanid', audience: 'aanid-app' });
+        if (payload.sub === user.id) refreshTokens.delete(rt);
+      } catch {
+        refreshTokens.delete(rt);
+      }
+    }
+
+    return res.status(200).json({ message: 'Mot de passe modifié. Reconnectez-vous sur vos autres appareils.' });
+  } catch (err) {
+    console.error('[AANID] change password error:', err.message);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// GET /profile/subscription
+router.get('/profile/subscription', authenticateToken, (req, res) => {
+  const user = [...users.values()].find((u) => u.id === req.user.sub);
+  if (!user) return res.status(404).json({ error: 'Profil introuvable' });
+
+  const details = {
+    FREE: {
+      label: 'Gratuit',
+      color: '#BDBDBD',
+      features: ['Accès aux villes publiques', 'Consultation de base', 'Signalement limité'],
+    },
+    PREMIUM: {
+      label: 'Premium',
+      color: '#1E73BE',
+      features: ['Toutes les villes', 'Formations gratuites incluses', 'Signalements illimités', 'Carte interactive avancée'],
+    },
+    PROFESSIONAL: {
+      label: 'Professionnel',
+      color: '#F5A623',
+      features: ['Accès professionnel complet', 'Relais publicitaires', 'Statistiques & rapports', 'Géolocalisation des panneaux'],
+    },
+    ENTERPRISE: {
+      label: 'Entreprise',
+      color: '#212121',
+      features: ['Accès complet illimité', 'API dédiée', 'Support prioritaire 24/7', 'Tableau de bord Régie', 'Gestion d\'équipe'],
+    },
+  };
+
+  return res.status(200).json({
+    subscription: user.subscription,
+    details: details[user.subscription],
+  });
+});
+
+// PATCH /profile/subscription — admin only
+router.patch('/profile/subscription', authenticateToken, authorizeRoles(ROLES.ADMIN), async (req, res) => {
+  const { userId, subscription } = req.body ?? {};
+
+  if (!userId || !Object.values(SUBSCRIPTIONS).includes(subscription)) {
+    return res.status(400).json({ error: 'userId et subscription valide requis' });
+  }
+
+  const user = [...users.values()].find((u) => u.id === userId);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+  user.subscription = subscription;
+  user.updatedAt = new Date().toISOString();
+
+  return res.status(200).json({
+    message: `Abonnement mis à jour vers ${subscription}`,
+    userId: user.id,
+    subscription,
+  });
+});
+
+// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = router;
+module.exports.ROLES = ROLES;
+module.exports.SUBSCRIPTIONS = SUBSCRIPTIONS;
+module.exports.authenticateToken = authenticateToken;
+module.exports.authorizeRoles = authorizeRoles;
