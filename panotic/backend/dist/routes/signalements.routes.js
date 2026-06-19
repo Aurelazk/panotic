@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const signalements_controller_1 = require("../controllers/signalements.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+router.get('/', signalements_controller_1.getSignalements);
+router.get('/:id', signalements_controller_1.getSignalementById);
+router.post('/', auth_middleware_1.authenticateJWT, signalements_controller_1.createSignalement);
+router.post('/:id/vote', auth_middleware_1.authenticateJWT, signalements_controller_1.voteSignalement);
+exports.default = router;

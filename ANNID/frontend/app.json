@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "AANID",
+    "slug": "aanid",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1E73BE"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aanid.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1E73BE"
+      },
+      "package": "com.aanid.app"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

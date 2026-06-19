@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: aanid
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npx prisma generate && npx prisma db push --accept-data-loss && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://aanid_db_user:aI5Bri3nTnhVqAlGGZW1I24IEuzVkwvi@dpg-d8i8c6btqb8s73at1q9g-a/aanid_db
+      - key: JWT_SECRET
+        value: aanid_jwt_secret_2024_tres_securise_xK9mP3qR
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000

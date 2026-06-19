@@ -1,0 +1,25 @@
+{
+  "name": "aanid",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "beni-momo-adnan/*",
+    "bryan-fanou/*",
+    "rayan/*",
+    "w-d/*",
+    "undef/*",
+    "backend",
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
+    "build": "npm run build -w shared && npm run build -w backend",
+    "test": "npm run test -w backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
