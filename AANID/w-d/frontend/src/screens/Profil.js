@@ -406,8 +406,7 @@ export default function Profil({ onLogout }) {
           onPress: async () => {
             setLogoutLoading(true);
             try {
-              await authService.logout();
-              onLogout?.();
+              await onLogout?.();
             } finally {
               setLogoutLoading(false);
             }
@@ -475,7 +474,7 @@ export default function Profil({ onLogout }) {
           <View style={styles.separator} />
           <InfoRow
             label="Statut email"
-            value={user?.emailVerified ? 'Verifie' : 'Non verifie'}
+            value={user?.emailVerified ? 'Vérifié' : 'Non vérifié'}
           />
         </SectionCard>
 
@@ -489,15 +488,15 @@ export default function Profil({ onLogout }) {
               ))}
             </View>
             {user?.subscription === 'FREE' && (
-              <TouchableOpacity style={styles.upgradeButton} activeOpacity={0.8}>
-                <Text style={styles.upgradeButtonText}>Passer a Premium</Text>
+              <TouchableOpacity style={styles.upgradeButton} activeOpacity={0.8} onPress={() => {}}>
+                <Text style={styles.upgradeButtonText}>Passer à Premium</Text>
               </TouchableOpacity>
             )}
           </SectionCard>
         )}
 
         {/* Securite */}
-        <SectionCard title="Securite">
+        <SectionCard title="Sécurité">
           <TouchableOpacity
             style={styles.actionRow}
             onPress={() => setShowPasswordModal(true)}
@@ -505,7 +504,7 @@ export default function Profil({ onLogout }) {
           >
             <View>
               <Text style={styles.actionLabel}>Changer le mot de passe</Text>
-              <Text style={styles.actionHint}>Derniere modification : {formatDate(user?.updatedAt)}</Text>
+              <Text style={styles.actionHint}>Dernière modification : {formatDate(user?.updatedAt)}</Text>
             </View>
             <Text style={styles.actionChevron}>›</Text>
           </TouchableOpacity>
@@ -520,7 +519,7 @@ export default function Profil({ onLogout }) {
         >
           {logoutLoading
             ? <ActivityIndicator color={colors.red} />
-            : <Text style={styles.logoutText}>Se deconnecter</Text>
+            : <Text style={styles.logoutText}>Se déconnecter</Text>
           }
         </TouchableOpacity>
 

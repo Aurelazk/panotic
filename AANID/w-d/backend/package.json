@@ -4,14 +4,14 @@
   "main": "src/server.js",
   "private": true,
   "scripts": {
-    "dev": "node --watch src/server.js",
+    "dev": "node --watch src/index.js",
     "test": "jest"
   },
   "dependencies": {
     "express": "^4.18.2",
     "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
-    "@aanid/shared": "*"
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "jest": "^29.7.0"

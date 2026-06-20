@@ -4,8 +4,8 @@ import * as authService from '../services/authService';
 const AuthContext = createContext(null);
 
 /**
- * Enveloppe l'application et fournit l'etat d'authentification global.
- * Restaure la session depuis AsyncStorage au demarrage.
+ * Enveloppe l'application et fournit l'état d'authentification global.
+ * Restaure la session depuis AsyncStorage au démarrage.
  *
  * Usage dans l'application principale :
  *
@@ -61,8 +61,8 @@ export function AuthProvider({ children }) {
 }
 
 /**
- * Hook pour acceder au contexte d'authentification.
- * Doit etre utilise a l'interieur d'un AuthProvider.
+ * Hook pour accéder au contexte d'authentification.
+ * Doit être utilisé à l'intérieur d'un AuthProvider.
  *
  * @returns {{
  *   user: object | null,
@@ -75,6 +75,6 @@ export function AuthProvider({ children }) {
  */
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth doit etre utilise a l\'interieur d\'un AuthProvider');
+  if (!ctx) throw new Error("useAuth doit être utilisé à l'intérieur d'un AuthProvider");
   return ctx;
 }
