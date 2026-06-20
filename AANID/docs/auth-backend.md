@@ -1,117 +1,166 @@
 # AANID — Documentation Backend : Authentification & Profil
 
 **Partie 8 — Responsable : Will-David**
-**Fichier source :** `w-d/backend/src/server.js`
+**Fichiers sources :** `w-d/backend/src/server.js` (routeur) · `w-d/backend/src/index.js` (serveur autonome)
 **Package :** `@aanid/w-d-backend`
 
 ---
 
-## Table des matieres
+## Table des matières
 
 1. [Vue d'ensemble](#1-vue-densemble)
-2. [Dependances](#2-dependances)
-3. [Variables d'environnement](#3-variables-denvironnement)
-4. [Integration a l'application principale](#4-integration-a-lapplication-principale)
-5. [Structure de donnees utilisateur](#5-structure-de-donnees-utilisateur)
-6. [Roles et abonnements](#6-roles-et-abonnements)
-7. [Reference des routes API](#7-reference-des-routes-api)
-8. [Systeme de securite](#8-systeme-de-securite)
-9. [Middlewares exportes](#9-middlewares-exportes)
-10. [Feuille de route production](#10-feuille-de-route-production)
+2. [Architecture des fichiers](#2-architecture-des-fichiers)
+3. [Dépendances](#3-dépendances)
+4. [Variables d'environnement](#4-variables-denvironnement)
+5. [Démarrage en développement](#5-démarrage-en-développement)
+6. [Intégration à l'application principale](#6-intégration-à-lapplication-principale)
+7. [Structure de données utilisateur](#7-structure-de-données-utilisateur)
+8. [Rôles et abonnements](#8-rôles-et-abonnements)
+9. [Référence des routes API](#9-référence-des-routes-api)
+10. [Système de sécurité](#10-système-de-sécurité)
+11. [Middlewares exportés](#11-middlewares-exportés)
+12. [Feuille de route production](#12-feuille-de-route-production)
 
 ---
 
 ## 1. Vue d'ensemble
 
-Ce module expose un **routeur Express** qui gere l'integralite des operations d'authentification et de gestion de profil de l'application AANID. Il est concu pour etre monte dans l'application principale sans aucune modification de son code interne.
+Ce module expose un **routeur Express** qui gère l'intégralité des opérations d'authentification et de gestion de profil de l'application AANID. Il est conçu pour être monté dans l'application principale sans aucune modification de son code interne.
 
 Le module fournit :
 
-- L'inscription avec verification d'email obligatoire
-- La connexion avec emission d'un couple access token / refresh token
+- L'inscription avec vérification d'email obligatoire
+- La connexion avec émission d'un couple access token / refresh token
 - Le renouvellement silencieux des tokens (rotation)
-- La deconnexion avec invalidation du refresh token cote serveur
-- La verification d'email et le renvoi du lien
-- La reinitialisation de mot de passe par lien email
-- La lecture et la mise a jour du profil
-- Le changement de mot de passe authentifie
-- La gestion des abonnements (lecture publique, mise a jour admin uniquement)
-- Deux middlewares reutilisables par les autres modules : `authenticateToken` et `authorizeRoles`
+- La déconnexion avec invalidation du refresh token côté serveur
+- La vérification d'email et le renvoi du lien
+- La réinitialisation de mot de passe par lien email
+- La lecture et la mise à jour du profil
+- Le changement de mot de passe authentifié
+- La gestion des abonnements (lecture publique, mise à jour admin uniquement)
+- Deux middlewares réutilisables par les autres modules : `authenticateToken` et `authorizeRoles`
 
 ---
 
-## 2. Dependances
+## 2. Architecture des fichiers
+
+```
+w-d/backend/
+├── package.json          Package @aanid/w-d-backend
+└── src/
+    ├── index.js          Serveur Express autonome (dev/prod standalone)
+    └── server.js         Routeur Express exportable (intégration monorepo)
+```
+
+**`src/server.js`** — le cœur du module. Contient toutes les routes, la validation, la sécurité et les exports. Ne démarre pas de serveur HTTP : peut être monté dans n'importe quelle application Express.
+
+**`src/index.js`** — point d'entrée pour lancer le serveur de façon autonome. Configure `cors`, `express.json()`, monte le routeur de `server.js`, expose `/health` et démarre l'écoute sur le port configuré.
+
+---
+
+## 3. Dépendances
 
 ```json
 {
   "express": "^4.18.2",
   "bcrypt": "^5.1.1",
-  "jsonwebtoken": "^9.0.2"
+  "jsonwebtoken": "^9.0.2",
+  "cors": "^2.8.5"
 }
 ```
 
-Le module utilise egalement `crypto` de la bibliotheque standard Node.js (aucune installation requise) pour la generation des tokens opaques.
+Le module utilise également `crypto` de la bibliothèque standard Node.js (aucune installation requise) pour la génération des tokens opaques.
 
 ---
 
-## 3. Variables d'environnement
+## 4. Variables d'environnement
 
 | Variable | Obligatoire | Description |
 |---|---|---|
-| `AANID_ACCESS_SECRET` | **Oui en production** | Cle secrete pour la signature des access tokens JWT. Minimum 64 caracteres aleatoires. |
-| `AANID_REFRESH_SECRET` | **Oui en production** | Cle secrete pour la signature des refresh tokens JWT. Doit etre differente de la precedente. |
-| `NODE_ENV` | Non | En mode `production`, l'absence des secrets arrete le processus. En dehors, des valeurs de developpement sont utilisees et les tokens sont affiches dans les logs. |
+| `AANID_ACCESS_SECRET` | **Oui en production** | Clé secrète pour la signature des access tokens JWT. Minimum 64 caractères aléatoires. |
+| `AANID_REFRESH_SECRET` | **Oui en production** | Clé secrète pour la signature des refresh tokens JWT. Doit être différente de la précédente. |
+| `PORT` | Non | Port d'écoute du serveur autonome. Défaut : `3000`. |
+| `CORS_ORIGIN` | Non | Origine autorisée pour CORS en mode autonome. Défaut : `*` (dev uniquement). |
+| `NODE_ENV` | Non | En mode `production`, l'absence des secrets arrête le processus. En dehors, des valeurs de développement sont utilisées et les tokens sont affichés dans les logs. |
 
-**Generation des secrets (bash) :**
+**Génération des secrets (bash) :**
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 ```
 
-Executer cette commande deux fois pour obtenir deux secrets distincts.
+Exécuter cette commande deux fois pour obtenir deux secrets distincts.
 
 **Exemple de fichier `.env` :**
 
 ```
 AANID_ACCESS_SECRET=a3f8e1...64_caracteres_minimum...
 AANID_REFRESH_SECRET=b7c2d0...64_caracteres_minimum...
-NODE_ENV=production
+PORT=3000
+NODE_ENV=development
 ```
 
 ---
 
-## 4. Integration a l'application principale
+## 5. Démarrage en développement
 
-### 4.1 Montage du routeur
+```bash
+cd w-d/backend
+npm install
+npm run dev
+```
 
-Dans le fichier serveur principal de l'application AANID, importer et monter le routeur de ce module :
+Le serveur démarre sur `http://localhost:3000`. Un endpoint de santé est disponible :
+
+```
+GET /health
+→ { "status": "ok", "service": "aanid-auth" }
+```
+
+En mode développement, les tokens de vérification d'email et de réinitialisation de mot de passe sont affichés dans les logs du serveur sous la forme :
+
+```
+[AANID:DEV] Verification token for kofi@exemple.com: a3f8e1...
+[AANID:DEV] Password reset token for kofi@exemple.com: b7c2d0...
+```
+
+Utilisez ces valeurs dans les requêtes de test Postman (voir `docs/aanid-auth.postman_collection.json`).
+
+---
+
+## 6. Intégration à l'application principale
+
+### 6.1 Montage du routeur
+
+Dans le fichier serveur principal de l'application AANID, importer et monter le routeur de ce module. Le middleware `cors` et `express.json()` **doivent être configurés par l'application principale** — le routeur ne les ajoute pas lui-même.
 
 ```js
 const express = require('express');
+const cors = require('cors');
 const app = express();
 
-// Middleware JSON obligatoire avant de monter le routeur
-app.use(express.json());
+app.use(cors({ origin: ['https://app.aanid.com'] }));
+app.use(express.json({ limit: '10kb' }));
 
 // Montage du module authentification & profil
 const authRouter = require('@aanid/w-d-backend');
 app.use('/api', authRouter);
 ```
 
-Toutes les routes du module seront disponibles sous le prefixe `/api`. Par exemple :
+Toutes les routes du module seront disponibles sous le préfixe `/api`. Par exemple :
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
 - `GET /api/profile`
 
-### 4.2 Protection des routes des autres modules
+### 6.2 Protection des routes des autres modules
 
-Les autres responsables de module peuvent proteger leurs propres routes en important les middlewares exportes :
+Les autres responsables de module peuvent protéger leurs propres routes en important les middlewares exportés :
 
 ```js
 const { authenticateToken, authorizeRoles, ROLES } = require('@aanid/w-d-backend');
 
-// Route accessible a tout utilisateur connecte
+// Route accessible à tout utilisateur connecté
 router.get('/villes', authenticateToken, (req, res) => {
   // req.user contient : { sub, email, role, subscription, iat, exp }
   res.json({ message: `Bonjour ${req.user.email}` });
@@ -122,39 +171,41 @@ router.patch('/admin/action', authenticateToken, authorizeRoles(ROLES.ADMIN), (r
   res.json({ ok: true });
 });
 
-// Route accessible a plusieurs roles
-router.post('/signalement', authenticateToken, authorizeRoles(ROLES.CITOYEN, ROLES.PROFESSIONNEL, ROLES.AUTORITE), (req, res) => {
-  res.json({ ok: true });
-});
+// Route accessible à plusieurs rôles
+router.post('/signalement',
+  authenticateToken,
+  authorizeRoles(ROLES.CITOYEN, ROLES.PROFESSIONNEL, ROLES.AUTORITE),
+  (req, res) => { res.json({ ok: true }); }
+);
 ```
 
-### 4.3 Lire les informations de l'utilisateur dans une route protegee
+### 6.3 Lire les informations de l'utilisateur dans une route protégée
 
-Apres le passage par `authenticateToken`, l'objet `req.user` est disponible avec la structure suivante :
+Après le passage par `authenticateToken`, l'objet `req.user` est disponible avec la structure suivante :
 
 ```js
 {
   sub: "uuid-de-l-utilisateur",   // identifiant unique
   email: "utilisateur@exemple.com",
-  role: "CITOYEN",                // voir section 6
-  subscription: "FREE",           // voir section 6
-  iat: 1700000000,               // timestamp d'emission
-  exp: 1700000900                // timestamp d'expiration (15 minutes apres emission)
+  role: "CITOYEN",                // voir section 8
+  subscription: "FREE",           // voir section 8
+  iat: 1700000000,               // timestamp d'émission
+  exp: 1700000900                // timestamp d'expiration (15 minutes après émission)
 }
 ```
 
 ---
 
-## 5. Structure de donnees utilisateur
+## 7. Structure de données utilisateur
 
-L'objet utilisateur stocke en memoire (et qui sera migre en base de donnees) a la forme suivante :
+L'objet utilisateur stocké en mémoire (et qui sera migré en base de données) a la forme suivante :
 
 ```js
 {
-  id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", // UUID v4 genere par crypto.randomUUID()
+  id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", // UUID v4 généré par crypto.randomUUID()
   fullName: "Kofi Mensah",
-  email: "kofi@exemple.com",                   // normalise en minuscules
-  passwordHash: "$2b$12$...",                  // jamais expose dans les reponses
+  email: "kofi@exemple.com",                   // normalisé en minuscules
+  passwordHash: "$2b$12$...",                  // jamais exposé dans les réponses
   role: "CITOYEN",
   subscription: "FREE",
   emailVerified: false,
@@ -163,56 +214,68 @@ L'objet utilisateur stocke en memoire (et qui sera migre en base de donnees) a l
 }
 ```
 
-**Note importante :** le champ `passwordHash` est toujours retire avant tout envoi au client via la fonction interne `safeUser()`. Aucune route n'expose ce champ.
+**Note importante :** le champ `passwordHash` est toujours retiré avant tout envoi au client via la fonction interne `safeUser()`. Aucune route n'expose ce champ.
 
 ---
 
-## 6. Roles et abonnements
+## 8. Rôles et abonnements
 
-### Roles
+### Rôles
 
 | Constante | Valeur | Description |
 |---|---|---|
-| `ROLES.CITOYEN` | `"CITOYEN"` | Role par defaut a l'inscription |
-| `ROLES.PROFESSIONNEL` | `"PROFESSIONNEL"` | Professionnel de la signaletique |
-| `ROLES.REGIE` | `"REGIE"` | Regie publicitaire |
-| `ROLES.FORMATEUR` | `"FORMATEUR"` | Formateur certifie |
-| `ROLES.AUTORITE` | `"AUTORITE"` | Autorite publique ou municipale |
-| `ROLES.ADMIN` | `"ADMIN"` | Administrateur plateforme — non assignable a l'inscription |
+| `ROLES.CITOYEN` | `"CITOYEN"` | Rôle par défaut à l'inscription |
+| `ROLES.PROFESSIONNEL` | `"PROFESSIONNEL"` | Professionnel de la signalétique |
+| `ROLES.REGIE` | `"REGIE"` | Régie publicitaire |
+| `ROLES.FORMATEUR` | `"FORMATEUR"` | Formateur certifié |
+| `ROLES.AUTORITE` | `"AUTORITE"` | Autorité publique ou municipale |
+| `ROLES.ADMIN` | `"ADMIN"` | Administrateur plateforme — non assignable à l'inscription |
 
-Le role `ADMIN` ne peut pas etre choisi lors de l'inscription. Il doit etre attribue manuellement en base de donnees.
+Le rôle `ADMIN` ne peut pas être choisi lors de l'inscription. Il doit être attribué manuellement en base de données.
 
 ### Abonnements
 
-| Constante | Valeur | Acces |
+| Constante | Valeur | Accès |
 |---|---|---|
-| `SUBSCRIPTIONS.FREE` | `"FREE"` | Attribue par defaut a l'inscription |
-| `SUBSCRIPTIONS.PREMIUM` | `"PREMIUM"` | Toutes les villes, formations gratuites, signalements illimites |
-| `SUBSCRIPTIONS.PROFESSIONAL` | `"PROFESSIONAL"` | Relais publicitaires, statistiques avancees |
-| `SUBSCRIPTIONS.ENTERPRISE` | `"ENTERPRISE"` | Acces complet, API dediee, support prioritaire |
+| `SUBSCRIPTIONS.FREE` | `"FREE"` | Attribué par défaut à l'inscription |
+| `SUBSCRIPTIONS.PREMIUM` | `"PREMIUM"` | Toutes les villes, formations gratuites, signalements illimités |
+| `SUBSCRIPTIONS.PROFESSIONAL` | `"PROFESSIONAL"` | Relais publicitaires, statistiques avancées |
+| `SUBSCRIPTIONS.ENTERPRISE` | `"ENTERPRISE"` | Accès complet, API dédiée, support prioritaire |
 
-La mise a jour d'abonnement est reservee au role `ADMIN` via `PATCH /profile/subscription`.
+La mise à jour d'abonnement est réservée au rôle `ADMIN` via `PATCH /profile/subscription`.
 
 ---
 
-## 7. Reference des routes API
+## 9. Référence des routes API
 
-Toutes les routes retournent du JSON. Les corps de requete sont en JSON (`Content-Type: application/json`).
+Toutes les routes retournent du JSON. Les corps de requête sont en JSON (`Content-Type: application/json`).
 
-Les routes protegees requierent le header :
+Les routes protégées requièrent le header :
 ```
 Authorization: Bearer <access_token>
 ```
 
 ---
 
-### 7.1 Authentification
+### 9.1 Authentification
+
+#### GET /health
+
+Vérifie que le service est opérationnel (disponible uniquement en mode serveur autonome via `src/index.js`).
+
+**Réponse 200 OK :**
+
+```json
+{ "status": "ok", "service": "aanid-auth" }
+```
+
+---
 
 #### POST /auth/register
 
-Cree un nouveau compte. Le role `ADMIN` ne peut pas etre demande via cette route.
+Crée un nouveau compte. Le rôle `ADMIN` ne peut pas être demandé via cette route.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -225,29 +288,29 @@ Cree un nouveau compte. Le role `ADMIN` ne peut pas etre demande via cette route
 
 | Champ | Type | Obligatoire | Contraintes |
 |---|---|---|---|
-| `fullName` | string | Oui | 2 a 100 caracteres |
-| `email` | string | Oui | Format email valide, normalise en minuscules |
-| `password` | string | Oui | 8 a 128 caracteres, 1 majuscule, 1 minuscule, 1 chiffre, 1 special parmi `@$!%*?&-_#` |
-| `role` | string | Non | Valeur parmi les roles (sauf `ADMIN`). Defaut : `CITOYEN` |
+| `fullName` | string | Oui | 2 à 100 caractères |
+| `email` | string | Oui | Format email valide, normalisé en minuscules |
+| `password` | string | Oui | 8 à 128 caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial parmi `@$!%*?&-_#` |
+| `role` | string | Non | Valeur parmi les rôles (sauf `ADMIN`). Défaut : `CITOYEN` |
 
-**Reponse 201 Created :**
+**Réponse 201 Created :**
 
 ```json
 {
-  "message": "Compte cree. Verifiez votre email pour activer votre compte.",
+  "message": "Compte créé. Vérifiez votre email pour activer votre compte.",
   "userId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d"
 }
 ```
 
-**Reponses d'erreur :**
+**Réponses d'erreur :**
 
 | Code | Corps | Cause |
 |---|---|---|
-| 400 | `{ "error": "..." }` | Champ manquant ou validation echouee |
-| 409 | `{ "error": "Cet email est deja utilise" }` | Email deja enregistre |
+| 400 | `{ "error": "..." }` | Champ manquant ou validation échouée |
+| 409 | `{ "error": "Cet email est déjà utilisé" }` | Email déjà enregistré |
 | 500 | `{ "error": "Erreur serveur" }` | Erreur interne |
 
-**Comportement de securite :** si l'email existe deja, un hachage bcrypt est quand meme execute avant de repondre 409, afin d'eliminer toute difference de temps observable par un attaquant.
+**Comportement de sécurité :** si l'email existe déjà, un hachage bcrypt est quand même exécuté avant de répondre 409, afin d'éliminer toute différence de temps observable par un attaquant.
 
 ---
 
@@ -255,7 +318,7 @@ Cree un nouveau compte. Le role `ADMIN` ne peut pas etre demande via cette route
 
 Authentifie un utilisateur. Retourne un couple access token / refresh token.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -264,7 +327,7 @@ Authentifie un utilisateur. Retourne un couple access token / refresh token.
 }
 ```
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
@@ -283,16 +346,16 @@ Authentifie un utilisateur. Retourne un couple access token / refresh token.
 }
 ```
 
-**Reponses d'erreur :**
+**Réponses d'erreur :**
 
 | Code | Corps | Cause |
 |---|---|---|
 | 400 | `{ "error": "Email et mot de passe requis" }` | Champ manquant |
-| 401 | `{ "error": "Identifiants incorrects" }` | Email inconnu ou mot de passe errone |
-| 403 | `{ "error": "...", "code": "EMAIL_NOT_VERIFIED" }` | Email non encore verifie |
-| 429 | `{ "error": "Trop de tentatives..." }` | Rate limit depasse (5 tentatives / 15 min par IP) |
+| 401 | `{ "error": "Identifiants incorrects" }` | Email inconnu ou mot de passe erroné |
+| 403 | `{ "error": "...", "code": "EMAIL_NOT_VERIFIED" }` | Email non encore vérifié |
+| 429 | `{ "error": "Trop de tentatives..." }` | Rate limit dépassé (5 tentatives / 15 min par IP) |
 
-**Tokens emis :**
+**Tokens émis :**
 
 - Access token : JWT HS256, expire dans **15 minutes**, contient `sub`, `email`, `role`, `subscription`
 - Refresh token : JWT HS256, expire dans **7 jours**, contient uniquement `sub`
@@ -301,9 +364,9 @@ Authentifie un utilisateur. Retourne un couple access token / refresh token.
 
 #### POST /auth/refresh
 
-Renouvelle le couple de tokens. L'ancien refresh token est immediatement invalide (rotation).
+Renouvelle le couple de tokens. L'ancien refresh token est immédiatement invalidé (rotation).
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -311,7 +374,7 @@ Renouvelle le couple de tokens. L'ancien refresh token est immediatement invalid
 }
 ```
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
@@ -320,23 +383,23 @@ Renouvelle le couple de tokens. L'ancien refresh token est immediatement invalid
 }
 ```
 
-**Reponses d'erreur :**
+**Réponses d'erreur :**
 
 | Code | Corps | Cause |
 |---|---|---|
 | 400 | `{ "error": "Refresh token requis" }` | Corps vide ou type incorrect |
-| 401 | `{ "error": "Refresh token invalide ou revoque" }` | Token inconnu du serveur |
-| 401 | `{ "error": "Refresh token expire ou invalide" }` | Signature invalide ou expiration depassee |
+| 401 | `{ "error": "Refresh token invalide ou révoqué" }` | Token inconnu du serveur |
+| 401 | `{ "error": "Refresh token expiré ou invalide" }` | Signature invalide ou expiration dépassée |
 
 ---
 
 #### POST /auth/logout
 
-Invalide le refresh token cote serveur. Necessite un access token valide.
+Invalide le refresh token côté serveur. Nécessite un access token valide.
 
 **Header requis :** `Authorization: Bearer <access_token>`
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -344,11 +407,11 @@ Invalide le refresh token cote serveur. Necessite un access token valide.
 }
 ```
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
-  "message": "Deconnexion reussie"
+  "message": "Déconnexion réussie"
 }
 ```
 
@@ -356,32 +419,32 @@ Invalide le refresh token cote serveur. Necessite un access token valide.
 
 #### GET /auth/verify-email/:token
 
-Active le compte en verifiant le token envoye par email. Le token est a usage unique et expire au bout de 24 heures.
+Active le compte en vérifiant le token envoyé par email. Le token est à usage unique et expire au bout de 24 heures.
 
-**Parametre d'URL :** `:token` — chaine hexadecimale de 64 caracteres
+**Paramètre d'URL :** `:token` — chaîne hexadécimale de 64 caractères
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
-  "message": "Email verifie avec succes. Vous pouvez vous connecter."
+  "message": "Email vérifié avec succès. Vous pouvez vous connecter."
 }
 ```
 
-**Reponses d'erreur :**
+**Réponses d'erreur :**
 
 | Code | Corps | Cause |
 |---|---|---|
-| 400 | `{ "error": "Lien de verification invalide ou expire" }` | Token inconnu ou TTL depasse |
-| 404 | `{ "error": "Compte introuvable" }` | Utilisateur supprime entre temps |
+| 400 | `{ "error": "Lien de vérification invalide ou expiré" }` | Token inconnu ou TTL dépassé |
+| 404 | `{ "error": "Compte introuvable" }` | Utilisateur supprimé entre temps |
 
 ---
 
 #### POST /auth/resend-verification
 
-Genere et envoie un nouveau token de verification. Rate limite a 3 envois par heure par IP.
+Génère et envoie un nouveau token de vérification. Rate limité à 3 envois par heure par IP.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -389,11 +452,11 @@ Genere et envoie un nouveau token de verification. Rate limite a 3 envois par he
 }
 ```
 
-**Reponse 200 OK (toujours le meme message, meme si l'email n'existe pas) :**
+**Réponse 200 OK (toujours le même message, même si l'email n'existe pas) :**
 
 ```json
 {
-  "message": "Si un compte non verifie existe, un email a ete envoye."
+  "message": "Si un compte non vérifié existe, un email a été envoyé."
 }
 ```
 
@@ -401,9 +464,9 @@ Genere et envoie un nouveau token de verification. Rate limite a 3 envois par he
 
 #### POST /auth/forgot-password
 
-Initie la reinitialisation de mot de passe. Rate limite a 3 demandes par heure par IP.
+Initie la réinitialisation de mot de passe. Rate limité à 3 demandes par heure par IP.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -411,11 +474,11 @@ Initie la reinitialisation de mot de passe. Rate limite a 3 demandes par heure p
 }
 ```
 
-**Reponse 200 OK (toujours le meme message) :**
+**Réponse 200 OK (toujours le même message) :**
 
 ```json
 {
-  "message": "Si un compte existe, un email de reinitialisation a ete envoye."
+  "message": "Si un compte existe, un email de réinitialisation a été envoyé."
 }
 ```
 
@@ -423,9 +486,9 @@ Initie la reinitialisation de mot de passe. Rate limite a 3 demandes par heure p
 
 #### POST /auth/reset-password
 
-Reinitialise le mot de passe avec le token recu par email. Invalide toutes les sessions actives de l'utilisateur.
+Réinitialise le mot de passe avec le token reçu par email. Invalide toutes les sessions actives de l'utilisateur.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -434,34 +497,34 @@ Reinitialise le mot de passe avec le token recu par email. Invalide toutes les s
 }
 ```
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
-  "message": "Mot de passe reinitialise avec succes."
+  "message": "Mot de passe réinitialisé avec succès."
 }
 ```
 
-**Reponses d'erreur :**
+**Réponses d'erreur :**
 
 | Code | Corps | Cause |
 |---|---|---|
-| 400 | `{ "error": "..." }` | Token manquant, expire ou mot de passe invalide |
-| 404 | `{ "error": "Compte introuvable" }` | Utilisateur supprime entre temps |
+| 400 | `{ "error": "..." }` | Token manquant, expiré ou mot de passe invalide |
+| 404 | `{ "error": "Compte introuvable" }` | Utilisateur supprimé entre temps |
 
 ---
 
-### 7.2 Profil
+### 9.2 Profil
 
-Toutes les routes profil necessitent `Authorization: Bearer <access_token>`.
+Toutes les routes profil nécessitent `Authorization: Bearer <access_token>`.
 
 ---
 
 #### GET /profile
 
-Retourne le profil de l'utilisateur connecte.
+Retourne le profil de l'utilisateur connecté.
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
@@ -482,9 +545,9 @@ Retourne le profil de l'utilisateur connecte.
 
 #### PATCH /profile
 
-Met a jour le profil de l'utilisateur connecte. Seuls les champs envoyes sont modifies.
+Met à jour le profil de l'utilisateur connecté. Seuls les champs envoyés sont modifiés.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -494,17 +557,17 @@ Met a jour le profil de l'utilisateur connecte. Seuls les champs envoyes sont mo
 
 | Champ | Type | Contraintes |
 |---|---|---|
-| `fullName` | string | 2 a 100 caracteres |
+| `fullName` | string | 2 à 100 caractères |
 
-**Reponse 200 OK :** meme structure que `GET /profile`.
+**Réponse 200 OK :** même structure que `GET /profile`.
 
 ---
 
 #### PATCH /profile/password
 
-Change le mot de passe de l'utilisateur connecte. Rate limite a 3 tentatives par 30 minutes (cle composee de l'ID utilisateur et de l'IP). Invalide tous les refresh tokens actifs de l'utilisateur sur tous ses appareils.
+Change le mot de passe de l'utilisateur connecté. Rate limité à 3 tentatives par 30 minutes (clé composée de l'ID utilisateur et de l'IP). Invalide tous les refresh tokens actifs de l'utilisateur sur tous ses appareils.
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -513,29 +576,29 @@ Change le mot de passe de l'utilisateur connecte. Rate limite a 3 tentatives par
 }
 ```
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
-  "message": "Mot de passe modifie. Reconnectez-vous sur vos autres appareils."
+  "message": "Mot de passe modifié. Reconnectez-vous sur vos autres appareils."
 }
 ```
 
-**Reponses d'erreur :**
+**Réponses d'erreur :**
 
 | Code | Corps | Cause |
 |---|---|---|
-| 400 | `{ "error": "..." }` | Champ manquant, mot de passe invalide, ou identique a l'actuel |
+| 400 | `{ "error": "..." }` | Champ manquant, mot de passe invalide, ou identique à l'actuel |
 | 401 | `{ "error": "Mot de passe actuel incorrect" }` | Mauvais mot de passe actuel |
-| 429 | `{ "error": "..." }` | Rate limit depasse |
+| 429 | `{ "error": "..." }` | Rate limit dépassé |
 
 ---
 
 #### GET /profile/subscription
 
-Retourne le niveau d'abonnement actuel de l'utilisateur avec ses fonctionnalites.
+Retourne le niveau d'abonnement actuel de l'utilisateur avec ses fonctionnalités.
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
@@ -544,9 +607,9 @@ Retourne le niveau d'abonnement actuel de l'utilisateur avec ses fonctionnalites
     "label": "Gratuit",
     "color": "#BDBDBD",
     "features": [
-      "Acces aux villes publiques",
+      "Accès aux villes publiques",
       "Consultation de base",
-      "Signalement limite"
+      "Signalement limité"
     ]
   }
 }
@@ -556,9 +619,9 @@ Retourne le niveau d'abonnement actuel de l'utilisateur avec ses fonctionnalites
 
 #### PATCH /profile/subscription
 
-Met a jour l'abonnement d'un utilisateur. **Reserve au role `ADMIN` uniquement.**
+Met à jour l'abonnement d'un utilisateur. **Réservé au rôle `ADMIN` uniquement.**
 
-**Corps de la requete :**
+**Corps de la requête :**
 
 ```json
 {
@@ -567,83 +630,83 @@ Met a jour l'abonnement d'un utilisateur. **Reserve au role `ADMIN` uniquement.*
 }
 ```
 
-**Reponse 200 OK :**
+**Réponse 200 OK :**
 
 ```json
 {
-  "message": "Abonnement mis a jour vers PREMIUM",
+  "message": "Abonnement mis à jour vers PREMIUM",
   "userId": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   "subscription": "PREMIUM"
 }
 ```
 
-**Reponse 403 si le role n'est pas ADMIN :**
+**Réponse 403 si le rôle n'est pas ADMIN :**
 
 ```json
 {
-  "error": "Acces refuse : droits insuffisants"
+  "error": "Accès refusé : droits insuffisants"
 }
 ```
 
 ---
 
-## 8. Systeme de securite
+## 10. Système de sécurité
 
-### 8.1 Hachage des mots de passe
+### 10.1 Hachage des mots de passe
 
-bcrypt est utilise avec un facteur de cout de **12 rounds**. Ce niveau offre un bon equilibre entre resistance aux attaques par force brute (chaque hash prend environ 300-400 ms) et performance serveur.
+bcrypt est utilisé avec un facteur de coût de **12 rounds**. Ce niveau offre un bon équilibre entre résistance aux attaques par force brute (chaque hash prend environ 300-400 ms) et performance serveur.
 
-### 8.2 Tokens JWT
+### 10.2 Tokens JWT
 
-Les tokens sont signes avec l'algorithme **HS256** et incluent les claims `issuer: 'aanid'` et `audience: 'aanid-app'` pour empecher la reutilisation de tokens d'une autre application.
+Les tokens sont signés avec l'algorithme **HS256** et incluent les claims `issuer: 'aanid'` et `audience: 'aanid-app'` pour empêcher la réutilisation de tokens d'une autre application.
 
-- **Access token** : duree de vie 15 minutes. Contient le role et l'abonnement pour eviter des requetes base de donnees supplementaires sur chaque appel protege.
-- **Refresh token** : duree de vie 7 jours. Contient uniquement l'identifiant utilisateur. Stocke cote serveur dans un `Set` pour permettre l'invalidation.
-- **Rotation des refresh tokens** : a chaque appel de `/auth/refresh`, l'ancien token est supprime et un nouveau couple est emis. Un refresh token ne peut donc etre utilise qu'une seule fois.
+- **Access token** : durée de vie 15 minutes. Contient le rôle et l'abonnement pour éviter des requêtes base de données supplémentaires sur chaque appel protégé.
+- **Refresh token** : durée de vie 7 jours. Contient uniquement l'identifiant utilisateur. Stocké côté serveur dans un `Set` pour permettre l'invalidation.
+- **Rotation des refresh tokens** : à chaque appel de `/auth/refresh`, l'ancien token est supprimé et un nouveau couple est émis. Un refresh token ne peut donc être utilisé qu'une seule fois.
 
-### 8.3 Protection contre les attaques temporelles
+### 10.3 Protection contre les attaques temporelles
 
-Sur `/auth/login`, si l'email n'existe pas, un `bcrypt.hash()` complet est quand meme execute avant de repondre. Cela garantit que le temps de reponse est identique qu'un email existe ou non, rendant l'enumeration d'emails impossible par mesure de temps.
+Sur `/auth/login`, si l'email n'existe pas, un `bcrypt.hash()` complet est quand même exécuté avant de répondre. Cela garantit que le temps de réponse est identique qu'un email existe ou non, rendant l'énumération d'emails impossible par mesure de temps.
 
-### 8.4 Masquage des informations sensibles
+### 10.4 Masquage des informations sensibles
 
-Les routes `/auth/resend-verification`, `/auth/forgot-password` retournent toujours le meme message de succes generique, que l'email existe ou non. Cela empeche un attaquant de detecter si une adresse email est enregistree.
+Les routes `/auth/resend-verification`, `/auth/forgot-password` retournent toujours le même message de succès générique, que l'email existe ou non. Cela empêche un attaquant de détecter si une adresse email est enregistrée.
 
-### 8.5 Rate limiting
+### 10.5 Rate limiting
 
-Le rate limiting est implemente en memoire par cle de partition. En production, il doit etre remplace par `express-rate-limit` avec un store Redis pour fonctionner en environnement multi-instances.
+Le rate limiting est implémenté en mémoire par clé de partition. En production, il doit être remplacé par `express-rate-limit` avec un store Redis pour fonctionner en environnement multi-instances.
 
-| Route | Cle | Limite | Fenetre |
+| Route | Clé | Limite | Fenêtre |
 |---|---|---|---|
 | `POST /auth/login` | `login:<ip>` | 5 tentatives | 15 minutes |
 | `POST /auth/resend-verification` | `resend:<ip>` | 3 envois | 60 minutes |
 | `POST /auth/forgot-password` | `pwd-reset:<ip>` | 3 demandes | 60 minutes |
 | `PATCH /profile/password` | `pwd-change:<userId>:<ip>` | 3 tentatives | 30 minutes |
 
-Les entrees expirees sont nettoyees automatiquement toutes les heures via `setInterval`.
+Les entrées expirées sont nettoyées automatiquement toutes les heures via `setInterval`.
 
-### 8.6 Tokens opaques
+### 10.6 Tokens opaques
 
-Les tokens de verification d'email et de reinitialisation de mot de passe sont generes avec `crypto.randomBytes(32)` (256 bits d'entropie). Ils ne sont pas des JWT : ils n'encodent aucune information et sont valides uniquement par leur presence dans le `Map` interne associe a une entree non expiree.
+Les tokens de vérification d'email et de réinitialisation de mot de passe sont générés avec `crypto.randomBytes(32)` (256 bits d'entropie). Ils ne sont pas des JWT : ils n'encodent aucune information et sont valides uniquement par leur présence dans le `Map` interne associé à une entrée non expirée.
 
-### 8.7 Validation des entrees
+### 10.7 Validation des entrées
 
-| Champ | Regle |
+| Champ | Règle |
 |---|---|
 | Email | Regex stricte, longueur locale max 64, domaine max 253 |
-| Mot de passe | 8-128 caracteres, au moins 1 majuscule, 1 minuscule, 1 chiffre, 1 caractere special parmi `@$!%*?&-_#` |
-| Nom complet | 2 a 100 caracteres, espaces autorises |
-| Email normalise | `toLowerCase()` + `trim()` avant toute verification ou stockage |
+| Mot de passe | 8-128 caractères, au moins 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial parmi `@$!%*?&-_#` |
+| Nom complet | 2 à 100 caractères, espaces autorisés |
+| Email normalisé | `toLowerCase()` + `trim()` avant toute vérification ou stockage |
 
-### 8.8 Invalidation de session sur changement de mot de passe
+### 10.8 Invalidation de session sur changement de mot de passe
 
-Lors d'un changement de mot de passe (via `PATCH /profile/password` ou `POST /auth/reset-password`), **tous les refresh tokens actifs** de l'utilisateur concerne sont revokes. Tout appareil ou session ouverte avec ce compte sera force a se reconnecter.
+Lors d'un changement de mot de passe (via `PATCH /profile/password` ou `POST /auth/reset-password`), **tous les refresh tokens actifs** de l'utilisateur concerné sont révoqués. Tout appareil ou session ouverte avec ce compte sera forcé à se reconnecter.
 
 ---
 
-## 9. Middlewares exportes
+## 11. Middlewares exportés
 
-Le module exporte les elements suivants en plus du routeur principal :
+Le module exporte les éléments suivants en plus du routeur principal :
 
 ```js
 const authRouter = require('@aanid/w-d-backend');
@@ -651,7 +714,7 @@ const authRouter = require('@aanid/w-d-backend');
 // Routeur principal (usage : app.use('/api', authRouter))
 authRouter
 
-// Objet des roles (freeze, en lecture seule)
+// Objet des rôles (freeze, en lecture seule)
 authRouter.ROLES
 // => { CITOYEN, PROFESSIONNEL, REGIE, FORMATEUR, AUTORITE, ADMIN }
 
@@ -659,14 +722,14 @@ authRouter.ROLES
 authRouter.SUBSCRIPTIONS
 // => { FREE, PREMIUM, PROFESSIONAL, ENTERPRISE }
 
-// Middleware : verifie le Bearer token et injecte req.user
+// Middleware : vérifie le Bearer token et injecte req.user
 authRouter.authenticateToken
 
-// Factory de middleware : verifie que req.user.role est dans la liste
+// Factory de middleware : vérifie que req.user.role est dans la liste
 authRouter.authorizeRoles(...roles)
 ```
 
-**Exemple d'utilisation combine :**
+**Exemple d'utilisation combiné :**
 
 ```js
 const {
@@ -676,8 +739,7 @@ const {
   SUBSCRIPTIONS
 } = require('@aanid/w-d-backend');
 
-// Accessible a tout abonne PREMIUM ou superieur
-// (la logique metier du filtre abonnement est a implementer dans la route)
+// Accessible à tout abonné PREMIUM ou supérieur
 router.get('/formations/premium',
   authenticateToken,
   (req, res, next) => {
@@ -693,15 +755,15 @@ router.get('/formations/premium',
 
 ---
 
-## 10. Feuille de route production
+## 12. Feuille de route production
 
-Les elements suivants sont marques comme a implementer avant mise en production.
+Les éléments suivants sont marqués comme à implémenter avant mise en production.
 
-### 10.1 Remplacement des stores en memoire par Prisma
+### 12.1 Remplacement des stores en mémoire par Prisma
 
-Les quatre `Map` et le `Set` internes doivent etre remplaces par des modeles Prisma. Les modeles sugeres sont :
+Les quatre `Map` et le `Set` internes doivent être remplacés par des modèles Prisma. Les modèles suggérés sont :
 
-**Schema Prisma :**
+**Schéma Prisma :**
 
 ```prisma
 model User {
@@ -715,8 +777,8 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  refreshTokens RefreshToken[]
-  verificationTokens EmailVerificationToken[]
+  refreshTokens       RefreshToken[]
+  verificationTokens  EmailVerificationToken[]
   passwordResetTokens PasswordResetToken[]
 }
 
@@ -756,38 +818,39 @@ enum Subscription {
 }
 ```
 
-### 10.2 Service d'envoi d'emails
+### 12.2 Service d'envoi d'emails
 
-Les deux endroits marques `TODO` dans le code doivent appeler un service transactionnel (SendGrid, Resend, Mailgun) :
+Les deux endroits marqués `TODO` dans le code doivent appeler un service transactionnel (SendGrid, Resend, Mailgun) :
 
-- Apres inscription : envoi du lien `https://app.aanid.com/verify-email/<token>`
-- Apres demande de reinitialisation : envoi du lien `https://app.aanid.com/reset-password/<token>`
+- Après inscription : envoi du lien `https://app.aanid.com/verify-email/<token>`
+- Après demande de réinitialisation : envoi du lien `https://app.aanid.com/reset-password/<token>`
 
-### 10.3 Rate limiting distribue
+### 12.3 Rate limiting distribué
 
-Remplacer le rate limiter en memoire par `express-rate-limit` + `rate-limit-redis` pour fonctionner sur plusieurs instances du serveur :
+Remplacer le rate limiter en mémoire par `express-rate-limit` + `rate-limit-redis` pour fonctionner sur plusieurs instances du serveur :
 
 ```bash
 npm install express-rate-limit rate-limit-redis ioredis
 ```
 
-### 10.4 Headers de securite HTTP
+### 12.4 Headers de sécurité HTTP
 
-Ajouter `helmet` dans l'application principale pour proteger contre les attaques courantes (XSS, clickjacking, sniffing MIME) :
+Ajouter `helmet` dans l'application principale pour protéger contre les attaques courantes (XSS, clickjacking, sniffing MIME) :
 
 ```js
 const helmet = require('helmet');
 app.use(helmet());
 ```
 
-### 10.5 CORS
+### 12.5 CORS en production
 
-Configurer CORS dans l'application principale avec une liste blanche explicite :
+En production, remplacer l'origine `*` par une liste blanche explicite dans `src/index.js` (ou l'application principale) :
 
 ```js
-const cors = require('cors');
 app.use(cors({
   origin: ['https://app.aanid.com'],
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
 }));
 ```
+
+La variable d'environnement `CORS_ORIGIN` permet de configurer cela sans modifier le code.
