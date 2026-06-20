@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
+  Alert,
   Modal,
   FlatList,
   KeyboardAvoidingView,
@@ -14,7 +15,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import * as authService from '../services/authService';
-import { colors, spacing, radius, typography, shadows } from '../theme';
+import PasswordStrengthBar from '../components/PasswordStrengthBar';
+import { colors, spacing, radius, typography, shadows, PASSWORD_RE } from '../theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -26,7 +28,6 @@ const ROLES = [
   { value: 'AUTORITE', label: 'Autorité publique' },
 ];
 
-const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,128}$/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ─── Validation ───────────────────────────────────────────────────────────────
@@ -254,19 +255,6 @@ function RegisterForm({ onRegistered, onSwitchToLogin }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const passwordStrength = (() => {
-    if (!password) return null;
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[@$!%*?&\-_#]/.test(password)) score++;
-    if (score <= 1) return { label: 'Faible', color: colors.red, width: '25%' };
-    if (score === 2) return { label: 'Moyen', color: colors.orange, width: '50%' };
-    if (score === 3) return { label: 'Bon', color: colors.primary, width: '75%' };
-    return { label: 'Fort', color: colors.green, width: '100%' };
-  })();
-
   const handleRegister = useCallback(async () => {
     setError(null);
     const validationError = validateRegisterForm({ fullName, email, password, confirmPassword });
@@ -322,14 +310,7 @@ function RegisterForm({ onRegistered, onSwitchToLogin }) {
         returnKeyType="next"
       />
 
-      {passwordStrength && (
-        <View style={styles.strengthContainer}>
-          <View style={styles.strengthBar}>
-            <View style={[styles.strengthFill, { width: passwordStrength.width, backgroundColor: passwordStrength.color }]} />
-          </View>
-          <Text style={[styles.strengthLabel, { color: passwordStrength.color }]}>{passwordStrength.label}</Text>
-        </View>
-      )}
+      <PasswordStrengthBar password={password} style={{ marginTop: -spacing.xs, marginBottom: spacing.sm }} />
 
       <FormInput
         label="Confirmer le mot de passe"
@@ -592,9 +573,15 @@ export default function Auth({ onAuthenticated }) {
 
           <Text style={styles.footer}>
             En continuant, vous acceptez les{' '}
-            <Text style={styles.footerLink}>Conditions d'utilisation</Text>
+            <Text
+              style={styles.footerLink}
+              onPress={() => Alert.alert('AANID', "Les Conditions d'utilisation seront disponibles prochainement.")}
+            >Conditions d'utilisation</Text>
             {' '}et la{' '}
-            <Text style={styles.footerLink}>Politique de confidentialité</Text>
+            <Text
+              style={styles.footerLink}
+              onPress={() => Alert.alert('AANID', 'La Politique de confidentialité sera disponible prochainement.')}
+            >Politique de confidentialité</Text>
             {' '}d'AANID.
           </Text>
         </ScrollView>
@@ -673,16 +660,6 @@ const styles = StyleSheet.create({
   eyeButton: { paddingHorizontal: spacing.xs },
   eyeText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
   fieldError: { ...typography.caption, color: colors.red, marginTop: 4 },
-
-  strengthContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: -spacing.xs,
-    marginBottom: spacing.sm,
-  },
-  strengthBar: { flex: 1, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, overflow: 'hidden' },
-  strengthFill: { height: '100%', borderRadius: 2 },
-  strengthLabel: { ...typography.caption, marginLeft: spacing.xs, width: 48, fontWeight: '600' },
 
   pickerButton: {
     flexDirection: 'row',

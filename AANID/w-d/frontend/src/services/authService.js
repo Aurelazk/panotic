@@ -50,14 +50,19 @@ async function authRequest(path, options = {}) {
       headers: { ...options.headers, Authorization: `Bearer ${token}` },
     });
   } catch (err) {
-    // Auto-refresh on expired access token
     if (err.status === 401) {
-      await refreshTokens();
-      const newToken = await AsyncStorage.getItem(KEYS.ACCESS_TOKEN);
-      return request(path, {
-        ...options,
-        headers: { ...options.headers, Authorization: `Bearer ${newToken}` },
-      });
+      try {
+        await refreshTokens();
+        const newToken = await AsyncStorage.getItem(KEYS.ACCESS_TOKEN);
+        return request(path, {
+          ...options,
+          headers: { ...options.headers, Authorization: `Bearer ${newToken}` },
+        });
+      } catch {
+        // Refresh token révoqué ou expiré — forcer la déconnexion locale
+        await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER]);
+        throw Object.assign(new Error('Session expirée. Reconnectez-vous.'), { status: 401, code: 'SESSION_EXPIRED' });
+      }
     }
     throw err;
   }
@@ -122,14 +127,19 @@ export async function login({ email, password }) {
 }
 
 export async function logout() {
-  const refreshToken = await AsyncStorage.getItem(KEYS.REFRESH_TOKEN);
+  // Read both tokens before any network call to avoid rotation leak from authRequest's auto-refresh
+  const [accessToken, refreshToken] = await Promise.all([
+    AsyncStorage.getItem(KEYS.ACCESS_TOKEN),
+    AsyncStorage.getItem(KEYS.REFRESH_TOKEN),
+  ]);
   try {
-    await authRequest('/auth/logout', {
+    await request('/auth/logout', {
       method: 'POST',
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       body: JSON.stringify({ refreshToken }),
     });
   } catch {
-    // Proceed with local logout even if server call fails
+    // best-effort — local logout always proceeds
   } finally {
     await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER]);
   }

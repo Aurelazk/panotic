@@ -75,3 +75,6 @@ export const shadows = {
     elevation: 2,
   },
 };
+
+// Shared password validation — min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char (@$!%*?&-_#), max 128
+export const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,128}$/;

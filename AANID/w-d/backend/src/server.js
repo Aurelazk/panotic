@@ -365,6 +365,9 @@ router.post('/auth/logout', authenticateToken, (req, res) => {
 // GET /auth/verify-email/:token
 router.get('/auth/verify-email/:token', (req, res) => {
   const { token } = req.params;
+  if (!token || !/^[0-9a-f]{64}$/.test(token)) {
+    return res.status(400).json({ error: 'Lien de vérification invalide ou expiré' });
+  }
   const record = verificationTokens.get(token);
 
   if (!record || Date.now() > record.expiresAt) {
@@ -450,6 +453,10 @@ router.post('/auth/reset-password', async (req, res) => {
 
     if (!token || !newPassword) {
       return res.status(400).json({ error: 'Token et nouveau mot de passe requis' });
+    }
+
+    if (!/^[0-9a-f]{64}$/.test(token)) {
+      return res.status(400).json({ error: 'Lien de réinitialisation invalide ou expiré' });
     }
 
     const record = passwordResetTokens.get(token);

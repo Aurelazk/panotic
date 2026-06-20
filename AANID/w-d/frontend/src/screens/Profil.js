@@ -12,7 +12,8 @@ import {
   SafeAreaView,
 } from 'react-native';
 import * as authService from '../services/authService';
-import { colors, spacing, radius, typography, shadows } from '../theme';
+import PasswordStrengthBar from '../components/PasswordStrengthBar';
+import { colors, spacing, radius, typography, shadows, PASSWORD_RE } from '../theme';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -31,8 +32,6 @@ const SUBSCRIPTION_LABELS = {
   PROFESSIONAL: 'Professionnel',
   ENTERPRISE: 'Entreprise',
 };
-
-const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&\-_#])[A-Za-z\d@$!%*?&\-_#]{8,128}$/;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -224,6 +223,7 @@ function ChangePasswordModal({ visible, onClose }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -231,23 +231,10 @@ function ChangePasswordModal({ visible, onClose }) {
   useEffect(() => {
     if (visible) {
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('');
-      setShowCurrent(false); setShowNew(false);
+      setShowCurrent(false); setShowNew(false); setShowConfirm(false);
       setError(null); setSuccess(false);
     }
   }, [visible]);
-
-  const passwordStrength = (() => {
-    if (!newPassword) return null;
-    let score = 0;
-    if (newPassword.length >= 8) score++;
-    if (/[A-Z]/.test(newPassword)) score++;
-    if (/[0-9]/.test(newPassword)) score++;
-    if (/[@$!%*?&\-_#]/.test(newPassword)) score++;
-    if (score <= 1) return { label: 'Faible', color: colors.red, width: '25%' };
-    if (score === 2) return { label: 'Moyen', color: colors.orange, width: '50%' };
-    if (score === 3) return { label: 'Bon', color: colors.primary, width: '75%' };
-    return { label: 'Fort', color: colors.green, width: '100%' };
-  })();
 
   const handleChange = useCallback(async () => {
     setError(null);
@@ -317,21 +304,15 @@ function ChangePasswordModal({ visible, onClose }) {
                 returnKeyType="next"
               />
 
-              {passwordStrength && (
-                <View style={styles.strengthContainer}>
-                  <View style={styles.strengthBar}>
-                    <View style={[styles.strengthFill, { width: passwordStrength.width, backgroundColor: passwordStrength.color }]} />
-                  </View>
-                  <Text style={[styles.strengthLabel, { color: passwordStrength.color }]}>{passwordStrength.label}</Text>
-                </View>
-              )}
+              <PasswordStrengthBar password={newPassword} style={{ marginVertical: spacing.xs }} />
 
               <PasswordInput
                 label="Confirmer le nouveau mot de passe"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Répétez le nouveau mot de passe"
-                show={false}
+                show={showConfirm}
+                onToggle={() => setShowConfirm((v) => !v)}
                 textContentType="newPassword"
                 returnKeyType="done"
                 onSubmitEditing={handleChange}
@@ -717,11 +698,6 @@ const styles = StyleSheet.create({
   input: { flex: 1, ...typography.body, color: colors.textPrimary },
   eyeButton: { paddingHorizontal: spacing.xs },
   eyeText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
-
-  strengthContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: spacing.xs },
-  strengthBar: { flex: 1, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, overflow: 'hidden' },
-  strengthFill: { height: '100%', borderRadius: 2 },
-  strengthLabel: { ...typography.caption, marginLeft: spacing.xs, width: 48, fontWeight: '600' },
 
   banner: {
     borderRadius: radius.button,
