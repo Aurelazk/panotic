@@ -19,8 +19,6 @@
       },
       "package": "com.aanid.app"
     },
-    "plugins": [
-      "expo-router"
-    ]
+    "plugins": []
   }
 }
