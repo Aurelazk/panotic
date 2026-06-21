@@ -105,6 +105,20 @@ function validateFullName(name) {
   return typeof name === 'string' && name.trim().length >= 2 && name.trim().length <= 100;
 }
 
+function validatePhone(phone) {
+  if (typeof phone !== 'string') return false;
+  const digits = phone.replace(/[\s\-\+\(\)]/g, '');
+  return /^\d{7,15}$/.test(digits);
+}
+
+function normalizePhone(phone) {
+  return phone.trim().replace(/[\s\-\(\)]/g, '');
+}
+
+function validateCity(city) {
+  return typeof city === 'string' && city.trim().length >= 2 && city.trim().length <= 100;
+}
+
 function normalizeEmail(email) {
   return email.trim().toLowerCase();
 }
@@ -192,10 +206,10 @@ function clientIp(req) {
 // POST /auth/register
 router.post('/auth/register', async (req, res) => {
   try {
-    const { fullName, email, password, role } = req.body ?? {};
+    const { fullName, email, phone, city, password, role } = req.body ?? {};
 
-    if (!fullName || !email || !password) {
-      return res.status(400).json({ error: 'fullName, email et password sont requis' });
+    if (!fullName || !email || !phone || !city || !password) {
+      return res.status(400).json({ error: 'fullName, email, phone, city et password sont requis' });
     }
 
     if (!validateFullName(fullName)) {
@@ -205,6 +219,14 @@ router.post('/auth/register', async (req, res) => {
     const normalizedEmail = normalizeEmail(email);
     if (!validateEmail(normalizedEmail)) {
       return res.status(400).json({ error: 'Adresse email invalide' });
+    }
+
+    if (!validatePhone(phone)) {
+      return res.status(400).json({ error: 'Numéro de téléphone invalide (7 à 15 chiffres)' });
+    }
+
+    if (!validateCity(city)) {
+      return res.status(400).json({ error: 'La ville doit contenir entre 2 et 100 caractères' });
     }
 
     if (!validatePassword(password)) {
@@ -232,6 +254,8 @@ router.post('/auth/register', async (req, res) => {
       id: userId,
       fullName: fullName.trim(),
       email: normalizedEmail,
+      phone: normalizePhone(phone),
+      city: city.trim(),
       passwordHash,
       role: assignedRole,
       subscription: SUBSCRIPTIONS.FREE,
@@ -516,13 +540,27 @@ router.patch('/profile', authenticateToken, async (req, res) => {
     const user = [...users.values()].find((u) => u.id === req.user.sub);
     if (!user) return res.status(404).json({ error: 'Profil introuvable' });
 
-    const { fullName } = req.body ?? {};
+    const { fullName, phone, city } = req.body ?? {};
 
     if (fullName !== undefined) {
       if (!validateFullName(fullName)) {
         return res.status(400).json({ error: 'Nom invalide (2 à 100 caractères)' });
       }
       user.fullName = fullName.trim();
+    }
+
+    if (phone !== undefined) {
+      if (!validatePhone(phone)) {
+        return res.status(400).json({ error: 'Numéro de téléphone invalide (7 à 15 chiffres)' });
+      }
+      user.phone = normalizePhone(phone);
+    }
+
+    if (city !== undefined) {
+      if (!validateCity(city)) {
+        return res.status(400).json({ error: 'Ville invalide (2 à 100 caractères)' });
+      }
+      user.city = city.trim();
     }
 
     user.updatedAt = new Date().toISOString();

@@ -9,6 +9,7 @@ const KEYS = {
   ACCESS_TOKEN: '@aanid/v1/access_token',
   REFRESH_TOKEN: '@aanid/v1/refresh_token',
   USER: '@aanid/v1/user',
+  SESSION_ONLY: '@aanid/v1/session_only',
 };
 
 // ─── Internal request helpers ─────────────────────────────────────────────────
@@ -60,7 +61,7 @@ async function authRequest(path, options = {}) {
         });
       } catch {
         // Refresh token révoqué ou expiré — forcer la déconnexion locale
-        await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER]);
+        await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER, KEYS.SESSION_ONLY]);
         throw Object.assign(new Error('Session expirée. Reconnectez-vous.'), { status: 401, code: 'SESSION_EXPIRED' });
       }
     }
@@ -88,7 +89,16 @@ export async function refreshTokens() {
 }
 
 export async function getStoredUser() {
-  const raw = await AsyncStorage.getItem(KEYS.USER);
+  const results = await AsyncStorage.multiGet([KEYS.SESSION_ONLY, KEYS.USER]);
+  const sessionOnly = results[0][1];
+  const raw = results[1][1];
+
+  if (sessionOnly === 'true') {
+    // App relancée sans "Se souvenir de moi" — vider la session
+    await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER, KEYS.SESSION_ONLY]);
+    return null;
+  }
+
   if (!raw) return null;
   try {
     return JSON.parse(raw);
@@ -104,30 +114,32 @@ export async function isAuthenticated() {
 
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 
-export async function register({ fullName, email, password, role }) {
+export async function register({ fullName, email, phone, city, password, role }) {
   return request('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ fullName, email: email.trim().toLowerCase(), password, role }),
+    body: JSON.stringify({ fullName, email: email.trim().toLowerCase(), phone, city, password, role }),
   });
 }
 
-export async function login({ email, password }) {
+export async function login({ email, password, rememberMe = true }) {
   const data = await request('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
   });
 
-  await AsyncStorage.multiSet([
+  const pairs = [
     [KEYS.ACCESS_TOKEN, data.accessToken],
     [KEYS.REFRESH_TOKEN, data.refreshToken],
     [KEYS.USER, JSON.stringify(data.user)],
-  ]);
+  ];
+  if (!rememberMe) pairs.push([KEYS.SESSION_ONLY, 'true']);
 
+  await AsyncStorage.multiSet(pairs);
   return data;
 }
 
 export async function logout() {
-  // Read both tokens before any network call to avoid rotation leak from authRequest's auto-refresh
+  // Lire les deux tokens avant tout appel réseau pour éviter une rotation accidentelle
   const [accessToken, refreshToken] = await Promise.all([
     AsyncStorage.getItem(KEYS.ACCESS_TOKEN),
     AsyncStorage.getItem(KEYS.REFRESH_TOKEN),
@@ -139,9 +151,9 @@ export async function logout() {
       body: JSON.stringify({ refreshToken }),
     });
   } catch {
-    // best-effort — local logout always proceeds
+    // best-effort — la déconnexion locale s'effectue toujours
   } finally {
-    await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER]);
+    await AsyncStorage.multiRemove([KEYS.ACCESS_TOKEN, KEYS.REFRESH_TOKEN, KEYS.USER, KEYS.SESSION_ONLY]);
   }
 }
 
@@ -178,10 +190,10 @@ export async function getProfile() {
   return data;
 }
 
-export async function updateProfile({ fullName }) {
+export async function updateProfile({ fullName, phone, city }) {
   const data = await authRequest('/profile', {
     method: 'PATCH',
-    body: JSON.stringify({ fullName }),
+    body: JSON.stringify({ fullName, phone, city }),
   });
   await AsyncStorage.setItem(KEYS.USER, JSON.stringify(data.user));
   return data;

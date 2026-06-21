@@ -1,27 +1,21 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { AppState } from 'react-native';
 import * as authService from '../services/authService';
 
 const AuthContext = createContext(null);
 
+// Déconnexion automatique après 30 minutes d'inactivité (app en arrière-plan)
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+
 /**
  * Enveloppe l'application et fournit l'état d'authentification global.
  * Restaure la session depuis AsyncStorage au démarrage.
- *
- * Usage dans l'application principale :
- *
- *   import { AuthProvider } from '@aanid/w-d-frontend';
- *
- *   export default function App() {
- *     return (
- *       <AuthProvider>
- *         <NavigationContainer>...</NavigationContainer>
- *       </AuthProvider>
- *     );
- *   }
+ * Déconnecte automatiquement après 30 minutes d'inactivité en arrière-plan.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const backgroundTimeRef = useRef(null);
 
   useEffect(() => {
     authService
@@ -31,13 +25,31 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleLogin = useCallback((userData) => {
-    setUser(userData);
-  }, []);
-
   const handleLogout = useCallback(async () => {
     await authService.logout();
     setUser(null);
+  }, []);
+
+  // Déconnexion automatique si l'app reste en arrière-plan plus de INACTIVITY_TIMEOUT_MS
+  useEffect(() => {
+    if (!user) return;
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') {
+        backgroundTimeRef.current = Date.now();
+      } else if (state === 'active' && backgroundTimeRef.current !== null) {
+        if (Date.now() - backgroundTimeRef.current >= INACTIVITY_TIMEOUT_MS) {
+          handleLogout();
+        }
+        backgroundTimeRef.current = null;
+      }
+    });
+
+    return () => sub.remove();
+  }, [user, handleLogout]);
+
+  const handleLogin = useCallback((userData) => {
+    setUser(userData);
   }, []);
 
   const handleProfileUpdate = useCallback((updatedUser) => {

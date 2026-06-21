@@ -135,14 +135,24 @@ function PasswordInput({ label, value, onChangeText, show, onToggle, placeholder
 
 // ─── Edit Profile Modal ───────────────────────────────────────────────────────
 
+const PHONE_DIGITS_RE = /^\d{7,15}$/;
+
+function normalizePhoneDigits(phone) {
+  return phone.replace(/[\s\-\+\(\)]/g, '');
+}
+
 function EditProfileModal({ visible, user, onClose, onSaved }) {
   const [fullName, setFullName] = useState(user?.fullName || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [city, setCity] = useState(user?.city || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (visible) {
       setFullName(user?.fullName || '');
+      setPhone(user?.phone || '');
+      setCity(user?.city || '');
       setError(null);
     }
   }, [visible, user]);
@@ -152,10 +162,18 @@ function EditProfileModal({ visible, user, onClose, onSaved }) {
       setError('Le nom doit contenir au moins 2 caractères');
       return;
     }
+    if (phone.trim() && !PHONE_DIGITS_RE.test(normalizePhoneDigits(phone))) {
+      setError('Numéro de téléphone invalide (7 à 15 chiffres)');
+      return;
+    }
+    if (city.trim() && city.trim().length < 2) {
+      setError('La ville doit contenir au moins 2 caractères');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const data = await authService.updateProfile({ fullName });
+      const data = await authService.updateProfile({ fullName, phone: phone.trim() || undefined, city: city.trim() || undefined });
       onSaved(data.user);
       onClose();
     } catch (err) {
@@ -163,7 +181,7 @@ function EditProfileModal({ visible, user, onClose, onSaved }) {
     } finally {
       setLoading(false);
     }
-  }, [fullName, onSaved, onClose]);
+  }, [fullName, phone, city, onSaved, onClose]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -179,12 +197,40 @@ function EditProfileModal({ visible, user, onClose, onSaved }) {
           )}
 
           <Text style={styles.inputLabel}>Nom complet</Text>
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, { marginBottom: spacing.sm }]}>
             <TextInput
               style={styles.input}
               value={fullName}
               onChangeText={setFullName}
               placeholder="Prénom et Nom"
+              placeholderTextColor={colors.placeholder}
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+            />
+          </View>
+
+          <Text style={styles.inputLabel}>Téléphone</Text>
+          <View style={[styles.inputWrapper, { marginBottom: spacing.sm }]}>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="+229 XX XX XX XX"
+              placeholderTextColor={colors.placeholder}
+              keyboardType="phone-pad"
+              autoCorrect={false}
+              returnKeyType="next"
+            />
+          </View>
+
+          <Text style={styles.inputLabel}>Ville de résidence</Text>
+          <View style={[styles.inputWrapper, { marginBottom: spacing.md }]}>
+            <TextInput
+              style={styles.input}
+              value={city}
+              onChangeText={setCity}
+              placeholder="Ex : Cotonou, Abidjan…"
               placeholderTextColor={colors.placeholder}
               autoCapitalize="words"
               autoCorrect={false}
@@ -450,6 +496,10 @@ export default function Profil({ onLogout }) {
           <InfoRow label="Nom complet" value={user?.fullName} />
           <View style={styles.separator} />
           <InfoRow label="Email" value={user?.email} />
+          <View style={styles.separator} />
+          <InfoRow label="Téléphone" value={user?.phone || '—'} />
+          <View style={styles.separator} />
+          <InfoRow label="Ville" value={user?.city || '—'} />
           <View style={styles.separator} />
           <InfoRow label="Membre depuis" value={formatDate(user?.createdAt)} />
           <View style={styles.separator} />

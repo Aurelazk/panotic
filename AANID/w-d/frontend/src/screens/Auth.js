@@ -29,6 +29,12 @@ const ROLES = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// 7-15 chiffres après suppression des séparateurs (espaces, tirets, parenthèses, +)
+const PHONE_RE = /^\d{7,15}$/;
+
+function normalizePhoneDigits(phone) {
+  return phone.replace(/[\s\-\+\(\)]/g, '');
+}
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -39,14 +45,18 @@ function validateLoginForm({ email, password }) {
   return null;
 }
 
-function validateRegisterForm({ fullName, email, password, confirmPassword }) {
+function validateRegisterForm({ fullName, email, phone, city, password, confirmPassword, acceptCgu }) {
   if (!fullName.trim() || fullName.trim().length < 2) return 'Le nom complet est requis (2 caractères minimum)';
   if (!email.trim()) return "L'email est requis";
   if (!EMAIL_RE.test(email.trim())) return 'Adresse email invalide';
+  if (!phone.trim()) return 'Le numéro de téléphone est requis';
+  if (!PHONE_RE.test(normalizePhoneDigits(phone))) return 'Numéro de téléphone invalide (7 à 15 chiffres)';
+  if (!city.trim() || city.trim().length < 2) return 'La ville de résidence est requise';
   if (!PASSWORD_RE.test(password)) {
     return 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&-_#)';
   }
   if (password !== confirmPassword) return 'Les mots de passe ne correspondent pas';
+  if (!acceptCgu) return "Vous devez accepter les Conditions d'utilisation";
   return null;
 }
 
@@ -73,6 +83,17 @@ function FormInput({ label, error, secureEntry, toggleSecure, autoCapitalize = '
       </View>
       {error ? <Text style={styles.fieldError}>{error}</Text> : null}
     </View>
+  );
+}
+
+function Checkbox({ checked, onToggle, children }) {
+  return (
+    <TouchableOpacity style={styles.checkRow} onPress={() => onToggle(!checked)} activeOpacity={0.7}>
+      <View style={[styles.checkBox, checked && styles.checkBoxChecked]}>
+        {checked ? <Text style={styles.checkMark}>✓</Text> : null}
+      </View>
+      <View style={styles.checkLabelContainer}>{children}</View>
+    </TouchableOpacity>
   );
 }
 
@@ -142,6 +163,7 @@ function LoginForm({ onSuccess, onSwitchToRegister, onForgotPassword }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [needsVerification, setNeedsVerification] = useState(false);
@@ -155,7 +177,7 @@ function LoginForm({ onSuccess, onSwitchToRegister, onForgotPassword }) {
 
     setLoading(true);
     try {
-      const data = await authService.login({ email, password });
+      const data = await authService.login({ email, password, rememberMe });
       onSuccess(data.user);
     } catch (err) {
       if (err.code === 'EMAIL_NOT_VERIFIED') {
@@ -167,7 +189,7 @@ function LoginForm({ onSuccess, onSwitchToRegister, onForgotPassword }) {
     } finally {
       setLoading(false);
     }
-  }, [email, password, onSuccess]);
+  }, [email, password, rememberMe, onSuccess]);
 
   const handleResend = useCallback(async () => {
     setResendLoading(true);
@@ -216,9 +238,14 @@ function LoginForm({ onSuccess, onSwitchToRegister, onForgotPassword }) {
         onSubmitEditing={handleLogin}
       />
 
-      <TouchableOpacity style={styles.forgotLink} onPress={onForgotPassword} hitSlop={8}>
-        <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
-      </TouchableOpacity>
+      <View style={styles.loginFooterRow}>
+        <Checkbox checked={rememberMe} onToggle={setRememberMe}>
+          <Text style={styles.rememberLabel}>Se souvenir de moi</Text>
+        </Checkbox>
+        <TouchableOpacity onPress={onForgotPassword} hitSlop={8}>
+          <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
         style={[styles.primaryButton, loading && styles.buttonDisabled]}
@@ -247,29 +274,32 @@ function LoginForm({ onSuccess, onSwitchToRegister, onForgotPassword }) {
 function RegisterForm({ onRegistered, onSwitchToLogin }) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [role, setRole] = useState('CITOYEN');
+  const [acceptCgu, setAcceptCgu] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleRegister = useCallback(async () => {
     setError(null);
-    const validationError = validateRegisterForm({ fullName, email, password, confirmPassword });
+    const validationError = validateRegisterForm({ fullName, email, phone, city, password, confirmPassword, acceptCgu });
     if (validationError) { setError(validationError); return; }
 
     setLoading(true);
     try {
-      await authService.register({ fullName, email, password, role });
+      await authService.register({ fullName, email, phone, city, password, role });
       onRegistered(email);
     } catch (err) {
       setError(err.message || "Erreur lors de l'inscription");
     } finally {
       setLoading(false);
     }
-  }, [fullName, email, password, confirmPassword, role, onRegistered]);
+  }, [fullName, email, phone, city, password, confirmPassword, role, acceptCgu, onRegistered]);
 
   return (
     <View>
@@ -294,6 +324,27 @@ function RegisterForm({ onRegistered, onSwitchToLogin }) {
         keyboardType="email-address"
         textContentType="emailAddress"
         autoComplete="email"
+        returnKeyType="next"
+      />
+
+      <FormInput
+        label="Téléphone"
+        value={phone}
+        onChangeText={setPhone}
+        placeholder="+229 XX XX XX XX"
+        keyboardType="phone-pad"
+        textContentType="telephoneNumber"
+        autoComplete="tel"
+        returnKeyType="next"
+      />
+
+      <FormInput
+        label="Ville de résidence"
+        value={city}
+        onChangeText={setCity}
+        placeholder="Ex : Cotonou, Abidjan…"
+        textContentType="addressCity"
+        autoCapitalize="words"
         returnKeyType="next"
       />
 
@@ -323,6 +374,27 @@ function RegisterForm({ onRegistered, onSwitchToLogin }) {
         returnKeyType="done"
         onSubmitEditing={handleRegister}
       />
+
+      <View style={styles.cguRow}>
+        <Checkbox checked={acceptCgu} onToggle={setAcceptCgu}>
+          <Text style={styles.cguText}>
+            J'accepte les{' '}
+            <Text
+              style={styles.cguLink}
+              onPress={() => Alert.alert('AANID', "Les Conditions d'utilisation seront disponibles prochainement.")}
+            >
+              Conditions d'utilisation
+            </Text>
+            {' '}et la{' '}
+            <Text
+              style={styles.cguLink}
+              onPress={() => Alert.alert('AANID', 'La Politique de confidentialité sera disponible prochainement.')}
+            >
+              Politique de confidentialité
+            </Text>
+          </Text>
+        </Checkbox>
+      </View>
 
       <TouchableOpacity
         style={[styles.primaryButton, loading && styles.buttonDisabled]}
@@ -441,7 +513,7 @@ function PendingVerification({ email, onBackToLogin }) {
       await authService.resendVerification({ email });
       setResendDone(true);
     } catch {
-      // silent fail — server always returns 200 for this endpoint
+      // silent fail — le serveur retourne toujours 200 pour cet endpoint
     } finally {
       setResendLoading(false);
     }
@@ -570,20 +642,6 @@ export default function Auth({ onAuthenticated }) {
               />
             )}
           </View>
-
-          <Text style={styles.footer}>
-            En continuant, vous acceptez les{' '}
-            <Text
-              style={styles.footerLink}
-              onPress={() => Alert.alert('AANID', "Les Conditions d'utilisation seront disponibles prochainement.")}
-            >Conditions d'utilisation</Text>
-            {' '}et la{' '}
-            <Text
-              style={styles.footerLink}
-              onPress={() => Alert.alert('AANID', 'La Politique de confidentialité sera disponible prochainement.')}
-            >Politique de confidentialité</Text>
-            {' '}d'AANID.
-          </Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -661,6 +719,38 @@ const styles = StyleSheet.create({
   eyeText: { fontSize: 11, color: colors.primary, fontWeight: '600' },
   fieldError: { ...typography.caption, color: colors.red, marginTop: 4 },
 
+  // Checkbox
+  checkRow: { flexDirection: 'row', alignItems: 'center' },
+  checkBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: colors.placeholder,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: spacing.sm,
+    flexShrink: 0,
+  },
+  checkBoxChecked: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkMark: { color: colors.white, fontSize: 12, fontWeight: '700', lineHeight: 14 },
+  checkLabelContainer: { flex: 1 },
+
+  // "Se souvenir de moi" + "Mot de passe oublié ?"
+  loginFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  rememberLabel: { ...typography.caption },
+  forgotText: { ...typography.caption, color: colors.primary },
+
+  // CGU checkbox
+  cguRow: { marginBottom: spacing.md },
+  cguText: { ...typography.caption, lineHeight: 18 },
+  cguLink: { color: colors.primary, fontWeight: '600' },
+
   pickerButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -731,8 +821,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: { color: colors.primary, fontWeight: '600', fontSize: 15 },
 
-  forgotLink: { alignSelf: 'flex-end', marginBottom: spacing.xs },
-  forgotText: { ...typography.caption, color: colors.primary },
   forgotDescription: {
     ...typography.caption,
     color: colors.textSecondary,
@@ -787,13 +875,4 @@ const styles = StyleSheet.create({
   },
   verificationEmail: { color: colors.primary, fontWeight: '700' },
   resendDoneText: { ...typography.body, color: colors.green, fontWeight: '600', marginTop: spacing.md },
-
-  footer: {
-    ...typography.caption,
-    textAlign: 'center',
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-    lineHeight: 18,
-  },
-  footerLink: { color: colors.primary },
 });
