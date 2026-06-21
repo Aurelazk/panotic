@@ -5,7 +5,7 @@
   "workspaces": [
     "beni-momo-adnan/*",
     "bryan-fanou/*",
-    "rayan/*",
+    "rayann/*",
     "w-d/*",
     "undef/*",
     "backend",
@@ -21,8 +21,5 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
-  },
-  "dependencies": {
-    "helmet": "^8.2.0"
   }
 }
