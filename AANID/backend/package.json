@@ -9,14 +9,14 @@
     "test": "jest"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "@aanid/shared": "*",
     "cors": "^2.8.5",
-    "redis": "^4.6.12",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
-    "@aanid/shared": "*"
+    "redis": "^4.6.12"
   },
   "devDependencies": {
-    "jest": "^29.7.0"
+    "jest": "^25.0.0"
   }
 }
