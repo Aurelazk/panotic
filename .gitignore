@@ -5,10 +5,7 @@ backend/dist
 node_modules
 
 # Android signing / builds
-mobile/android/app/panotic-release.keystore
-mobile/android/app/build/
-mobile/android/build/
-mobile/android/.gradle/
+mobile/android/
 mobile/build/
 *.apk
 *.aab
