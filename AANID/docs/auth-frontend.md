@@ -180,14 +180,17 @@ function FormationsPremiumScreen() {
 
 - Validation email et mot de passe avant envoi
 - Détection automatique de l'erreur `EMAIL_NOT_VERIFIED` : affiche un bouton de renvoi d'email directement dans le message d'erreur
+- Checkbox **"Se souvenir de moi"** (cochée par défaut) : si décochée, la session est marquée comme temporaire et effacée automatiquement au prochain lancement de l'app
 - État de chargement sur le bouton pendant la requête
 
 **Fonctionnalités de l'écran inscription :**
 
-- Validation de tous les champs avant envoi
+- Champs : nom complet, email, téléphone, ville de résidence, rôle, mot de passe, confirmation
+- Validation de tous les champs avant envoi (téléphone : 7 à 15 chiffres ; ville : 2 à 100 caractères)
 - Sélection du rôle via un modal natif (les 5 rôles disponibles à l'inscription, `ADMIN` exclu)
-- Indicateur de force du mot de passe en temps réel (4 niveaux : Faible, Moyen, Bon, Fort) basé sur la présence de majuscule, chiffre, caractère spécial et longueur
+- Indicateur de force du mot de passe en temps réel (4 niveaux : Faible, Moyen, Bon, Fort)
 - Confirmation du mot de passe
+- **Checkbox CGU obligatoire** : l'utilisateur doit cocher explicitement son accord avec les Conditions d'utilisation et la Politique de confidentialité avant de soumettre
 
 ---
 
@@ -206,15 +209,15 @@ function FormationsPremiumScreen() {
 **Sections de l'écran :**
 
 1. **En-tête** : avatar avec initiales générés depuis le nom complet, nom, email, badges rôle et abonnement, bouton de modification du profil
-2. **Informations personnelles** : nom, email, date d'inscription, statut de vérification email (Vérifié / Non vérifié)
+2. **Informations personnelles** : nom complet, email, téléphone, ville, date d'inscription, statut de vérification email (Vérifié / Non vérifié)
 3. **Abonnement** : niveau actuel, liste des fonctionnalités incluses, bouton de mise à niveau si abonnement FREE
 4. **Sécurité** : accès au modal de changement de mot de passe, date de dernière modification
 5. **Déconnexion** : bouton avec confirmation native (`Alert.alert`)
 
 **Modal de modification du profil :**
 
-- Champ nom complet pré-rempli avec la valeur actuelle
-- Validation locale avant envoi
+- Champs pré-remplis : nom complet, téléphone, ville de résidence
+- Validation locale avant envoi (téléphone et ville optionnels à l'édition mais validés si renseignés)
 - Mise à jour immédiate de l'affichage après réponse serveur
 
 **Modal de changement de mot de passe :**
@@ -239,6 +242,8 @@ import { AuthProvider } from '@aanid/w-d-frontend';
 ```
 
 Au montage, `AuthProvider` lit le dernier utilisateur stocké dans AsyncStorage et hydrate l'état. La propriété `loading` est `true` pendant cette opération initiale.
+
+**Déconnexion automatique après inactivité :** quand l'utilisateur est connecté, `AuthProvider` écoute les transitions `AppState`. Si l'app passe en arrière-plan puis revient au premier plan après **30 minutes ou plus**, `onLogout` est déclenché automatiquement. Ce délai est configurable via la constante `INACTIVITY_TIMEOUT_MS` dans `AuthContext.js`.
 
 ### useAuth
 
@@ -266,6 +271,8 @@ const {
   id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   fullName: "Kofi Mensah",
   email: "kofi@exemple.com",
+  phone: "+22996000000",
+  city: "Cotonou",
   role: "CITOYEN",
   subscription: "FREE",
   emailVerified: true,
@@ -286,19 +293,19 @@ Le fichier `src/services/authService.js` est la couche d'abstraction entre les c
 
 | Fonction | Description |
 |---|---|
-| `register({ fullName, email, password, role })` | Inscrit un nouvel utilisateur |
-| `login({ email, password })` | Connecte et stocke les tokens |
-| `logout()` | Invalide le refresh token côté serveur et vide AsyncStorage |
+| `register({ fullName, email, phone, city, password, role })` | Inscrit un nouvel utilisateur |
+| `login({ email, password, rememberMe? })` | Connecte et stocke les tokens. Si `rememberMe` est `false`, un flag `SESSION_ONLY` est posé : la session est effacée au prochain lancement de l'app. Défaut : `true`. |
+| `logout()` | Invalide le refresh token côté serveur et vide AsyncStorage (y compris `SESSION_ONLY`) |
 | `refreshTokens()` | Renouvelle le couple de tokens |
 | `verifyEmail(token)` | Vérifie l'email via le token de l'URL |
 | `resendVerification({ email })` | Demande le renvoi du lien de vérification |
 | `forgotPassword({ email })` | Initie la réinitialisation de mot de passe |
 | `resetPassword({ token, newPassword })` | Finalise la réinitialisation |
 | `getProfile()` | Récupère le profil et met à jour AsyncStorage |
-| `updateProfile({ fullName })` | Met à jour le profil et met à jour AsyncStorage |
+| `updateProfile({ fullName?, phone?, city? })` | Met à jour le profil (champs optionnels) et synchronise AsyncStorage |
 | `changePassword({ currentPassword, newPassword })` | Change le mot de passe |
 | `getSubscription()` | Récupère les détails de l'abonnement |
-| `getStoredUser()` | Lit l'utilisateur depuis AsyncStorage (sans appel réseau) |
+| `getStoredUser()` | Lit l'utilisateur depuis AsyncStorage. Si le flag `SESSION_ONLY` est présent, efface tout et retourne `null` (app relancée sans "Se souvenir de moi"). |
 | `isAuthenticated()` | Vérifie la présence d'un access token en stockage |
 
 ### Renouvellement automatique des tokens
@@ -401,6 +408,7 @@ Les tokens sont stockés dans `AsyncStorage` sous les clés suivantes :
 | `@aanid/v1/access_token` | JWT access token (string) |
 | `@aanid/v1/refresh_token` | JWT refresh token (string) |
 | `@aanid/v1/user` | Objet utilisateur sérialisé en JSON |
+| `@aanid/v1/session_only` | `"true"` si l'utilisateur s'est connecté sans "Se souvenir de moi". Effacé au prochain `getStoredUser()` ou `logout()`. |
 
 Le préfixe `@aanid/v1/` isole les clés AANID de celles d'autres packages. Le suffixe `/v1/` permet de migrer proprement le schéma de stockage en incrémentant la version si la structure change.
 
@@ -417,9 +425,12 @@ Les écrans `Auth` et les modals de `Profil` valident tous les champs localement
 Règles appliquées localement :
 
 - Email : expression régulière `RFC 5321` simplifiée
-- Mot de passe : même regex que le backend (8-128 caractères, majuscule, minuscule, chiffre, spécial)
+- Mot de passe : même regex que le backend (8-128 caractères, majuscule, minuscule, chiffre, spécial) — `PASSWORD_RE` exporté depuis `theme.js`
 - Confirmation mot de passe : égalité stricte avec le nouveau mot de passe
 - Nom complet : longueur 2 à 100 caractères
+- Téléphone : 7 à 15 chiffres après suppression des séparateurs (validé à l'inscription et en édition de profil)
+- Ville de résidence : longueur 2 à 100 caractères
+- CGU : la checkbox doit être cochée pour valider l'inscription
 
 ### Affichage des erreurs
 
@@ -430,6 +441,12 @@ Les messages d'erreur affichés à l'utilisateur proviennent directement du serv
 La fonction `logout` dans `authService.js` efface le stockage local dans le bloc `finally`, que l'appel serveur réussisse ou échoue. Un utilisateur qui perd sa connexion réseau lors d'une déconnexion est quand même déconnecté localement.
 
 L'écran `Profil` délègue la déconnexion entièrement à `onLogout` (fourni par `AuthProvider`) pour éviter tout double appel au service.
+
+### Déconnexion automatique après inactivité
+
+`AuthProvider` écoute `AppState` (React Native) quand un utilisateur est connecté. Si l'app passe en arrière-plan puis revient au premier plan après **30 minutes ou plus**, `handleLogout` est appelé automatiquement. L'utilisateur est redirigé vers l'écran de connexion sans action de sa part.
+
+Ce comportement répond à l'exigence spec §8 *"Déconnexion automatique après inactivité"*.
 
 ### Champ mot de passe
 

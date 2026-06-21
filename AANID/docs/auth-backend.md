@@ -69,6 +69,8 @@ w-d/backend/
 }
 ```
 
+`helmet` (`^8.2.0`) est installé à la racine du monorepo (workspace npm) et disponible à tous les packages — il n'apparaît pas dans le `package.json` du workspace `w-d/backend` mais est résolu automatiquement depuis `node_modules/`.
+
 Le module utilise également `crypto` de la bibliothèque standard Node.js (aucune installation requise) pour la génération des tokens opaques.
 
 ---
@@ -205,6 +207,8 @@ L'objet utilisateur stocké en mémoire (et qui sera migré en base de données)
   id: "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", // UUID v4 généré par crypto.randomUUID()
   fullName: "Kofi Mensah",
   email: "kofi@exemple.com",                   // normalisé en minuscules
+  phone: "+22996000000",                        // chiffres uniquement après normalisation
+  city: "Cotonou",
   passwordHash: "$2b$12$...",                  // jamais exposé dans les réponses
   role: "CITOYEN",
   subscription: "FREE",
@@ -281,6 +285,8 @@ Crée un nouveau compte. Le rôle `ADMIN` ne peut pas être demandé via cette r
 {
   "fullName": "Kofi Mensah",
   "email": "kofi@exemple.com",
+  "phone": "+22996000000",
+  "city": "Cotonou",
   "password": "MonMotDePasse1!",
   "role": "CITOYEN"
 }
@@ -290,6 +296,8 @@ Crée un nouveau compte. Le rôle `ADMIN` ne peut pas être demandé via cette r
 |---|---|---|---|
 | `fullName` | string | Oui | 2 à 100 caractères |
 | `email` | string | Oui | Format email valide, normalisé en minuscules |
+| `phone` | string | Oui | 7 à 15 chiffres (espaces, tirets, `+`, parenthèses tolérés et normalisés) |
+| `city` | string | Oui | 2 à 100 caractères |
 | `password` | string | Oui | 8 à 128 caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 spécial parmi `@$!%*?&-_#` |
 | `role` | string | Non | Valeur parmi les rôles (sauf `ADMIN`). Défaut : `CITOYEN` |
 
@@ -532,6 +540,8 @@ Retourne le profil de l'utilisateur connecté.
     "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
     "fullName": "Kofi Mensah",
     "email": "kofi@exemple.com",
+    "phone": "+22996000000",
+    "city": "Cotonou",
     "role": "CITOYEN",
     "subscription": "FREE",
     "emailVerified": true,
@@ -551,13 +561,19 @@ Met à jour le profil de l'utilisateur connecté. Seuls les champs envoyés sont
 
 ```json
 {
-  "fullName": "Kofi Yaw Mensah"
+  "fullName": "Kofi Yaw Mensah",
+  "phone": "+22997000000",
+  "city": "Porto-Novo"
 }
 ```
+
+Tous les champs sont optionnels — seuls les champs présents dans le corps sont modifiés.
 
 | Champ | Type | Contraintes |
 |---|---|---|
 | `fullName` | string | 2 à 100 caractères |
+| `phone` | string | 7 à 15 chiffres (séparateurs tolérés et normalisés) |
+| `city` | string | 2 à 100 caractères |
 
 **Réponse 200 OK :** même structure que `GET /profile`.
 
@@ -696,6 +712,8 @@ Les tokens de vérification d'email et de réinitialisation de mot de passe sont
 | Email | Regex stricte, longueur locale max 64, domaine max 253 |
 | Mot de passe | 8-128 caractères, au moins 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial parmi `@$!%*?&-_#` |
 | Nom complet | 2 à 100 caractères, espaces autorisés |
+| Téléphone | 7 à 15 chiffres après suppression des séparateurs (`+`, espaces, tirets, parenthèses) |
+| Ville | 2 à 100 caractères |
 | Email normalisé | `toLowerCase()` + `trim()` avant toute vérification ou stockage |
 
 ### 10.8 Invalidation de session sur changement de mot de passe
@@ -833,16 +851,7 @@ Remplacer le rate limiter en mémoire par `express-rate-limit` + `rate-limit-red
 npm install express-rate-limit rate-limit-redis ioredis
 ```
 
-### 12.4 Headers de sécurité HTTP
-
-Ajouter `helmet` dans l'application principale pour protéger contre les attaques courantes (XSS, clickjacking, sniffing MIME) :
-
-```js
-const helmet = require('helmet');
-app.use(helmet());
-```
-
-### 12.5 CORS en production
+### 12.4 CORS en production
 
 En production, remplacer l'origine `*` par une liste blanche explicite dans `src/index.js` (ou l'application principale) :
 
