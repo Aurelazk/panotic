@@ -22,6 +22,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
+      'react-native-safe-area-context',
+      'react-native-screens',
       'react-native-maps',
       '@aanid/beni-momo-adnan-frontend',
       '@aanid/bryan-fanou-frontend',
