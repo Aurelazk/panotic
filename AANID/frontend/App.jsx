@@ -1,10 +1,8 @@
-import React from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { useFonts } from 'expo-font';
 import { ErrorBoundary } from '@aanid/w-d-frontend';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
@@ -27,9 +25,11 @@ const AANID_COLORS = {
 };
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
-    'CenturyGothic': require('./assets/fonts/CenturyGothic.ttf'),
-  });
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setFontsLoaded(true), 300);
+  }, []);
 
   if (!fontsLoaded) {
     return (
@@ -61,7 +61,7 @@ export default function App() {
             <Tab.Screen name="Profil" component={Profil} />
           </Tab.Navigator>
         </NavigationContainer>
-        <StatusBar style="light" />
+        <StatusBar barStyle="light-content" backgroundColor={AANID_COLORS.blue} />
       </SafeAreaProvider>
     </ErrorBoundary>
   );
