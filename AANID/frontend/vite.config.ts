@@ -3,8 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
-  esbuild: { loader: { '.js': 'jsx' } },
+  plugins: [react({ include: '**/*.{jsx,js}' })],
   resolve: {
     alias: [
       { find: 'react-native', replacement: 'react-native-web' },
