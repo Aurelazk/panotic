@@ -125,6 +125,15 @@ export default function CarteInteractive() {
     if (layerId === 'analyse') setShowAnalyse(true);
   };
 
+  useEffect(() => {
+    if (selectedVille !== 'toutes') {
+      const ville = villes.find(v => v.id === selectedVille);
+      if (ville && ville.lat && ville.lng) {
+        centerOnCoordinate(ville.lat, ville.lng);
+      }
+    }
+  }, [selectedVille, villes]);
+
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
