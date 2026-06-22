@@ -36,6 +36,9 @@ function loadLeaflet(callback) {
 export const Marker = ({ children }) => <>{children}</>;
 export const Callout = ({ children }) => <>{children}</>;
 export const Polygon = () => null;
+export const Polyline = () => null;
+export const Circle = () => null;
+export const Geojson = () => null;
 export const Heatmap = () => null;
 export const UrlTile = () => null;
 
