@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import MapView, { Marker, Callout, Polygon, UrlTile } from 'react-native-maps';
+import { Marker, Callout, Polygon, UrlTile, Heatmap } from 'react-native-maps';
+import MapView from 'react-native-map-clustering/lib/ClusteredMapView';
 import { COLORS } from '../constants/colors';
 import { SIGNALEMENT_TYPES, PANEL_STATUSES, INITIAL_REGION } from '../constants/mapData';
 import { styles } from '../styles/CarteInteractive.styles';
@@ -100,31 +101,19 @@ function ZonePolygon({ item, onPress }) {
   );
 }
 
-function HeatmapMarker({ point }) {
-  return (
-    <Marker key={`heat-${point.latitude}-${point.longitude}`}
-      coordinate={{ latitude: point.latitude, longitude: point.longitude }}
-      anchor={{ x: 0.5, y: 0.5 }}
-    >
-      <View style={{
-        width: Math.min(40, 10 + (point.weight || 1) * 2),
-        height: Math.min(40, 10 + (point.weight || 1) * 2),
-        borderRadius: 20,
-        backgroundColor: `rgba(233, 78, 60, ${Math.min(0.8, 0.2 + (point.weight || 1) * 0.04)})`,
-        borderWidth: 1,
-        borderColor: `rgba(233, 78, 60, ${Math.min(0.9, 0.3 + (point.weight || 1) * 0.05)})`,
-      }} />
-    </Marker>
-  );
-}
-
 export default function MapMarkers({
   mapRef, mapType, activeLayer,
   signalements, panneaux, zones, heatmapPoints,
   onSelectItem,
 }) {
   return (
-    <MapView ref={mapRef} style={styles.map} mapType={mapType} initialRegion={INITIAL_REGION}>
+    <MapView 
+      ref={mapRef} 
+      style={styles.map} 
+      mapType={mapType} 
+      initialRegion={INITIAL_REGION}
+      clusterColor={COLORS.primary}
+    >
       {mapType === 'standard' && (
         <UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} tileSize={256} />
       )}
@@ -137,9 +126,13 @@ export default function MapMarkers({
       {activeLayer === 'zones' && zones.map((item) => (
         <ZonePolygon key={item.id} item={item} onPress={onSelectItem} />
       ))}
-      {activeLayer === 'heatmap' && heatmapPoints.map((point, i) => (
-        <HeatmapMarker key={i} point={point} />
-      ))}
+      {activeLayer === 'heatmap' && heatmapPoints.length > 0 && (
+        <Heatmap 
+          points={heatmapPoints} 
+          radius={40} 
+          opacity={0.6}
+        />
+      )}
     </MapView>
   );
 }
