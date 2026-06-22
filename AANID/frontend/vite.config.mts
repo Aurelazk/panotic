@@ -22,6 +22,11 @@ export default defineConfig({
     __DEV__: JSON.stringify(true),
   },
   optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+      },
+    },
     exclude: [
       'react-native-safe-area-context',
       'react-native-screens',
