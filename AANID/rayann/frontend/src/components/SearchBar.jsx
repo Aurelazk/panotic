@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { COLORS } from '../constants/colors';
 import { styles } from '../styles/CarteInteractive.styles';
@@ -12,18 +12,22 @@ export default function SearchBar({
   onResultPress,
   onZoneResultPress,
 }) {
+  const [focused, setFocused] = useState(false);
+
   return (
-    <View style={styles.searchContainer}>
-      <View style={styles.searchBox}>
+    <View style={[styles.searchContainer, focused && styles.searchContainerFocused]}>
+      <View style={[styles.searchBox, focused && styles.searchBoxFocused]}>
         <Text style={{ fontSize: 16 }}>🔍</Text>
         <TextInput
           placeholder="Rechercher panneaux, zones..."
           placeholderTextColor={COLORS.textTertiary}
-          style={styles.searchInput}
+          style={[styles.searchInput, focused && styles.searchInputFocused]}
           value={query}
           onChangeText={onChange}
           onSubmitEditing={onSubmit}
           returnKeyType="search"
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={onClear}>

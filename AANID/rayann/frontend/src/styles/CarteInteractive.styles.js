@@ -36,6 +36,10 @@ export const styles = StyleSheet.create({
     zIndex: 200,
     elevation: 20,
   },
+  searchContainerFocused: {
+    left: 0, right: 0,
+    top: Platform.OS === 'ios' ? 95 : 55,
+  },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -49,7 +53,16 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  searchBoxFocused: {
+    borderRadius: 0,
+    height: 52,
+    paddingHorizontal: 20,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
   searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: COLORS.text },
+  searchInputFocused: { fontSize: 16 },
   searchResults: {
     backgroundColor: COLORS.white,
     borderRadius: 8,
