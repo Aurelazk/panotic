@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 const client = redis.createClient({ url: process.env.REDIS_URL });
-client.connect().catch(console.error);
+client.connect().catch(() => console.log('[AANID] Redis non connecté (optionnel en dev)'));
 
 // Mount member modules
 app.use('/api/v1', require('@aanid/beni-momo-adnan-backend'));
