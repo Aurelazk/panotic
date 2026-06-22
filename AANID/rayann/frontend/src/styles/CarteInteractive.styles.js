@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: COLORS.text },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: COLORS.text, outlineStyle: 'none' },
   searchInputFocused: { fontSize: 16 },
   searchResults: {
     backgroundColor: COLORS.white,
