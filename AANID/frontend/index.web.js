@@ -6,6 +6,8 @@ window.addEventListener('unhandledrejection', function(e) {
   document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap">Unhandled Rejection: ' + (e.reason && e.reason.message || e.reason) + '\n' + (e.reason && e.reason.stack || '') + '</pre>';
 });
 
+import './src/global.css';
+
 import { AppRegistry } from 'react-native';
 import App from './App';
 import { name as appName } from './app.json';
