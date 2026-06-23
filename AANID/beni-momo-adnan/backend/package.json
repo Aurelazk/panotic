@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@aanid/shared": "*",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
     "jest": "^25.0.0"
