@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, StatusBar, TouchableOpacity, SafeAreaView } from 'react-native';
-import { COLORS } from '../../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../../constants/theme';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 
