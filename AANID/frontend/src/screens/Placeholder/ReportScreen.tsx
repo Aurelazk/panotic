@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { COLORS } from '../../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../../constants/theme';
 
 export default function ReportScreen() {
   return (
