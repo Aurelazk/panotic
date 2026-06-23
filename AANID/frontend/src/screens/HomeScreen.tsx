@@ -1,18 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native';
 import { COLORS } from '../constants/theme';
-import { useNavigation } from '@react-navigation/native';
-
-const QUICK_ACTIONS = [
-  { name: 'Carte', icon: '🗺️', tab: 'Carte' },
-  { name: 'Signaler', icon: '📸', tab: 'Signalement' },
-  { name: 'Social', icon: '💬', tab: 'Social' },
-  { name: 'Formations', icon: '🎓', tab: 'Formation' },
-];
 
 export default function HomeScreen() {
-  const navigation = useNavigation<any>();
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
@@ -23,19 +13,6 @@ export default function HomeScreen() {
       </View>
 
       <ScrollView style={styles.body}>
-        <View style={styles.quickGrid}>
-          {QUICK_ACTIONS.map((a) => (
-            <TouchableOpacity
-              key={a.name}
-              style={styles.quickCard}
-              onPress={() => navigation.navigate(a.tab)}
-            >
-              <Text style={styles.quickIcon}>{a.icon}</Text>
-              <Text style={styles.quickLabel}>{a.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>Tableau de bord</Text>
           <View style={styles.statsRow}>
@@ -68,13 +45,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: COLORS.white, marginTop: 4 },
   subtitle: { fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 },
   body: { flex: 1, paddingHorizontal: 16, paddingTop: 20 },
-  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 },
-  quickCard: {
-    width: '47%', backgroundColor: COLORS.white, borderRadius: 16, padding: 20,
-    alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8,
-  },
-  quickIcon: { fontSize: 32, marginBottom: 8 },
-  quickLabel: { fontSize: 14, fontWeight: '700', color: COLORS.text },
   statsCard: { backgroundColor: COLORS.white, borderRadius: 16, padding: 20, elevation: 2, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 8 },
   statsTitle: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 16 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
