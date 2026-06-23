@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
-import { COLORS } from '../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../constants/theme';
 import { useNavigation } from '@react-navigation/native';
 
 const QUICK_ACTIONS = [
