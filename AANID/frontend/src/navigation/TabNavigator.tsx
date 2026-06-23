@@ -33,7 +33,7 @@ function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }
   return (
     <View style={tabStyles.iconWrap}>
       <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
-        <FontAwesomeIcon icon={config.icon} size={focused ? 20 : 18} color={focused ? '#FF6600' : '#6B7B8D'} />
+        <FontAwesomeIcon icon={config.icon} size={focused ? 20 : 18} color={focused ? '#F5A623' : '#6B7280'} />
       </View>
       <Text style={[tabStyles.tabLabel, focused && tabStyles.tabLabelActive]}>{config.label}</Text>
     </View>
@@ -43,9 +43,9 @@ function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }
 const tabStyles = StyleSheet.create({
   iconWrap: { alignItems: 'center', justifyContent: 'center', marginTop: 4, gap: 2 },
   iconBg: { width: 32, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  iconBgActive: { backgroundColor: 'rgba(255, 102, 0, 0.12)' },
-  tabLabel: { fontSize: 9, fontWeight: '500', color: '#6B7B8D', letterSpacing: 0.2, fontFamily: 'CenturyGothic' },
-  tabLabelActive: { color: '#FF6600', fontWeight: '700' },
+  iconBgActive: { backgroundColor: 'rgba(245, 166, 35, 0.12)' },
+  tabLabel: { fontSize: 9, fontWeight: '500', color: '#6B7280', letterSpacing: 0.2, fontFamily: 'CenturyGothic' },
+  tabLabelActive: { color: '#F5A623', fontWeight: '700' },
 });
 
 export default function TabNavigator() {
@@ -56,7 +56,7 @@ export default function TabNavigator() {
         tabBarShowLabel: false,
         tabBarStyle: {
           borderTopWidth: 0,
-          backgroundColor: '#0A1628',
+          backgroundColor: '#212121',
           height: 62,
           paddingBottom: 6,
           paddingTop: 4,

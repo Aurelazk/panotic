@@ -26,18 +26,18 @@ export const COLORS = {
   signalement: {
     DEGRADE: '#F5A623',
     DANGEREUX: '#E94E3C',
-    ILLEGAL: '#9B59B6',
-    OBSOLETE: '#95A5A6',
-    TRAVAUX: '#3498DB',
+    ILLEGAL: '#E94E3C',
+    OBSOLETE: '#BDBDBD',
+    TRAVAUX: '#1E73BE',
     BON_ETAT: '#3BB273',
   },
 
   panel: {
     CLASSIQUE: '#1E73BE',
-    DIGITAL: '#9B59B6',
+    DIGITAL: '#4A90D9',
     ABRIBUS: '#3BB273',
     TOTEM: '#F5A623',
-    AUTRE: '#95A5A6',
+    AUTRE: '#BDBDBD',
   },
 
   panelStatus: {
@@ -49,14 +49,14 @@ export const COLORS = {
   zone: {
     commerciale: 'rgba(30, 115, 190, 0.25)',
     residentielle: 'rgba(59, 178, 115, 0.25)',
-    speciale: 'rgba(155, 89, 182, 0.25)',
+    speciale: 'rgba(245, 166, 35, 0.25)',
     interdite: 'rgba(233, 78, 60, 0.25)',
   },
 
   zoneStroke: {
     commerciale: '#1E73BE',
     residentielle: '#3BB273',
-    speciale: '#9B59B6',
+    speciale: '#F5A623',
     interdite: '#E94E3C',
   },
 };

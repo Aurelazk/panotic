@@ -10,10 +10,10 @@ export const SIGNALEMENT_TYPES = [
   { label: 'Tous', value: 'tous', color: '#1E73BE' },
   { label: 'Bon État', value: 'BON_ETAT', color: '#3BB273' },
   { label: 'Dégradé', value: 'DEGRADE', color: '#F5A623' },
-  { label: 'Obsolète', value: 'OBSOLETE', color: '#95A5A6' },
+  { label: 'Obsolète', value: 'OBSOLETE', color: '#BDBDBD' },
   { label: 'Dangereux', value: 'DANGEREUX', color: '#E94E3C' },
-  { label: 'Illégal', value: 'ILLEGAL', color: '#9B59B6' },
-  { label: 'En Travaux', value: 'TRAVAUX', color: '#3498DB' },
+  { label: 'Illégal', value: 'ILLEGAL', color: '#E94E3C' },
+  { label: 'En Travaux', value: 'TRAVAUX', color: '#1E73BE' },
 ];
 
 export const PANEL_TYPES = [
