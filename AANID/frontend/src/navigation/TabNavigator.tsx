@@ -44,7 +44,7 @@ const tabStyles = StyleSheet.create({
   iconWrap: { alignItems: 'center', justifyContent: 'center', marginTop: 4, gap: 2 },
   iconBg: { width: 32, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   iconBgActive: { backgroundColor: 'rgba(255, 102, 0, 0.12)' },
-  tabLabel: { fontSize: 9, fontWeight: '500', color: '#6B7B8D', letterSpacing: 0.2 },
+  tabLabel: { fontSize: 9, fontWeight: '500', color: '#6B7B8D', letterSpacing: 0.2, fontFamily: 'CenturyGothic' },
   tabLabelActive: { color: '#FF6600', fontWeight: '700' },
 });
 

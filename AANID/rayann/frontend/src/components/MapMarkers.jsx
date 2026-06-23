@@ -118,7 +118,7 @@ function LoadingSkeleton() {
 function TileError() {
   return (
     <View style={styles.loadingOverlay}>
-      <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>Erreur de chargement des tuiles</Text>
+      <Text style={{ color: COLORS.textSecondary, fontSize: 14, fontFamily: 'CenturyGothic' }}>Erreur de chargement des tuiles</Text>
     </View>
   );
 }

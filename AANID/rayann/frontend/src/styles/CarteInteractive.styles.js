@@ -28,6 +28,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: 'CenturyGothic',
   },
   searchContainer: {
     position: 'absolute',
@@ -61,7 +62,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: COLORS.text, outlineStyle: 'none' },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 15, color: COLORS.text, outlineStyle: 'none', fontFamily: 'CenturyGothic' },
   searchInputFocused: { fontSize: 16 },
   searchResults: {
     backgroundColor: COLORS.white,
@@ -81,7 +82,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  searchResultText: { marginLeft: 10, fontSize: 14, color: COLORS.text },
+  searchResultText: { marginLeft: 10, fontSize: 14, color: COLORS.text, fontFamily: 'CenturyGothic' },
   layerTabs: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 155 : 115,
@@ -110,6 +111,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.textSecondary,
     marginLeft: 6,
+    fontFamily: 'CenturyGothic',
   },
   activeTabText: { color: COLORS.white },
   mapOptions: {
@@ -155,7 +157,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeFilterChip: { backgroundColor: COLORS.primary },
-  filterText: { fontSize: 12, fontWeight: '600', color: COLORS.textSecondary },
+  filterText: { fontSize: 12, fontWeight: '600', color: COLORS.textSecondary, fontFamily: 'CenturyGothic' },
   activeFilterText: { color: COLORS.white },
   statusChip: {
     backgroundColor: COLORS.white,
@@ -184,12 +186,13 @@ export const styles = StyleSheet.create({
     zIndex: 5,
     padding: 5,
   },
-  modalCloseText: { fontSize: 22, color: COLORS.textSecondary, fontWeight: 'bold' },
+  modalCloseText: { fontSize: 22, color: COLORS.textSecondary, fontWeight: 'bold', fontFamily: 'CenturyGothic' },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
     color: COLORS.primary,
+    fontFamily: 'CenturyGothic',
   },
   modalImage: {
     width: '100%',
@@ -199,8 +202,8 @@ export const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  infoLabel: { fontWeight: 'bold', width: 80, fontSize: 14, color: COLORS.text },
-  infoValue: { fontSize: 14, color: COLORS.textSecondary, flex: 1 },
+  infoLabel: { fontWeight: 'bold', width: 80, fontSize: 14, color: COLORS.text, fontFamily: 'CenturyGothic' },
+  infoValue: { fontSize: 14, color: COLORS.textSecondary, flex: 1, fontFamily: 'CenturyGothic' },
   modalBtn: {
     backgroundColor: COLORS.secondary,
     padding: 15,
@@ -208,7 +211,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
-  modalBtnText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
+  modalBtnText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16, fontFamily: 'CenturyGothic' },
   markerSignalement: {
     padding: 6,
     borderRadius: 18,
@@ -235,7 +238,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   markerPanelInner: { width: 20, height: 20, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  panelIcon: { fontSize: 12, color: COLORS.white, fontWeight: 'bold' },
+  panelIcon: { fontSize: 12, color: COLORS.white, fontWeight: 'bold', fontFamily: 'CenturyGothic' },
   calloutCard: {
     width: 230,
     backgroundColor: COLORS.white,
@@ -245,11 +248,11 @@ export const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   calloutHeader: { padding: 10, alignItems: 'center' },
-  calloutTitle: { color: COLORS.white, fontWeight: 'bold', fontSize: 13 },
+  calloutTitle: { color: COLORS.white, fontWeight: 'bold', fontSize: 13, fontFamily: 'CenturyGothic' },
   calloutBody: { padding: 12 },
-  calloutDesc: { fontSize: 13, color: COLORS.text, marginBottom: 8, lineHeight: 18 },
-  calloutDate: { fontSize: 11, color: COLORS.textTertiary, textAlign: 'right' },
-  emptyFilterText: { textAlign: 'center', color: COLORS.textSecondary, padding: 10, fontSize: 13 },
+  calloutDesc: { fontSize: 13, color: COLORS.text, marginBottom: 8, lineHeight: 18, fontFamily: 'CenturyGothic' },
+  calloutDate: { fontSize: 11, color: COLORS.textTertiary, textAlign: 'right', fontFamily: 'CenturyGothic' },
+  emptyFilterText: { textAlign: 'center', color: COLORS.textSecondary, padding: 10, fontSize: 13, fontFamily: 'CenturyGothic' },
   villeBtn: {
     position: 'absolute',
     top: Platform.OS === 'ios' ? 155 : 115,
@@ -267,5 +270,5 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  villeBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.primary, marginLeft: 5 },
+  villeBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.primary, marginLeft: 5, fontFamily: 'CenturyGothic' },
 });

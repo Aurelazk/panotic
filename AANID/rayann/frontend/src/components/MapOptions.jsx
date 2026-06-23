@@ -54,6 +54,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#6B7280',
+    fontFamily: 'CenturyGothic',
   },
   labelActive: {
     color: '#FFFFFF',
