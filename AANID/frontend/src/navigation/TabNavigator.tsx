@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { COLORS } from '../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../constants/theme';
 import ProfileNavigator from './ProfileNavigator';
 
 import HomeScreen from '../screens/HomeScreen';
