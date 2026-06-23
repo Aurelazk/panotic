@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { COLORS } from '../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../constants/theme';
 
 interface Props {
   title: string;
