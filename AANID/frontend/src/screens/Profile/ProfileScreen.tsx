@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
-import { COLORS } from '../../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../../constants/theme';
 
 const MENU_ITEMS = [
   { label: 'Mon Abonnement', icon: '💳', screen: 'Pricing', color: '#FF6600' },
