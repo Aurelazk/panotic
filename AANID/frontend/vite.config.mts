@@ -9,6 +9,8 @@ export default defineConfig({
     alias: [
       { find: 'react-native', replacement: path.resolve(__dirname, 'src/mocks/react-native-web-bridge.js') },
       { find: 'react-native-maps', replacement: path.resolve(__dirname, 'src/mocks/maps-mock.tsx') },
+      { find: /^react-native-vector-icons\/.*/, replacement: path.resolve(__dirname, 'src/mocks/vector-icons-mock.tsx') },
+      { find: 'react-native-vector-icons', replacement: path.resolve(__dirname, 'src/mocks/vector-icons-mock.tsx') },
       { find: 'react-native-safe-area-context', replacement: path.resolve(__dirname, 'src/mocks/base-mock.tsx') },
       { find: 'react-native-screens', replacement: path.resolve(__dirname, 'src/mocks/screens-mock.tsx') },
     ],
@@ -28,6 +30,7 @@ export default defineConfig({
       },
     },
     exclude: [
+      'react-native-vector-icons',
       'react-native-safe-area-context',
       'react-native-screens',
       'react-native-maps',
