@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { COLORS } from '../../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../../constants/theme';
 
 export default function DefaultScreen({ title, emoji }: { title: string; emoji?: string }) {
   return (
