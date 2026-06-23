@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { COLORS } from '../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../constants/theme';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import PricingScreen from '../screens/Profile/PricingScreen';
 import ConfidentialiteScreen from '../screens/Profile/ConfidentialiteScreen';
