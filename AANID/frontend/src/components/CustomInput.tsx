@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { COLORS } from '../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../constants/theme';
 
 interface Props {
   placeholder: string;
@@ -50,6 +50,6 @@ const styles = StyleSheet.create({
     borderColor: '#E8ECF0',
   },
   icon: { fontSize: 18, marginRight: 10 },
-  input: { flex: 1, fontSize: 15, color: '#1A2A3A' },
+  input: { flex: 1, fontSize: 15, color: '#1A2A3A', outlineStyle: 'none', outlineWidth: 0 },
   toggle: { fontSize: 18, marginLeft: 8 },
 });
