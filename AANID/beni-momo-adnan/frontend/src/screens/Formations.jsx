@@ -11,6 +11,11 @@ const CATEGORIES = [
   { label: 'Infrastructure', value: 'INFRASTRUCTURE', color: '#1E8449' },
 ];
 
+function formatPrice(price, isFree) {
+  if (isFree) return 'Gratuit';
+  return `${price.toLocaleString()} FCFA`;
+}
+
 export default function Formations() {
   const navigation = useNavigation();
   const [formations, setFormations] = useState([]);
@@ -18,9 +23,9 @@ export default function Formations() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState('toutes');
 
-  const fetchData = useCallback(async (type) => {
+  const fetchData = useCallback(async (category) => {
     try {
-      const data = await getFormations(type);
+      const data = await getFormations(category);
       setFormations(data);
     } catch {
       setFormations([]);
@@ -103,8 +108,8 @@ export default function Formations() {
               <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
               <Text style={styles.cardMeta}>{item.duration}</Text>
               <View style={styles.cardFooter}>
-                <Text style={styles.cardPrice}>{item.price}</Text>
-                <Text style={styles.cardEnrolled}>{item.enrolled}/{item.capacity}</Text>
+                <Text style={styles.cardPrice}>{formatPrice(item.price, item.isFree)}</Text>
+                <Text style={styles.cardEnrolled}>{item.enrolledCount}/{item.capacity}</Text>
               </View>
             </TouchableOpacity>
           )}

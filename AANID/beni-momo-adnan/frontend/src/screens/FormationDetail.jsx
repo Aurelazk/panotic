@@ -1,7 +1,12 @@
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { getFormationById, enroll } from '../services/formationService';
+import { getFormationById, enroll, getPaymentStatus } from '../services/formationService';
+
+function formatPrice(price, isFree) {
+  if (isFree) return 'Gratuit';
+  return `${price.toLocaleString()} FCFA`;
+}
 
 export default function FormationDetail() {
   const route = useRoute();
@@ -11,7 +16,6 @@ export default function FormationDetail() {
   const [formation, setFormation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
-  const [enrolled, setEnrolled] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -27,12 +31,40 @@ export default function FormationDetail() {
   }, [formationId, navigation]);
 
   const handleEnroll = async () => {
+    if (!formation.isFree) {
+      try {
+        const status = await getPaymentStatus(formationId);
+        if (!status.isPaid) {
+          navigation.navigate('PaiementMobile', {
+            formationId,
+            amount: formation.price,
+            currency: formation.currency,
+            title: formation.title,
+          });
+          return;
+        }
+      } catch {
+        navigation.navigate('PaiementMobile', {
+          formationId,
+          amount: formation.price,
+          currency: formation.currency,
+          title: formation.title,
+        });
+        return;
+      }
+    }
+
     setEnrolling(true);
     try {
       await enroll(formationId);
-      setEnrolled(true);
-    } catch {
-      alert('Inscription échouée. Veuillez réessayer.');
+      const updated = await getFormationById(formationId);
+      setFormation(updated);
+    } catch (e) {
+      if (e.status === 401) {
+        alert('Veuillez vous connecter pour vous inscrire');
+      } else {
+        alert(e.message || 'Inscription échouée. Veuillez réessayer.');
+      }
     } finally {
       setEnrolling(false);
     }
@@ -58,6 +90,12 @@ export default function FormationDetail() {
 
   if (!formation) return null;
 
+  const isEnrolled = formation.isEnrolled;
+  const allModulesComplete = formation.userProgress?.modulesCompleted?.length === formation.modules?.length;
+  const progress = formation.userProgress
+    ? Math.round((formation.userProgress.modulesCompleted.length / formation.modules.length) * 100)
+    : 0;
+
   return (
     <ScrollView style={styles.container} bounces={false}>
       <View style={[styles.hero, { backgroundColor: getCategoryColor() }]}>
@@ -78,42 +116,60 @@ export default function FormationDetail() {
             <Text style={styles.metaLabel}>Durée</Text>
           </View>
           <View style={styles.metaItem}>
-            <Text style={styles.metaValue}>{formation.enrolled}/{formation.capacity}</Text>
+            <Text style={styles.metaValue}>{formation.enrolledCount}/{formation.capacity}</Text>
             <Text style={styles.metaLabel}>Inscrits</Text>
           </View>
           <View style={styles.metaItem}>
-            <Text style={styles.metaValue}>{formation.price}</Text>
+            <Text style={styles.metaValue}>{formatPrice(formation.price, formation.isFree)}</Text>
             <Text style={styles.metaLabel}>Prix</Text>
           </View>
         </View>
+
+        {isEnrolled && (
+          <View style={styles.progressCard}>
+            <Text style={styles.progressLabel}>Progression</Text>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+            </View>
+            <Text style={styles.progressText}>{progress}% complété</Text>
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Description</Text>
         <Text style={styles.description}>{formation.description}</Text>
 
         <Text style={styles.sectionTitle}>Modules ({formation.modules?.length || 0})</Text>
-        {formation.modules?.map((mod, idx) => (
-          <TouchableOpacity
-            key={mod.id}
-            style={styles.moduleRow}
-            onPress={() =>
-              navigation.navigate('CoursePlayer', {
-                formationId: formation.id,
-                moduleIndex: idx,
-              })
-            }
-          >
-            <View style={styles.moduleNumber}>
-              <Text style={styles.moduleNumberText}>{idx + 1}</Text>
-            </View>
-            <View style={styles.moduleInfo}>
-              <Text style={styles.moduleTitle}>{mod.title}</Text>
-              <Text style={styles.moduleDuration}>{mod.duration}</Text>
-            </View>
-            <Text style={styles.moduleArrow}>›</Text>
-          </TouchableOpacity>
-        ))}
+        {formation.modules?.map((mod, idx) => {
+          const isModuleComplete = formation.userProgress?.modulesCompleted?.includes(mod.id);
+          return (
+            <TouchableOpacity
+              key={mod.id}
+              style={[styles.moduleRow, isModuleComplete && styles.moduleRowComplete]}
+              disabled={!isEnrolled}
+              onPress={() => {
+                if (isEnrolled) {
+                  navigation.navigate('CoursePlayer', {
+                    formationId: formation.id,
+                    moduleIndex: idx,
+                  });
+                }
+              }}
+            >
+              <View style={[styles.moduleNumber, isModuleComplete && styles.moduleNumberComplete]}>
+                <Text style={styles.moduleNumberText}>
+                  {isModuleComplete ? '✓' : idx + 1}
+                </Text>
+              </View>
+              <View style={styles.moduleInfo}>
+                <Text style={styles.moduleTitle}>{mod.title}</Text>
+                <Text style={styles.moduleDuration}>{mod.duration}</Text>
+              </View>
+              {isEnrolled && <Text style={styles.moduleArrow}>›</Text>}
+            </TouchableOpacity>
+          );
+        })}
 
-        {!enrolled ? (
+        {!isEnrolled ? (
           <TouchableOpacity
             style={[styles.enrollBtn, { backgroundColor: getCategoryColor() }]}
             onPress={handleEnroll}
@@ -123,13 +179,20 @@ export default function FormationDetail() {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.enrollBtnText}>
-                {formation.price === 'Gratuit' ? "S'inscrire gratuitement" : "S'inscrire"}
+                {formation.isFree ? "S'inscrire gratuitement" : "S'inscrire"}
               </Text>
             )}
           </TouchableOpacity>
         ) : (
           <View style={styles.enrolledBanner}>
-            <Text style={styles.enrolledBannerText}>✓ Vous êtes inscrit</Text>
+            <Text style={styles.enrolledBannerText}>
+              {allModulesComplete ? '✓ Formation terminée !' : '✓ Vous êtes inscrit'}
+            </Text>
+            {allModulesComplete && formation.userProgress?.completedAt && (
+              <Text style={styles.completedDate}>
+                Complétée le {new Date(formation.userProgress.completedAt).toLocaleDateString()}
+              </Text>
+            )}
             <TouchableOpacity
               style={styles.startBtn}
               onPress={() =>
@@ -139,7 +202,9 @@ export default function FormationDetail() {
                 })
               }
             >
-              <Text style={styles.startBtnText}>Commencer</Text>
+              <Text style={styles.startBtnText}>
+                {allModulesComplete ? 'Revoir' : 'Commencer'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -234,6 +299,42 @@ const styles = StyleSheet.create({
     color: '#9E9E9E',
     marginTop: 3,
   },
+  progressCard: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  progressLabel: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#212121',
+    marginBottom: 8,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 8,
+    backgroundColor: '#3BB273',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 11,
+    color: '#9E9E9E',
+    marginTop: 6,
+    textAlign: 'right',
+  },
   sectionTitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 16,
@@ -262,6 +363,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
+  moduleRowComplete: {
+    opacity: 0.75,
+  },
   moduleNumber: {
     width: 32,
     height: 32,
@@ -270,6 +374,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  moduleNumberComplete: {
+    backgroundColor: '#2E7D32',
   },
   moduleNumberText: {
     fontFamily: 'CenturyGothic',
@@ -329,6 +436,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2E7D32',
     fontWeight: '600',
+    marginBottom: 4,
+  },
+  completedDate: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 12,
+    color: '#2E7D32',
     marginBottom: 10,
   },
   startBtn: {
@@ -338,6 +451,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    marginTop: 8,
   },
   startBtnText: {
     fontFamily: 'CenturyGothic',

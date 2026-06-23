@@ -47,8 +47,8 @@ async function authRequest(path, options = {}) {
   });
 }
 
-export async function getFormations(type) {
-  const params = type && type !== 'toutes' ? `?type=${type}` : '';
+export async function getFormations(category) {
+  const params = category && category !== 'toutes' ? `?category=${category}` : '';
   return request(`/formations${params}`);
 }
 
@@ -64,9 +64,24 @@ export async function getMyFormations() {
   return authRequest('/formations/mine');
 }
 
-export async function updateProgress(id, moduleId, progress) {
-  return authRequest(`/formations/${id}/progress`, {
+export async function updateProgress(formationId, moduleId, completed) {
+  return authRequest(`/formations/${formationId}/progress`, {
     method: 'PATCH',
-    body: JSON.stringify({ moduleId, progress }),
+    body: JSON.stringify({ moduleId, completed }),
   });
+}
+
+export async function getMyBadges() {
+  return authRequest('/formations/mine/badges');
+}
+
+export async function payForFormation(formationId, phone) {
+  return authRequest(`/formations/${formationId}/pay`, {
+    method: 'POST',
+    body: JSON.stringify({ phone }),
+  });
+}
+
+export async function getPaymentStatus(formationId) {
+  return authRequest(`/formations/${formationId}/payment-status`);
 }

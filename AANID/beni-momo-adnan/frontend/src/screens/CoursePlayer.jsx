@@ -11,21 +11,15 @@ export default function CoursePlayer() {
   const [formation, setFormation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(initialModule || 0);
-  const [completedModules, setCompletedModules] = useState(new Set());
+  const [modulesCompleted, setModulesCompleted] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const data = await getFormationById(formationId);
         setFormation(data);
-        if (data.progress) {
-          const completed = new Set(
-            data.progress
-              .filter((p) => p.progress === 100)
-              .map((p) => p.moduleId)
-          );
-          setCompletedModules(completed);
-        }
+        setModulesCompleted(data.userProgress?.modulesCompleted || []);
       } catch {
         navigation.goBack();
       } finally {
@@ -36,15 +30,19 @@ export default function CoursePlayer() {
 
   const currentModule = formation?.modules?.[currentIndex];
 
-  const handleComplete = useCallback(async () => {
+  const handleToggleComplete = useCallback(async () => {
     if (!formation || !currentModule) return;
+    setSaving(true);
     try {
-      await updateProgress(formationId, currentModule.id, 100);
-      setCompletedModules((prev) => new Set(prev).add(currentModule.id));
+      const isCurrentlyComplete = modulesCompleted.includes(currentModule.id);
+      const result = await updateProgress(formationId, currentModule.id, !isCurrentlyComplete);
+      setModulesCompleted(result.modulesCompleted);
     } catch {
-      alert('Erreur lors de la mise à jour de la progression');
+      alert("Erreur lors de la mise à jour de la progression");
+    } finally {
+      setSaving(false);
     }
-  }, [formation, currentModule, formationId]);
+  }, [formation, currentModule, formationId, modulesCompleted]);
 
   const handleNext = () => {
     if (currentIndex < (formation?.modules?.length || 1) - 1) {
@@ -69,8 +67,10 @@ export default function CoursePlayer() {
   if (!formation || !currentModule) return null;
 
   const totalModules = formation.modules.length;
-  const completedCount = completedModules.size;
-  const isCurrentComplete = completedModules.has(currentModule.id);
+  const completedCount = modulesCompleted.length;
+  const progress = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
+  const isCurrentComplete = modulesCompleted.includes(currentModule.id);
+  const allComplete = completedCount === totalModules;
 
   return (
     <View style={styles.container}>
@@ -87,7 +87,7 @@ export default function CoursePlayer() {
       </View>
 
       <View style={styles.progressBarBg}>
-        <View style={[styles.progressBarFill, { width: `${(completedCount / totalModules) * 100}%` }]} />
+        <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
@@ -98,6 +98,14 @@ export default function CoursePlayer() {
       </ScrollView>
 
       <View style={styles.footer}>
+        {allComplete && (
+          <View style={styles.allCompleteBanner}>
+            <Text style={styles.allCompleteText}>
+              ✓ Félicitations ! Vous avez terminé tous les modules.
+            </Text>
+          </View>
+        )}
+
         <View style={styles.navRow}>
           <TouchableOpacity
             style={[styles.navBtn, currentIndex === 0 && styles.navBtnDisabled]}
@@ -109,15 +117,19 @@ export default function CoursePlayer() {
             </Text>
           </TouchableOpacity>
 
-          {isCurrentComplete ? (
-            <View style={styles.completeBadge}>
-              <Text style={styles.completeBadgeText}>✓ Terminé</Text>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.completeBtn} onPress={handleComplete}>
-              <Text style={styles.completeBtnText}>Marquer terminé</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={[styles.completeBtn, isCurrentComplete && styles.completeBtnDone]}
+            onPress={handleToggleComplete}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.completeBtnText}>
+                {isCurrentComplete ? '✓ Terminé' : 'Marquer terminé'}
+              </Text>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.navBtn, currentIndex >= totalModules - 1 && styles.navBtnDisabled]}
@@ -234,6 +246,19 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 32,
   },
+  allCompleteBanner: {
+    backgroundColor: '#E8F5E9',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  allCompleteText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 13,
+    color: '#2E7D32',
+    fontWeight: '600',
+  },
   navRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -267,23 +292,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  completeBtnDone: {
+    backgroundColor: '#2E7D32',
+  },
   completeBtnText: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
     color: '#fff',
     fontWeight: '700',
-  },
-  completeBadge: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#E8F5E9',
-  },
-  completeBadgeText: {
-    fontFamily: 'CenturyGothic',
-    fontSize: 12,
-    color: '#2E7D32',
-    fontWeight: '600',
   },
   quitBtn: {
     alignItems: 'center',
