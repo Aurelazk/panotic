@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, ActivityIndicator, TouchableOpacity, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, PermissionsAndroid } from 'react-native';
 import { COLORS } from '../constants/colors';
 import { API_BASE } from '../constants/mapData';
 import { styles } from '../styles/CarteInteractive.styles';
@@ -136,10 +136,6 @@ export default function CarteInteractive() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>Carte Interactive</Text>
-      </View>
-
       <SearchBar
         query={searchQuery}
         onChange={setSearchQuery}
@@ -162,7 +158,7 @@ export default function CarteInteractive() {
       </TouchableOpacity>
 
       <LayerTabs activeLayer={activeLayer} onSelect={handleLayerSelect} />
-      <MapOptions mapType={mapType} onToggle={() => setMapType(mapType === 'standard' ? 'satellite' : 'standard')} />
+      <MapOptions mapType={mapType} onToggle={(id) => setMapType(id)} />
 
       <MapMarkers
         mapRef={mapRef}
@@ -173,13 +169,9 @@ export default function CarteInteractive() {
         zones={zones}
         heatmapPoints={heatmapPoints}
         onSelectItem={setSelectedItem}
+        loading={loading}
+        tileError={false}
       />
-
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      )}
 
       <FilterBar
         activeLayer={activeLayer}

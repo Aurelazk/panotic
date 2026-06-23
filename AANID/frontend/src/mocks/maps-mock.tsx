@@ -42,9 +42,20 @@ export const Geojson = () => null;
 export const Heatmap = () => null;
 export const UrlTile = () => null;
 
+function extractTileUrl(children) {
+  let url = null;
+  React.Children.forEach(children, (child) => {
+    if (!child) return;
+    const target = child.type === React.Fragment ? child.props.children : child;
+    if (target?.props?.urlTemplate) url = target.props.urlTemplate;
+  });
+  return url;
+}
+
 const MapView = forwardRef(({ style, initialRegion, children, mapType }, ref) => {
   const containerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
   const layersRef = useRef([]);
   const rootsRef = useRef([]);
@@ -68,8 +79,9 @@ const MapView = forwardRef(({ style, initialRegion, children, mapType }, ref) =>
     const lat = initialRegion?.latitude ?? 6.3653;
     const lng = initialRegion?.longitude ?? 2.4183;
     const map = window.L.map(containerRef.current, { zoomControl: true }).setView([lat, lng], 13);
-    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19, attribution: '© OpenStreetMap contributors',
+    const tileUrl = extractTileUrl(children) || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    tileLayerRef.current = window.L.tileLayer(tileUrl, {
+      maxZoom: 19, attribution: '© contributeurs',
     }).addTo(map);
     mapInstanceRef.current = map;
     return () => {
@@ -79,6 +91,18 @@ const MapView = forwardRef(({ style, initialRegion, children, mapType }, ref) =>
       }
     };
   }, [leafletLoaded]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const newUrl = extractTileUrl(children);
+    if (newUrl && tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+      tileLayerRef.current = window.L.tileLayer(newUrl, {
+        maxZoom: 19, attribution: '© contributeurs',
+      }).addTo(map);
+    }
+  }, [children, leafletLoaded]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;

@@ -1,10 +1,15 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { Marker, Callout, Polygon, UrlTile, Heatmap } from 'react-native-maps';
 import MapView from 'react-native-map-clustering/lib/ClusteredMapView';
 import { COLORS } from '../constants/colors';
 import { SIGNALEMENT_TYPES, PANEL_STATUSES, INITIAL_REGION } from '../constants/mapData';
 import { styles } from '../styles/CarteInteractive.styles';
+
+const TILE_URLS = {
+  standard: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+};
 
 const ICON_MAP = {
   CLASSIQUE: 'C', DIGITAL: 'D', ABRIBUS: 'A', TOTEM: 'T', AUTRE: '•',
@@ -55,16 +60,17 @@ function SignalementMarker({ item, onSelect }) {
 }
 
 function PanelMarker({ item, onSelect }) {
+  const color = getPanelColor(item.etat);
   return (
     <Marker key={item.id} coordinate={{ latitude: item.lat, longitude: item.lng }}>
-      <View style={[styles.markerPanel, { borderColor: getPanelColor(item.etat) }]}>
-        <View style={[styles.markerPanelInner, { backgroundColor: getPanelColor(item.etat) }]}>
+      <View style={[styles.markerPanel, { borderColor: color }]}>
+        <View style={[styles.markerPanelInner, { backgroundColor: color }]}>
           <Text style={styles.panelIcon}>{ICON_MAP[item.type] || '•'}</Text>
         </View>
       </View>
       <Callout tooltip onPress={() => onSelect({ type: 'panneau', ...item })}>
         <View style={styles.calloutCard}>
-          <View style={[styles.calloutHeader, { backgroundColor: getPanelColor(item.etat) }]}>
+          <View style={[styles.calloutHeader, { backgroundColor: color }]}>
             <Text style={styles.calloutTitle}>{item.type}</Text>
           </View>
           <View style={styles.calloutBody}>
@@ -101,22 +107,40 @@ function ZonePolygon({ item, onPress }) {
   );
 }
 
+function LoadingSkeleton() {
+  return (
+    <View style={styles.loadingOverlay}>
+      <ActivityIndicator size="large" color={COLORS.primary} />
+    </View>
+  );
+}
+
+function TileError() {
+  return (
+    <View style={styles.loadingOverlay}>
+      <Text style={{ color: COLORS.textSecondary, fontSize: 14 }}>Erreur de chargement des tuiles</Text>
+    </View>
+  );
+}
+
 export default function MapMarkers({
   mapRef, mapType, activeLayer,
   signalements, panneaux, zones, heatmapPoints,
-  onSelectItem,
+  onSelectItem, loading, tileError,
 }) {
   return (
-    <MapView 
-      ref={mapRef} 
-      style={styles.map} 
-      mapType={mapType} 
+    <MapView
+      ref={mapRef}
+      style={styles.map}
+      mapType="none"
       initialRegion={INITIAL_REGION}
       clusterColor={COLORS.primary}
     >
-      {mapType === 'standard' && (
-        <UrlTile urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} tileSize={256} />
-      )}
+      <UrlTile
+        urlTemplate={TILE_URLS[mapType] || TILE_URLS.standard}
+        maximumZ={19}
+        tileSize={256}
+      />
       {activeLayer === 'signalements' && signalements.map((item) => (
         <SignalementMarker key={item.id} item={item} onSelect={onSelectItem} />
       ))}
@@ -127,12 +151,14 @@ export default function MapMarkers({
         <ZonePolygon key={item.id} item={item} onPress={onSelectItem} />
       ))}
       {activeLayer === 'heatmap' && heatmapPoints.length > 0 && (
-        <Heatmap 
-          points={heatmapPoints} 
-          radius={40} 
+        <Heatmap
+          points={heatmapPoints}
+          radius={40}
           opacity={0.6}
         />
       )}
+      {loading && !tileError && <LoadingSkeleton />}
+      {tileError && <TileError />}
     </MapView>
   );
 }

@@ -1,6 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faHouse, faMapLocation, faComment, faBuildingColumns,
+  faFlag, faBell, faCircleUser,
+} from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/theme';
 import ProfileNavigator from './ProfileNavigator';
 
@@ -13,24 +18,22 @@ import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive
 
 const Tab = createBottomTabNavigator();
 
-const TAB_CONFIG: Record<string, { active: string; inactive: string; label: string }> = {
-  Dashboard: { active: '⊞', inactive: '⊞', label: 'Accueil' },
-  Carte: { active: '🗺', inactive: '🗺', label: 'Carte' },
-  Social: { active: '💬', inactive: '💬', label: 'Social' },
-  Formation: { active: '🎓', inactive: '🎓', label: 'Formation' },
-  Publicite: { active: '📢', inactive: '📢', label: 'Annonces' },
-  Signalement: { active: '⊕', inactive: '⊕', label: 'Signaler' },
-  Profil: { active: '👤', inactive: '👤', label: 'Profil' },
+const TAB_CONFIG: Record<string, { icon: any; label: string }> = {
+  Dashboard: { icon: faHouse, label: 'Accueil' },
+  Carte: { icon: faMapLocation, label: 'Carte' },
+  Social: { icon: faComment, label: 'Social' },
+  Formation: { icon: faBuildingColumns, label: 'Formation' },
+  Publicite: { icon: faFlag, label: 'Annonces' },
+  Signalement: { icon: faBell, label: 'Signaler' },
+  Profil: { icon: faCircleUser, label: 'Profil' },
 };
 
 function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
-  const config = TAB_CONFIG[routeName] || { active: '•', inactive: '•', label: '' };
+  const config = TAB_CONFIG[routeName] || { icon: faHouse, label: '' };
   return (
     <View style={tabStyles.iconWrap}>
       <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
-        <Text style={{ fontSize: focused ? 22 : 20, color: focused ? '#FF6600' : '#6B7B8D' }}>
-          {focused ? config.active : config.inactive}
-        </Text>
+        <FontAwesomeIcon icon={config.icon} size={focused ? 20 : 18} color={focused ? '#FF6600' : '#6B7B8D'} />
       </View>
       <Text style={[tabStyles.tabLabel, focused && tabStyles.tabLabelActive]}>{config.label}</Text>
     </View>
