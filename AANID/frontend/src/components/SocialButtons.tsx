@@ -1,10 +1,12 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGoogle, faFacebookF, faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
 const SOCIALS = [
-  { label: 'Google', icon: '🔵' },
-  { label: 'Facebook', icon: '🔷' },
-  { label: 'Twitter', icon: '🔵' },
+  { label: 'Google', icon: faGoogle, color: '#DB4437' },
+  { label: 'Facebook', icon: faFacebookF, color: '#1877F2' },
+  { label: 'X', icon: faXTwitter, color: '#000' },
 ];
 
 export default function SocialButtons() {
@@ -18,7 +20,7 @@ export default function SocialButtons() {
       <View style={styles.row}>
         {SOCIALS.map((s) => (
           <TouchableOpacity key={s.label} style={styles.btn}>
-            <Text style={styles.icon}>{s.icon}</Text>
+            <FontAwesomeIcon icon={s.icon} size={22} color={s.color} />
           </TouchableOpacity>
         ))}
       </View>
@@ -37,5 +39,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA', justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: '#E8ECF0',
   },
-  icon: { fontSize: 22 },
+
 });
