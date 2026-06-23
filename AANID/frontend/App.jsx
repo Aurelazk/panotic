@@ -1,22 +1,14 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Formations, FormationDetail, CoursePlayer, MesFormations, PaiementMobile } from '@aanid/beni-momo-adnan-frontend';
-
-const Stack = createStackNavigator();
+import { Provider } from 'react-redux';
+import { store } from './src/store';
+import { StatusBar, View } from 'react-native';
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor="#1E73BE" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Formations" component={Formations} />
-        <Stack.Screen name="FormationDetail" component={FormationDetail} />
-        <Stack.Screen name="CoursePlayer" component={CoursePlayer} />
-        <Stack.Screen name="MesFormations" component={MesFormations} />
-        <Stack.Screen name="PaiementMobile" component={PaiementMobile} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Provider store={store}>
+      <StatusBar barStyle="light-content" backgroundColor="#0A1628" />
+      <RootNavigator />
+    </Provider>
   );
 }
