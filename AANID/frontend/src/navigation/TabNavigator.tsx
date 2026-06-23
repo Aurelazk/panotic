@@ -6,13 +6,12 @@ import {
   faHouse, faMapLocation, faComment, faBuildingColumns,
   faFlag, faBell, faCircleUser,
 } from '@fortawesome/free-solid-svg-icons';
-import { COLORS } from '../constants/theme';
 import ProfileNavigator from './ProfileNavigator';
+import FormationNavigator from './FormationNavigator';
 
-import HomeScreen from '../screens/HomeScreen';
+import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
 import SocialScreen from '../screens/Placeholder/SocialScreen';
 import ReportScreen from '../screens/Placeholder/ReportScreen';
-import FormationScreen from '../screens/Placeholder/FormationScreen';
 import AdsScreen from '../screens/Placeholder/AdsScreen';
 import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive';
 
@@ -71,10 +70,10 @@ export default function TabNavigator() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="Dashboard" component={HomeScreen} />
+      <Tab.Screen name="Dashboard" component={Villes} />
       <Tab.Screen name="Carte" component={CarteInteractive} />
       <Tab.Screen name="Social" component={SocialScreen} />
-      <Tab.Screen name="Formation" component={FormationScreen} />
+      <Tab.Screen name="Formation" component={FormationNavigator} />
       <Tab.Screen name="Publicite" component={AdsScreen} />
       <Tab.Screen name="Signalement" component={ReportScreen} />
       <Tab.Screen name="Profil" component={ProfileNavigator} />

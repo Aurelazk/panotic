@@ -382,9 +382,10 @@ router.get('/formations/:id/payment-status', authenticateToken, (req, res) => {
   });
 });
 
-// ─── Données villes ──────────────────────────────────────────────────────────
+// ─── Données villes (Afrique de l'Ouest) ──────────────────────────────────────
 
 const villes = [
+  // 🇧🇯 BÉNIN
   {
     id: 'cotonou', nom: 'Cotonou', pays: 'Bénin', region: 'Littoral',
     lat: 6.3653, lng: 2.4183,
@@ -410,7 +411,7 @@ const villes = [
     lat: 6.4969, lng: 2.6289,
     description: 'Capitale politique du Bénin, riche en patrimoine historique. Ville en pleine modernisation de son mobilier urbain.',
     population: 300000, superficie: 52,
-    couleur: '#9B59B6',
+    couleur: '#8E44AD',
     favorisCount: 98,
     rubriques: [
       { id: 'relais', label: 'Relais Publicitaire', count: 3, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
@@ -423,6 +424,242 @@ const villes = [
       panneaux: { total: 28, disponibles: 9, loues: 14, maintenance: 5 },
       formations: { total: 5, gratuites: 3, payantes: 2 },
       utilisateurs: 420,
+    },
+  },
+  {
+    id: 'parakou', nom: 'Parakou', pays: 'Bénin', region: 'Borgou',
+    lat: 9.3371, lng: 2.6213,
+    description: 'Plus grande ville du nord Bénin, carrefour commercial et hub agricole majeur.',
+    population: 260000, superficie: 35,
+    couleur: '#E67E22',
+    favorisCount: 45,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 2, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 3, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 7, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 10, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 7, resolus: 4, enAttente: 3 },
+      panneaux: { total: 15, disponibles: 5, loues: 8, maintenance: 2 },
+      formations: { total: 3, gratuites: 2, payantes: 1 },
+      utilisateurs: 180,
+    },
+  },
+
+  // 🇨🇮 CÔTE D'IVOIRE
+  {
+    id: 'abidjan', nom: 'Abidjan', pays: "Côte d'Ivoire", region: 'Abidjan',
+    lat: 5.3600, lng: -4.0083,
+    description: 'Capitale économique ivoirienne et l\'une des métropoles les plus dynamiques d\'Afrique de l\'Ouest. Pôle majeur de la publicité urbaine.',
+    population: 5600000, superficie: 422,
+    couleur: '#1E73BE',
+    favorisCount: 312,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 15, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 18, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 35, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 62, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 35, resolus: 25, enAttente: 10 },
+      panneaux: { total: 95, disponibles: 30, loues: 50, maintenance: 15 },
+      formations: { total: 18, gratuites: 10, payantes: 8 },
+      utilisateurs: 3200,
+    },
+  },
+  {
+    id: 'yamoussoukro', nom: 'Yamoussoukro', pays: "Côte d'Ivoire", region: 'Yamoussoukro',
+    lat: 6.8167, lng: -5.2833,
+    description: 'Capitale politique de la Côte d\'Ivoire, connue pour sa célèbre basilique et son urbanisme moderne.',
+    population: 355000, superficie: 230,
+    couleur: '#8E44AD',
+    favorisCount: 67,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 4, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 6, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 9, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 14, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 9, resolus: 6, enAttente: 3 },
+      panneaux: { total: 22, disponibles: 7, loues: 12, maintenance: 3 },
+      formations: { total: 6, gratuites: 3, payantes: 3 },
+      utilisateurs: 210,
+    },
+  },
+
+  // 🇸🇳 SÉNÉGAL
+  {
+    id: 'dakar', nom: 'Dakar', pays: 'Sénégal', region: 'Dakar',
+    lat: 14.7167, lng: -17.4677,
+    description: 'Capitale sénégalaise et l\'un des principaux pôles économiques d\'Afrique francophone. Ville pionnière de la communication urbaine.',
+    population: 3800000, superficie: 186,
+    couleur: '#F5A623',
+    favorisCount: 278,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 12, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 15, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 28, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 52, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 28, resolus: 20, enAttente: 8 },
+      panneaux: { total: 82, disponibles: 25, loues: 42, maintenance: 15 },
+      formations: { total: 15, gratuites: 8, payantes: 7 },
+      utilisateurs: 2800,
+    },
+  },
+
+  // 🇹🇬 TOGO
+  {
+    id: 'lome', nom: 'Lomé', pays: 'Togo', region: 'Maritime',
+    lat: 6.1319, lng: 1.2228,
+    description: 'Capitale togolaise et principal port d\'Afrique de l\'Ouest. Ville en pleine expansion urbaine et commerciale.',
+    population: 1500000, superficie: 99,
+    couleur: '#3BB273',
+    favorisCount: 156,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 6, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 8, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 17, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 30, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 17, resolus: 12, enAttente: 5 },
+      panneaux: { total: 40, disponibles: 14, loues: 20, maintenance: 6 },
+      formations: { total: 8, gratuites: 5, payantes: 3 },
+      utilisateurs: 890,
+    },
+  },
+
+  // 🇧🇫 BURKINA FASO
+  {
+    id: 'ouagadougou', nom: 'Ouagadougou', pays: 'Burkina Faso', region: 'Centre',
+    lat: 12.3657, lng: -1.5339,
+    description: 'Capitale burkinabè, carrefour culturel et politique. Ville engagée dans le développement urbain durable.',
+    population: 2500000, superficie: 220,
+    couleur: '#E94E3C',
+    favorisCount: 134,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 7, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 10, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 20, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 36, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 20, resolus: 14, enAttente: 6 },
+      panneaux: { total: 48, disponibles: 16, loues: 25, maintenance: 7 },
+      formations: { total: 10, gratuites: 6, payantes: 4 },
+      utilisateurs: 1150,
+    },
+  },
+
+  // 🇬🇭 GHANA
+  {
+    id: 'accra', nom: 'Accra', pays: 'Ghana', region: 'Greater Accra',
+    lat: 5.6037, lng: -0.1870,
+    description: 'Capitale ghanéenne, pôle économique et technologique majeur. Métropole cosmopolite en pleine modernisation.',
+    population: 4200000, superficie: 200,
+    couleur: '#1E73BE',
+    favorisCount: 201,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 11, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 14, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 30, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 48, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 30, resolus: 22, enAttente: 8 },
+      panneaux: { total: 75, disponibles: 24, loues: 38, maintenance: 13 },
+      formations: { total: 14, gratuites: 8, payantes: 6 },
+      utilisateurs: 2400,
+    },
+  },
+
+  // 🇳🇬 NIGERIA
+  {
+    id: 'lagos', nom: 'Lagos', pays: 'Nigeria', region: 'Lagos',
+    lat: 6.5244, lng: 3.3792,
+    description: 'Mégalopole nigériane, plus grande ville d\'Afrique et moteur économique du continent. Marché publicitaire le plus dynamique de la région.',
+    population: 15000000, superficie: 1171,
+    couleur: '#F5A623',
+    favorisCount: 425,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 20, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 22, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 50, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 85, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 50, resolus: 35, enAttente: 15 },
+      panneaux: { total: 120, disponibles: 35, loues: 65, maintenance: 20 },
+      formations: { total: 22, gratuites: 12, payantes: 10 },
+      utilisateurs: 5200,
+    },
+  },
+  {
+    id: 'abuja', nom: 'Abuja', pays: 'Nigeria', region: 'FCT',
+    lat: 9.0579, lng: 7.4951,
+    description: 'Capitale fédérale du Nigeria, ville planifiée et moderne. Centre politique et administratif du pays le plus peuplé d\'Afrique.',
+    population: 3500000, superficie: 310,
+    couleur: '#3BB273',
+    favorisCount: 175,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 9, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 13, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 22, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 40, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 22, resolus: 16, enAttente: 6 },
+      panneaux: { total: 55, disponibles: 18, loues: 28, maintenance: 9 },
+      formations: { total: 13, gratuites: 7, payantes: 6 },
+      utilisateurs: 1600,
+    },
+  },
+
+  // 🇲🇱 MALI
+  {
+    id: 'bamako', nom: 'Bamako', pays: 'Mali', region: 'Bamako',
+    lat: 12.6392, lng: -8.0029,
+    description: 'Capitale malienne située sur les rives du fleuve Niger. Carrefour commercial et culturel de l\'Afrique de l\'Ouest.',
+    population: 2500000, superficie: 150,
+    couleur: '#E67E22',
+    favorisCount: 112,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 5, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 7, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 14, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 25, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 14, resolus: 9, enAttente: 5 },
+      panneaux: { total: 32, disponibles: 10, loues: 17, maintenance: 5 },
+      formations: { total: 7, gratuites: 4, payantes: 3 },
+      utilisateurs: 680,
+    },
+  },
+
+  // 🇳🇪 NIGER
+  {
+    id: 'niamey', nom: 'Niamey', pays: 'Niger', region: 'Niamey',
+    lat: 13.5127, lng: 2.1126,
+    description: 'Capitale nigérienne, située sur les berges du fleuve Niger. Ville carrefour du Sahel en pleine mutation urbaine.',
+    population: 1300000, superficie: 130,
+    couleur: '#8E44AD',
+    favorisCount: 78,
+    rubriques: [
+      { id: 'relais', label: 'Relais Publicitaire', count: 3, icon: 'megaphone', color: '#F5A623', description: 'Panneaux disponibles et opportunités de relais' },
+      { id: 'formations', label: 'Formations', count: 4, icon: 'book', color: '#3BB273', description: 'Cours et certifications professionnelles' },
+      { id: 'etats', label: 'États des Lieux', count: 8, icon: 'clipboard', color: '#E94E3C', description: 'Signalements et état de la panneautique' },
+      { id: 'posts', label: 'Posts / Réseaux', count: 16, icon: 'message-square', color: '#1E73BE', description: 'Fil d\'actualité et discussions citoyennes' },
+    ],
+    stats: {
+      signalements: { total: 8, resolus: 5, enAttente: 3 },
+      panneaux: { total: 18, disponibles: 6, loues: 9, maintenance: 3 },
+      formations: { total: 4, gratuites: 2, payantes: 2 },
+      utilisateurs: 340,
     },
   },
 ];

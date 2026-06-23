@@ -1,15 +1,27 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const API_BASE = 'http://localhost:4000/api/v1';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 48) / 2;
 
-const RUBRIQUE_ICONS = {
-  relais: '📢',
-  formations: '📚',
-  etats: '📋',
-  posts: '💬',
+const COLORS = {
+  bleu: '#1E73BE',
+  orange: '#F5A623',
+  vert: '#3BB273',
+  rouge: '#E94E3C',
+  grisClair: '#F5F5F5',
+  grisMoyen: '#BDBDBD',
+  noir: '#212121',
+  blanc: '#FFFFFF',
+};
+
+const RUBRIQUE_META = {
+  relais: { label: 'Relais Publicitaire', icon: '📢', color: COLORS.orange, screen: 'Publicite' },
+  formations: { label: 'Formations', icon: '📚', color: COLORS.vert, screen: 'Formation' },
+  etats: { label: 'États des Lieux', icon: '📋', color: COLORS.rouge, screen: 'Signalement' },
+  posts: { label: 'Posts / Réseaux', icon: '💬', color: COLORS.bleu, screen: 'Social' },
 };
 
 function formatNumber(n) {
@@ -60,6 +72,7 @@ function VilleCard({ ville, onPress, isFavorite, onToggleFavorite }) {
 }
 
 function RubriqueCard({ rubrique, onPress }) {
+  const meta = RUBRIQUE_META[rubrique.id] || {};
   return (
     <TouchableOpacity
       style={[styles.rubriqueCard, { borderLeftColor: rubrique.color }]}
@@ -67,7 +80,7 @@ function RubriqueCard({ rubrique, onPress }) {
       activeOpacity={0.7}
     >
       <View style={styles.rubriqueHeader}>
-        <Text style={styles.rubriqueIcon}>{RUBRIQUE_ICONS[rubrique.id] || '📌'}</Text>
+        <Text style={styles.rubriqueIcon}>{meta.icon || '📌'}</Text>
         <View style={styles.rubriqueInfo}>
           <Text style={styles.rubriqueTitle}>{rubrique.label}</Text>
           <Text style={styles.rubriqueDesc} numberOfLines={1}>{rubrique.description}</Text>
@@ -106,15 +119,15 @@ function VilleHub({ ville, onBack, onRubriquePress }) {
           <Text style={styles.statCardLabel}>Population</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={[styles.statCardValue, { color: '#E94E3C' }]}>{ville.stats.signalements.total}</Text>
+          <Text style={[styles.statCardValue, { color: COLORS.rouge }]}>{ville.stats.signalements.total}</Text>
           <Text style={styles.statCardLabel}>Signalements</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={[styles.statCardValue, { color: '#3BB273' }]}>{ville.stats.panneaux.disponibles}</Text>
+          <Text style={[styles.statCardValue, { color: COLORS.vert }]}>{ville.stats.panneaux.disponibles}</Text>
           <Text style={styles.statCardLabel}>Disponibles</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={[styles.statCardValue, { color: '#F5A623' }]}>{ville.stats.utilisateurs}</Text>
+          <Text style={[styles.statCardValue, { color: COLORS.orange }]}>{ville.stats.utilisateurs}</Text>
           <Text style={styles.statCardLabel}>Membres</Text>
         </View>
       </View>
@@ -124,14 +137,14 @@ function VilleHub({ ville, onBack, onRubriquePress }) {
           <View style={styles.statsDetailItem}>
             <Text style={styles.statsDetailLabel}>Panneaux</Text>
             <View style={styles.statsDetailBar}>
-              <View style={[styles.statsDetailFill, { width: `${(ville.stats.panneaux.disponibles / ville.stats.panneaux.total) * 100}%`, backgroundColor: '#3BB273' }]} />
+              <View style={[styles.statsDetailFill, { width: `${(ville.stats.panneaux.disponibles / ville.stats.panneaux.total) * 100}%`, backgroundColor: COLORS.vert }]} />
             </View>
             <Text style={styles.statsDetailText}>{ville.stats.panneaux.disponibles} dispo / {ville.stats.panneaux.total}</Text>
           </View>
           <View style={styles.statsDetailItem}>
             <Text style={styles.statsDetailLabel}>Signalements</Text>
             <View style={styles.statsDetailBar}>
-              <View style={[styles.statsDetailFill, { width: `${(ville.stats.signalements.resolus / ville.stats.signalements.total) * 100}%`, backgroundColor: '#3BB273' }]} />
+              <View style={[styles.statsDetailFill, { width: `${(ville.stats.signalements.resolus / ville.stats.signalements.total) * 100}%`, backgroundColor: COLORS.vert }]} />
             </View>
             <Text style={styles.statsDetailText}>{ville.stats.signalements.resolus} résolus / {ville.stats.signalements.total}</Text>
           </View>
@@ -147,6 +160,7 @@ function VilleHub({ ville, onBack, onRubriquePress }) {
 }
 
 export default function Villes() {
+  const navigation = useNavigation();
   const [villes, setVilles] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -179,8 +193,11 @@ export default function Villes() {
   }, []);
 
   const handleRubriquePress = useCallback((rubrique) => {
-    console.log(`Navigation vers ${rubrique.id} pour ${selectedVille.nom}`);
-  }, [selectedVille]);
+    const meta = RUBRIQUE_META[rubrique.id];
+    if (meta?.screen) {
+      navigation.navigate(meta.screen);
+    }
+  }, [navigation]);
 
   if (selectedVille) {
     return (
@@ -206,7 +223,7 @@ export default function Villes() {
         <TextInput
           style={styles.searchInput}
           placeholder="Rechercher une ville..."
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={COLORS.grisMoyen}
           value={search}
           onChangeText={setSearch}
         />
@@ -219,7 +236,7 @@ export default function Villes() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1E73BE" />
+          <ActivityIndicator size="large" color={COLORS.bleu} />
           <Text style={styles.loadingText}>Chargement des villes...</Text>
         </View>
       ) : villes.length === 0 ? (
@@ -237,7 +254,7 @@ export default function Villes() {
           <Text style={styles.listTitle}>
             {search ? `Résultats pour "${search}"` : 'Villes disponibles'}
           </Text>
-          <Text style={styles.listSubtitle}>{villes.length} ville{villes.length > 1 ? 's' : ''}</Text>
+          <Text style={styles.listSubtitle}>{villes.length} ville{villes.length > 1 ? 's' : ''} · Afrique de l'Ouest</Text>
           <View style={styles.grid}>
             {villes.map(ville => (
               <VilleCard
@@ -258,21 +275,22 @@ export default function Villes() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F4F8',
+    backgroundColor: '#F5F5F5',
   },
   header: {
-    backgroundColor: '#1E73BE',
+    backgroundColor: COLORS.bleu,
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
   headerTitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
     fontWeight: '700',
+    color: COLORS.blanc,
   },
   headerSubtitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 13,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
@@ -280,7 +298,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.blanc,
     marginHorizontal: 16,
     marginTop: -20,
     borderRadius: 10,
@@ -298,13 +316,14 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    fontFamily: 'CenturyGothic',
     fontSize: 15,
-    color: '#1A1A2E',
+    color: COLORS.noir,
     paddingVertical: 0,
   },
   clearIcon: {
     fontSize: 16,
-    color: '#9CA3AF',
+    color: COLORS.grisMoyen,
     paddingLeft: 10,
   },
   loadingContainer: {
@@ -313,6 +332,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
+    fontFamily: 'CenturyGothic',
     marginTop: 12,
     fontSize: 14,
     color: '#6B7280',
@@ -328,11 +348,13 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyText: {
+    fontFamily: 'CenturyGothic',
     fontSize: 18,
     fontWeight: '600',
-    color: '#1A1A2E',
+    color: COLORS.noir,
   },
   emptySubtext: {
+    fontFamily: 'CenturyGothic',
     fontSize: 14,
     color: '#6B7280',
     marginTop: 8,
@@ -347,11 +369,13 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   listTitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1A1A2E',
+    color: COLORS.noir,
   },
   listSubtitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 13,
     color: '#6B7280',
     marginTop: 4,
@@ -364,7 +388,7 @@ const styles = StyleSheet.create({
   },
   card: {
     width: CARD_WIDTH,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.blanc,
     borderRadius: 12,
     marginBottom: 16,
     borderTopWidth: 3,
@@ -383,7 +407,7 @@ const styles = StyleSheet.create({
   },
   favIcon: {
     fontSize: 18,
-    color: '#F5A623',
+    color: COLORS.orange,
   },
   cardColorBar: {
     height: 60,
@@ -391,18 +415,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardInitial: {
+    fontFamily: 'CenturyGothic',
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.blanc,
   },
   cardTitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 15,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: COLORS.noir,
     paddingHorizontal: 12,
     marginTop: 10,
   },
   cardRegion: {
+    fontFamily: 'CenturyGothic',
     fontSize: 12,
     color: '#6B7280',
     paddingHorizontal: 12,
@@ -419,11 +446,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
+    fontFamily: 'CenturyGothic',
     fontSize: 14,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: COLORS.noir,
   },
   statLabel: {
+    fontFamily: 'CenturyGothic',
     fontSize: 9,
     color: '#9CA3AF',
     marginTop: 2,
@@ -444,20 +473,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 50,
     paddingBottom: 12,
-    backgroundColor: '#1E73BE',
+    backgroundColor: COLORS.bleu,
   },
   backIcon: {
     fontSize: 20,
-    color: '#FFFFFF',
+    color: COLORS.blanc,
     marginRight: 8,
   },
   backText: {
+    fontFamily: 'CenturyGothic',
     fontSize: 15,
-    color: '#FFFFFF',
+    color: COLORS.blanc,
   },
   hubHeader: {
     flexDirection: 'row',
-    backgroundColor: '#1E73BE',
+    backgroundColor: COLORS.bleu,
     paddingHorizontal: 16,
     paddingBottom: 24,
   },
@@ -470,24 +500,28 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   hubAvatarText: {
+    fontFamily: 'CenturyGothic',
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.blanc,
   },
   hubHeaderInfo: {
     flex: 1,
   },
   hubTitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.blanc,
   },
   hubSubtitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 13,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 2,
   },
   hubDesc: {
+    fontFamily: 'CenturyGothic',
     fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 6,
@@ -500,7 +534,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.blanc,
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -512,11 +546,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   statCardValue: {
+    fontFamily: 'CenturyGothic',
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1A1A2E',
+    color: COLORS.noir,
   },
   statCardLabel: {
+    fontFamily: 'CenturyGothic',
     fontSize: 10,
     color: '#6B7280',
     marginTop: 4,
@@ -535,6 +571,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   statsDetailLabel: {
+    fontFamily: 'CenturyGothic',
     fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
@@ -551,20 +588,22 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   statsDetailText: {
+    fontFamily: 'CenturyGothic',
     fontSize: 10,
     color: '#9CA3AF',
     marginTop: 4,
   },
   sectionTitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1A1A2E',
+    color: COLORS.noir,
     paddingHorizontal: 16,
     marginTop: 24,
     marginBottom: 12,
   },
   rubriqueCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.blanc,
     marginHorizontal: 16,
     marginBottom: 12,
     borderRadius: 12,
@@ -589,11 +628,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rubriqueTitle: {
+    fontFamily: 'CenturyGothic',
     fontSize: 15,
     fontWeight: '700',
-    color: '#1A1A2E',
+    color: COLORS.noir,
   },
   rubriqueDesc: {
+    fontFamily: 'CenturyGothic',
     fontSize: 12,
     color: '#6B7280',
     marginTop: 2,
@@ -607,9 +648,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   rubriqueBadgeText: {
+    fontFamily: 'CenturyGothic',
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.blanc,
   },
   rubriqueBar: {
     height: 3,
