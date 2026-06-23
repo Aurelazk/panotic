@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Linking } from 'react-native';
-import { COLORS } from '../../../rayann/frontend/src/constants/colors';
+import { COLORS } from '../../constants/theme';
 
 const FAQ = [
   { q: 'Comment signaler un problème ?', a: 'Utilisez l\'onglet "Signaler" dans le menu principal.' },
