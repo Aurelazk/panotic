@@ -52,12 +52,24 @@ export async function getFormations(category) {
   return request(`/formations${params}`);
 }
 
+export async function getFormationsPaginated(page = 1, limit = 10, category) {
+  const params = new URLSearchParams();
+  if (category && category !== 'toutes') params.set('category', category);
+  params.set('page', String(page));
+  params.set('limit', String(limit));
+  return request(`/formations?${params.toString()}`);
+}
+
 export async function getFormationById(id) {
   return request(`/formations/${id}`);
 }
 
 export async function enroll(id) {
   return authRequest(`/formations/${id}/enroll`, { method: 'POST' });
+}
+
+export async function unenroll(id) {
+  return authRequest(`/formations/${id}/unenroll`, { method: 'POST' });
 }
 
 export async function getMyFormations() {

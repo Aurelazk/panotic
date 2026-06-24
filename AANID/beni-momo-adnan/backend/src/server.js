@@ -23,9 +23,9 @@ const formations = [
     currency: 'XOF',
     isFree: false,
     modules: [
-      { id: 'mod-1', title: 'Normes et réglementations', content: "Introduction aux normes en vigueur pour l'affichage publicitaire en milieu urbain.", duration: '1 semaine' },
-      { id: 'mod-2', title: 'Design graphique', content: 'Principes de conception graphique appliqués aux panneaux publicitaires.', duration: '2 semaines' },
-      { id: 'mod-3', title: 'Installation et maintenance', content: "Techniques d'installation sécurisée et maintenance préventive.", duration: '1 semaine' },
+      { id: 'mod-1', title: 'Normes et réglementations', content: "Introduction aux normes en vigueur pour l'affichage publicitaire en milieu urbain. Découvrez les textes législatifs qui encadrent la publicité extérieure et les obligations des afficheurs.", duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85' },
+      { id: 'mod-2', title: 'Design graphique', content: 'Principes de conception graphique appliqués aux panneaux publicitaires. Apprenez à créer des visuels percutants qui captent l\'attention tout en respectant les normes de sécurité.', duration: '2 semaines', imageUrl: 'https://images.unsplash.com/photo-1626785774573-4b799315345d' },
+      { id: 'mod-3', title: 'Installation et maintenance', content: "Techniques d'installation sécurisée et maintenance préventive des panneaux publicitaires. Maîtrisez les procédures de montage, de vérification structurelle et d'entretien courant.", duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd' },
     ],
     createdAt: '2025-10-01T00:00:00.000Z',
   },
@@ -42,8 +42,8 @@ const formations = [
     currency: 'XOF',
     isFree: true,
     modules: [
-      { id: 'mod-4', title: 'Tri et collecte', content: 'Les bases du tri sélectif et des circuits de collecte.', duration: '3 jours' },
-      { id: 'mod-5', title: 'Recyclage et valorisation', content: 'Comment transformer les déchets en ressources.', duration: '4 jours' },
+      { id: 'mod-4', title: 'Tri et collecte', content: 'Les bases du tri sélectif et des circuits de collecte. Comprenez les différentes catégories de déchets et les bonnes pratiques pour une collecte efficace en milieu urbain.', duration: '3 jours', imageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b' },
+      { id: 'mod-5', title: 'Recyclage et valorisation', content: 'Comment transformer les déchets en ressources. Explorez les filières de recyclage et les techniques de valorisation matière et énergétique.', duration: '4 jours', imageUrl: 'https://images.unsplash.com/photo-1618477247222-acbdb0e159b3' },
     ],
     createdAt: '2025-09-15T00:00:00.000Z',
   },
@@ -60,8 +60,8 @@ const formations = [
     currency: 'XOF',
     isFree: false,
     modules: [
-      { id: 'mod-6', title: 'Gestes de base', content: 'Les gestes essentiels : position latérale de sécurité, massage cardiaque.', duration: '2 jours' },
-      { id: 'mod-7', title: "Situations d'urgence", content: 'Gestion des accidents de la route, malaises, blessures.', duration: '3 jours' },
+      { id: 'mod-6', title: 'Gestes de base', content: 'Les gestes essentiels : position latérale de sécurité, massage cardiaque. Apprenez les techniques de premiers secours qui peuvent sauver des vies en attendant l\'arrivée des secours.', duration: '2 jours', imageUrl: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5' },
+      { id: 'mod-7', title: "Situations d'urgence", content: 'Gestion des accidents de la route, malaises, blessures. Développez les réflexes nécessaires pour intervenir efficacement dans les situations critiques.', duration: '3 jours', imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d' },
     ],
     createdAt: '2025-11-01T00:00:00.000Z',
   },
@@ -78,8 +78,8 @@ const formations = [
     currency: 'XOF',
     isFree: true,
     modules: [
-      { id: 'mod-8', title: 'Urbanisme vert', content: "Principes d'intégration des espaces verts en ville.", duration: '1 semaine' },
-      { id: 'mod-9', title: 'Entretien et gestion', content: "Techniques d'entretien durable des espaces verts.", duration: '1 semaine' },
+      { id: 'mod-8', title: 'Urbanisme vert', content: "Principes d'intégration des espaces verts en ville. Découvrez comment concevoir des espaces urbains qui intègrent la nature pour un cadre de vie plus agréable et durable.", duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1449156059539-798052149959' },
+      { id: 'mod-9', title: 'Entretien et gestion', content: "Techniques d'entretien durable des espaces verts. Apprenez les méthodes écologiques pour maintenir et gérer les espaces verts urbains.", duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b' },
     ],
     createdAt: '2025-08-20T00:00:00.000Z',
   },
@@ -96,9 +96,9 @@ const formations = [
     currency: 'XOF',
     isFree: false,
     modules: [
-      { id: 'mod-10', title: 'Diagnostic des pannes', content: 'Méthodes de diagnostic rapide pour les équipements urbains.', duration: '1 semaine' },
-      { id: 'mod-11', title: 'Réparation courante', content: 'Interventions de base sur le mobilier urbain.', duration: '2 semaines' },
-      { id: 'mod-12', title: 'Maintenance préventive', content: 'Planification et exécution de la maintenance préventive.', duration: '2 semaines' },
+      { id: 'mod-10', title: 'Diagnostic des pannes', content: 'Méthodes de diagnostic rapide pour les équipements urbains. Identifiez les causes des dysfonctionnements et apprenez à établir un diagnostic précis.', duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837' },
+      { id: 'mod-11', title: 'Réparation courante', content: 'Interventions de base sur le mobilier urbain. Maîtrisez les techniques de réparation des équipements les plus courants.', duration: '2 semaines', imageUrl: 'https://images.unsplash.com/photo-1572987789307-8e5f90a88311' },
+      { id: 'mod-12', title: 'Maintenance préventive', content: 'Planification et exécution de la maintenance préventive. Établissez des calendriers de maintenance pour prolonger la durée de vie des équipements.', duration: '2 semaines', imageUrl: 'https://images.unsplash.com/photo-1581092795360-fd1ca04f0952' },
     ],
     createdAt: '2025-10-15T00:00:00.000Z',
   },
@@ -115,8 +115,8 @@ const formations = [
     currency: 'XOF',
     isFree: true,
     modules: [
-      { id: 'mod-13', title: 'Risques professionnels', content: 'Identifier et prévenir les risques liés au travail en hauteur et à la manipulation de charges.', duration: '2 jours' },
-      { id: 'mod-14', title: 'Équipements de protection', content: 'Choix et utilisation des EPI adaptés.', duration: '2 jours' },
+      { id: 'mod-13', title: 'Risques professionnels', content: 'Identifier et prévenir les risques liés au travail en hauteur et à la manipulation de charges. Formez-vous aux bonnes pratiques de sécurité sur le terrain.', duration: '2 jours', imageUrl: 'https://images.unsplash.com/photo-1583324113626-70df0f4deaab' },
+      { id: 'mod-14', title: 'Équipements de protection', content: 'Choix et utilisation des EPI adaptés. Découvrez les équipements de protection individuelle indispensables pour travailler en toute sécurité.', duration: '2 jours', imageUrl: 'https://images.unsplash.com/photo-1530124566582-a618bc2615dc' },
     ],
     createdAt: '2025-11-10T00:00:00.000Z',
   },
@@ -153,7 +153,7 @@ function authenticateToken(req, res, next) {
 
 // GET /formations
 router.get('/formations', (req, res) => {
-  const { category, isFree } = req.query;
+  const { category, isFree, page, limit } = req.query;
   let filtered = formations;
 
   if (category && category !== 'toutes') {
@@ -164,7 +164,43 @@ router.get('/formations', (req, res) => {
     filtered = filtered.filter(f => f.isFree === free);
   }
 
-  res.json(filtered);
+  const total = filtered.length;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || total || 10);
+  const start = (pageNum - 1) * limitNum;
+  const data = filtered.slice(start, start + limitNum);
+  const hasMore = start + limitNum < total;
+
+  res.json({ data, total, page: pageNum, limit: limitNum, hasMore });
+});
+
+// GET /formations/mine (doit être AVANT /formations/:id)
+router.get('/formations/mine', authenticateToken, (req, res) => {
+  const userId = req.user.sub;
+  const userEnrollments = enrollments[userId] || [];
+
+  const result = userEnrollments.map(e => {
+    const formation = formations.find(f => f.id === e.formationId);
+    if (!formation) return null;
+    const totalModules = formation.modules.length;
+    const completedCount = e.modulesCompleted.length;
+    const progress = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
+    return {
+      ...formation,
+      modulesCompleted: e.modulesCompleted,
+      progress,
+      enrolledAt: e.enrolledAt,
+      completedAt: e.completedAt,
+    };
+  }).filter(Boolean);
+
+  res.json(result);
+});
+
+// GET /formations/mine/badges (doit être AVANT /formations/:id)
+router.get('/formations/mine/badges', authenticateToken, (req, res) => {
+  const userId = req.user.sub;
+  res.json(userBadges[userId] || []);
 });
 
 // GET /formations/:id
@@ -227,27 +263,31 @@ router.post('/formations/:id/enroll', authenticateToken, (req, res) => {
   res.status(201).json({ message: 'Inscription réussie', formationId: formation.id });
 });
 
-// GET /formations/mine
-router.get('/formations/mine', authenticateToken, (req, res) => {
+// POST /formations/:id/unenroll
+router.post('/formations/:id/unenroll', authenticateToken, (req, res) => {
+  const formation = formations.find(f => f.id === req.params.id);
+  if (!formation) {
+    return res.status(404).json({ error: 'Formation non trouvée' });
+  }
+
   const userId = req.user.sub;
-  const userEnrollments = enrollments[userId] || [];
+  if (!enrollments[userId]) {
+    return res.status(404).json({ error: "Vous n'êtes pas inscrit à cette formation" });
+  }
 
-  const result = userEnrollments.map(e => {
-    const formation = formations.find(f => f.id === e.formationId);
-    if (!formation) return null;
-    const totalModules = formation.modules.length;
-    const completedCount = e.modulesCompleted.length;
-    const progress = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
-    return {
-      ...formation,
-      modulesCompleted: e.modulesCompleted,
-      progress,
-      enrolledAt: e.enrolledAt,
-      completedAt: e.completedAt,
-    };
-  }).filter(Boolean);
+  const idx = enrollments[userId].findIndex(e => e.formationId === formation.id);
+  if (idx === -1) {
+    return res.status(404).json({ error: "Vous n'êtes pas inscrit à cette formation" });
+  }
 
-  res.json(result);
+  enrollments[userId].splice(idx, 1);
+  formation.enrolledCount = Math.max(0, formation.enrolledCount - 1);
+
+  if (enrollments[userId].length === 0) {
+    delete enrollments[userId];
+  }
+
+  res.json({ message: 'Désinscription réussie', formationId: formation.id });
 });
 
 // PATCH /formations/:id/progress
@@ -315,12 +355,6 @@ function awardBadge(userId, formationId) {
     earnedAt: new Date().toISOString(),
   });
 }
-
-// GET /formations/mine/badges
-router.get('/formations/mine/badges', authenticateToken, (req, res) => {
-  const userId = req.user.sub;
-  res.json(userBadges[userId] || []);
-});
 
 // ─── Paiement Mobile Money ───────────────────────────────────────────────────
 

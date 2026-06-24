@@ -1,7 +1,7 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { getFormationById, enroll, getPaymentStatus } from '../services/formationService';
+import { getFormationById, enroll, unenroll, getPaymentStatus } from '../services/formationService';
 
 function formatPrice(price, isFree) {
   if (isFree) return 'Gratuit';
@@ -16,6 +16,7 @@ export default function FormationDetail() {
   const [formation, setFormation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState(false);
+  const [unenrolling, setUnenrolling] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -70,6 +71,19 @@ export default function FormationDetail() {
     }
   };
 
+  const handleUnenroll = async () => {
+    setUnenrolling(true);
+    try {
+      await unenroll(formationId);
+      const updated = await getFormationById(formationId);
+      setFormation(updated);
+    } catch (e) {
+      alert(e.message || 'Désinscription échouée');
+    } finally {
+      setUnenrolling(false);
+    }
+  };
+
   const getCategoryColor = () => {
     const colors = {
       PANNEAUTIQUE: '#3BB273',
@@ -99,6 +113,9 @@ export default function FormationDetail() {
   return (
     <ScrollView style={styles.container} bounces={false}>
       <View style={[styles.hero, { backgroundColor: getCategoryColor() }]}>
+        {formation.imageUrl && (
+          <Image source={{ uri: formation.imageUrl }} style={styles.heroImage} />
+        )}
         <View style={styles.heroOverlay} />
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.backBtnText}>←</Text>
@@ -193,19 +210,32 @@ export default function FormationDetail() {
                 Complétée le {new Date(formation.userProgress.completedAt).toLocaleDateString()}
               </Text>
             )}
-            <TouchableOpacity
-              style={styles.startBtn}
-              onPress={() =>
-                navigation.navigate('CoursePlayer', {
-                  formationId: formation.id,
-                  moduleIndex: 0,
-                })
-              }
-            >
-              <Text style={styles.startBtnText}>
-                {allModulesComplete ? 'Revoir' : 'Commencer'}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.enrolledActions}>
+              <TouchableOpacity
+                style={styles.startBtn}
+                onPress={() =>
+                  navigation.navigate('CoursePlayer', {
+                    formationId: formation.id,
+                    moduleIndex: 0,
+                  })
+                }
+              >
+                <Text style={styles.startBtnText}>
+                  {allModulesComplete ? 'Revoir' : 'Commencer'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.unenrollBtn}
+                onPress={handleUnenroll}
+                disabled={unenrolling}
+              >
+                {unenrolling ? (
+                  <ActivityIndicator size="small" color="#E94E3C" />
+                ) : (
+                  <Text style={styles.unenrollBtnText}>Se désinscrire</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       </View>
@@ -227,10 +257,17 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 30,
     paddingHorizontal: 16,
+    minHeight: 200,
+  },
+  heroImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   backBtn: {
     width: 36,
@@ -444,14 +481,36 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
     marginBottom: 10,
   },
+  enrolledActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 12,
+  },
   startBtn: {
+    flex: 1,
     backgroundColor: '#3BB273',
     height: 44,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    marginTop: 8,
+    paddingHorizontal: 16,
+  },
+  unenrollBtn: {
+    height: 44,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E94E3C',
+  },
+  unenrollBtnText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 13,
+    color: '#E94E3C',
+    fontWeight: '600',
   },
   startBtnText: {
     fontFamily: 'CenturyGothic',

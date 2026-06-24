@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, Dimensions } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { getFormationById, updateProgress } from '../services/formationService';
@@ -91,6 +91,9 @@ export default function CoursePlayer() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
+        {currentModule.imageUrl && (
+          <Image source={{ uri: currentModule.imageUrl }} style={styles.moduleImage} />
+        )}
         <Text style={styles.moduleTitle}>{currentModule.title}</Text>
         <Text style={styles.moduleDuration}>{currentModule.duration}</Text>
         <View style={styles.divider} />
@@ -215,6 +218,13 @@ const styles = StyleSheet.create({
   contentInner: {
     padding: 16,
     paddingBottom: 24,
+  },
+  moduleImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 8,
+    marginBottom: 16,
+    resizeMode: 'cover',
   },
   moduleTitle: {
     fontFamily: 'CenturyGothic',

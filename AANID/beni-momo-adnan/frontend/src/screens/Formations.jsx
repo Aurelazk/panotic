@@ -1,7 +1,7 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { getFormations } from '../services/formationService';
+import { getFormationsPaginated } from '../services/formationService';
 
 const CATEGORIES = [
   { label: 'Toutes', value: 'toutes', color: '#6B6B6B' },
@@ -16,34 +16,57 @@ function formatPrice(price, isFree) {
   return `${price.toLocaleString()} FCFA`;
 }
 
+const PAGE_LIMIT = 4;
+
 export default function Formations() {
   const navigation = useNavigation();
   const [formations, setFormations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [activeCategory, setActiveCategory] = useState('toutes');
 
-  const fetchData = useCallback(async (category) => {
+  const fetchPage = useCallback(async (cat, pageNum, append = false) => {
     try {
-      const data = await getFormations(category);
-      setFormations(data);
+      const result = await getFormationsPaginated(pageNum, PAGE_LIMIT, cat);
+      if (append) {
+        setFormations(prev => [...prev, ...result.data]);
+      } else {
+        setFormations(result.data);
+      }
+      setHasMore(result.hasMore);
+      setPage(pageNum);
     } catch {
-      setFormations([]);
+      if (!append) setFormations([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    fetchData(activeCategory);
-  }, [activeCategory, fetchData]);
+    setPage(1);
+    setHasMore(true);
+    fetchPage(activeCategory, 1, false);
+  }, [activeCategory, fetchPage]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchData(activeCategory);
-  }, [activeCategory, fetchData]);
+    setPage(1);
+    setHasMore(true);
+    fetchPage(activeCategory, 1, false);
+  }, [activeCategory, fetchPage]);
+
+  const onEndReached = useCallback(() => {
+    if (!loadingMore && hasMore && !loading) {
+      setLoadingMore(true);
+      fetchPage(activeCategory, page + 1, true);
+    }
+  }, [loadingMore, hasMore, loading, activeCategory, page, fetchPage]);
 
   return (
     <View style={styles.container}>
@@ -90,6 +113,13 @@ export default function Formations() {
           contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.gridRow}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3BB273" />}
+          onEndReached={onEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <ActivityIndicator size="small" color="#3BB273" style={styles.loaderMore} />
+            ) : null
+          }
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={styles.emptyIcon}>○</Text>
@@ -169,6 +199,9 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 40,
+  },
+  loaderMore: {
+    paddingVertical: 20,
   },
   grid: {
     padding: 12,
