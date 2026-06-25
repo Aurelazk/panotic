@@ -6,6 +6,8 @@ import {
   faHouse, faMapLocation, faComment, faBuildingColumns, faBell,
 } from '@fortawesome/free-solid-svg-icons';
 import FormationNavigator from './FormationNavigator';
+import ProfileNavigator from './ProfileNavigator';
+import NotificationScreen from '../screens/Notifications/NotificationScreen';
 import TopNavbar from '../components/TopNavbar';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
@@ -28,7 +30,7 @@ function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }
   return (
     <View style={tabStyles.iconWrap}>
       <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
-        <FontAwesomeIcon icon={config.icon} size={focused ? 20 : 18} color={focused ? '#F5A623' : '#6B7280'} />
+        <FontAwesomeIcon icon={config.icon} size={focused ? 24 : 22} color={focused ? '#F5A623' : '#9CA3AF'} />
       </View>
       <Text style={[tabStyles.tabLabel, focused && tabStyles.tabLabelActive]}>{config.label}</Text>
     </View>
@@ -36,10 +38,10 @@ function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }
 }
 
 const tabStyles = StyleSheet.create({
-  iconWrap: { alignItems: 'center', justifyContent: 'center', marginTop: 4, gap: 2 },
-  iconBg: { width: 32, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
-  iconBgActive: { backgroundColor: 'rgba(245, 166, 35, 0.12)' },
-  tabLabel: { fontSize: 9, fontWeight: '500', color: '#6B7280', letterSpacing: 0.2, fontFamily: 'CenturyGothic' },
+  iconWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  iconBg: { width: '100%', height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  iconBgActive: { backgroundColor: 'rgba(245, 166, 35, 0.15)' },
+  tabLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF', letterSpacing: 0.2, fontFamily: 'CenturyGothic' },
   tabLabelActive: { color: '#F5A623', fontWeight: '700' },
 });
 
@@ -49,6 +51,7 @@ export default function TabNavigator() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => <TabIcon routeName={route.name} focused={focused} />,
         tabBarShowLabel: false,
+        tabBarItemStyle: { flex: 1 },
         header: () => <TopNavbar />,
         tabBarStyle: {
           borderTopWidth: 0,
