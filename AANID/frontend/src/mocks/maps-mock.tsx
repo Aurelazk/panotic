@@ -107,10 +107,10 @@ const MapView = forwardRef(({ style, initialRegion, children, mapType }, ref) =>
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    layersRef.current.forEach(layer => map.removeLayer(layer));
-    layersRef.current = [];
     rootsRef.current.forEach(root => root.unmount());
     rootsRef.current = [];
+    layersRef.current.forEach(layer => map.removeLayer(layer));
+    layersRef.current = [];
 
     const processChild = (child) => {
       if (!child || !child.props) return;
