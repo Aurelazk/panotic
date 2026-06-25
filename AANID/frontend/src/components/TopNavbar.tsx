@@ -1,9 +1,8 @@
 import React from 'react';
-import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faBell } from '@fortawesome/free-solid-svg-icons';
-import logoUrl from '../../assets/aanid_logo.jpeg';
 
 export default function TopNavbar() {
   const navigation = useNavigation<any>();
@@ -11,13 +10,13 @@ export default function TopNavbar() {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.sideBtn}>
-        <FontAwesomeIcon icon={faCircleUser} size={22} color="#FFFFFF" />
+        <FontAwesomeIcon icon={faCircleUser} size={22} color="#212121" />
       </TouchableOpacity>
 
-      <Image source={{ uri: logoUrl }} style={styles.logo} resizeMode="contain" />
+      <Text style={styles.logoText}>aanid</Text>
 
       <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.sideBtn}>
-        <FontAwesomeIcon icon={faBell} size={22} color="#FFFFFF" />
+        <FontAwesomeIcon icon={faBell} size={22} color="#212121" />
       </TouchableOpacity>
     </View>
   );
@@ -28,7 +27,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1E73BE',
+    backgroundColor: '#F9F1E5',
     paddingTop: 50,
     paddingBottom: 12,
     paddingHorizontal: 16,
@@ -37,12 +36,14 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logo: {
-    width: 120,
-    height: 32,
+  logoText: {
+    fontSize: 26,
+    fontStyle: 'italic',
+    fontFamily: 'CenturyGothic',
+    color: '#212121',
   },
 });
