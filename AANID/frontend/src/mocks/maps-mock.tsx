@@ -33,7 +33,7 @@ function loadLeaflet(callback) {
   }
 }
 
-export const Marker = ({ children }) => <>{children}</>;
+export const Marker = () => null;
 export const Callout = ({ children }) => <>{children}</>;
 export const Polygon = () => null;
 export const Polyline = () => null;
