@@ -3,16 +3,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faHouse, faMapLocation, faComment, faBuildingColumns,
-  faFlag, faBell, faCircleUser,
+  faHouse, faMapLocation, faComment, faBuildingColumns, faBell,
 } from '@fortawesome/free-solid-svg-icons';
-import ProfileNavigator from './ProfileNavigator';
 import FormationNavigator from './FormationNavigator';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
 import SocialScreen from '../screens/Placeholder/SocialScreen';
 import ReportScreen from '../screens/Placeholder/ReportScreen';
-import AdsScreen from '../screens/Placeholder/AdsScreen';
 import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive';
 
 const Tab = createBottomTabNavigator();
@@ -20,11 +17,9 @@ const Tab = createBottomTabNavigator();
 const TAB_CONFIG: Record<string, { icon: any; label: string }> = {
   Dashboard: { icon: faHouse, label: 'Accueil' },
   Carte: { icon: faMapLocation, label: 'Carte' },
-  Social: { icon: faComment, label: 'Social' },
-  Formation: { icon: faBuildingColumns, label: 'Formation' },
-  Publicite: { icon: faFlag, label: 'Annonces' },
   Signalement: { icon: faBell, label: 'Signaler' },
-  Profil: { icon: faCircleUser, label: 'Profil' },
+  Formation: { icon: faBuildingColumns, label: 'Formation' },
+  Social: { icon: faComment, label: 'Social' },
 };
 
 function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
@@ -72,11 +67,9 @@ export default function TabNavigator() {
     >
       <Tab.Screen name="Dashboard" component={Villes} />
       <Tab.Screen name="Carte" component={CarteInteractive} />
-      <Tab.Screen name="Social" component={SocialScreen} />
-      <Tab.Screen name="Formation" component={FormationNavigator} />
-      <Tab.Screen name="Publicite" component={AdsScreen} />
       <Tab.Screen name="Signalement" component={ReportScreen} />
-      <Tab.Screen name="Profil" component={ProfileNavigator} />
+      <Tab.Screen name="Formation" component={FormationNavigator} />
+      <Tab.Screen name="Social" component={SocialScreen} />
     </Tab.Navigator>
   );
 }
