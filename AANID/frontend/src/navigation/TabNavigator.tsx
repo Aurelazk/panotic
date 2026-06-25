@@ -6,6 +6,7 @@ import {
   faHouse, faMapLocation, faComment, faBuildingColumns, faBell,
 } from '@fortawesome/free-solid-svg-icons';
 import FormationNavigator from './FormationNavigator';
+import TopNavbar from '../components/TopNavbar';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
 import SocialScreen from '../screens/Placeholder/SocialScreen';
@@ -48,6 +49,7 @@ export default function TabNavigator() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => <TabIcon routeName={route.name} focused={focused} />,
         tabBarShowLabel: false,
+        header: () => <TopNavbar />,
         tabBarStyle: {
           borderTopWidth: 0,
           backgroundColor: '#212121',
@@ -62,7 +64,6 @@ export default function TabNavigator() {
           shadowOpacity: 0.35,
           shadowRadius: 20,
         },
-        headerShown: false,
       })}
     >
       <Tab.Screen name="Dashboard" component={Villes} />
