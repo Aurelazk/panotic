@@ -9,6 +9,7 @@ export default defineConfig({
     alias: [
       { find: 'react-native', replacement: path.resolve(__dirname, 'src/mocks/react-native-web-bridge.js') },
       { find: 'react-native-maps', replacement: path.resolve(__dirname, 'src/mocks/maps-mock.tsx') },
+      { find: /^react-native-map-clustering(\/.*)?$/, replacement: path.resolve(__dirname, 'src/mocks/maps-mock.tsx') },
       { find: /^react-native-vector-icons\/.*/, replacement: path.resolve(__dirname, 'src/mocks/vector-icons-mock.tsx') },
       { find: 'react-native-vector-icons', replacement: path.resolve(__dirname, 'src/mocks/vector-icons-mock.tsx') },
       { find: 'react-native-safe-area-context', replacement: path.resolve(__dirname, 'src/mocks/base-mock.tsx') },
@@ -34,6 +35,7 @@ export default defineConfig({
       'react-native-safe-area-context',
       'react-native-screens',
       'react-native-maps',
+      'react-native-map-clustering',
       '@aanid/beni-momo-adnan-frontend',
       '@aanid/bryan-fanou-frontend',
       '@aanid/rayan-frontend',

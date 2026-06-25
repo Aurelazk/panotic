@@ -34,7 +34,7 @@ function loadLeaflet(callback) {
 }
 
 export const Marker = () => null;
-export const Callout = ({ children }) => <>{children}</>;
+export const Callout = () => null;
 export const Polygon = () => null;
 export const Polyline = () => null;
 export const Circle = () => null;
@@ -145,7 +145,7 @@ const MapView = forwardRef(({ style, initialRegion, children, mapType }, ref) =>
           const popupEl = document.createElement('div');
           popupEl.style.minWidth = '220px';
           const root = createRoot(popupEl);
-          root.render(calloutChild);
+          root.render(calloutChild.props.children);
           rootsRef.current.push(root);
           marker.bindPopup(popupEl, { closeButton: false, className: 'custom-leaflet-popup' });
           if (calloutChild.props.onPress) {
