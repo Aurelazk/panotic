@@ -3,6 +3,7 @@ import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleUser, faBell } from '@fortawesome/free-solid-svg-icons';
+import logoUrl from '../../assets/aanid_logo.jpeg';
 
 export default function TopNavbar() {
   const navigation = useNavigation<any>();
@@ -13,7 +14,7 @@ export default function TopNavbar() {
         <FontAwesomeIcon icon={faCircleUser} size={22} color="#FFFFFF" />
       </TouchableOpacity>
 
-      <Image source={require('../../assets/aanid_logo.jpeg')} style={styles.logo} resizeMode="contain" />
+      <Image source={{ uri: logoUrl }} style={styles.logo} resizeMode="contain" />
 
       <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.sideBtn}>
         <FontAwesomeIcon icon={faBell} size={22} color="#FFFFFF" />
