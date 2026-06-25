@@ -28,8 +28,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: '#F9F1E5',
-    paddingTop: 50,
-    paddingBottom: 12,
+    paddingTop: 20,
+    paddingBottom: 20,
     paddingHorizontal: 16,
   },
   sideBtn: {
@@ -41,8 +41,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoText: {
-    fontSize: 26,
+    fontSize: 32,
     fontStyle: 'italic',
+    fontWeight: '700',
     fontFamily: 'CenturyGothic',
     color: '#212121',
   },
