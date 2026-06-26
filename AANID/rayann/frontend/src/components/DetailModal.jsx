@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
 import { SIGNALEMENT_TYPES, PANEL_STATUSES } from '../constants/mapData';
 import { styles } from '../styles/CarteInteractive.styles';
@@ -19,18 +21,30 @@ function getPanelColor(etat) {
   return found ? found.color : COLORS.primary;
 }
 
+function InfoRow({ label, value }) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
 function SignalementDetail({ item }) {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <Text style={styles.modalTitle}>Signalement</Text>
-      <View style={[styles.calloutHeader, { backgroundColor: getSignalementColor(item.type), borderRadius: 10, marginBottom: 15 }]}>
-        <Text style={styles.calloutTitle}>{item.type?.replace('_', ' ')}</Text>
+      <View style={[styles.modalBadge, { backgroundColor: getSignalementColor(item.type) }]}>
+        <Text style={styles.modalBadgeText}>{item.type?.replace('_', ' ')}</Text>
       </View>
       {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.modalImage} />}
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Description:</Text><Text style={styles.infoValue}>{item.description}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Statut:</Text><Text style={styles.infoValue}>{item.status}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Votes:</Text><Text style={styles.infoValue}>{item.votesCount}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Date:</Text><Text style={styles.infoValue}>{formatDate(item.createdAt)}</Text></View>
+      <InfoRow label="Description" value={item.description} />
+      <InfoRow label="Statut" value={item.status} />
+      <InfoRow label="Votes" value={String(item.votesCount ?? 0)} />
+      <InfoRow label="Date" value={formatDate(item.createdAt)} />
+      <TouchableOpacity style={styles.modalBtn}>
+        <Text style={styles.modalBtnText}>Soutenir ce signalement</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -38,15 +52,20 @@ function SignalementDetail({ item }) {
 function PanneauDetail({ item }) {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
-      <Text style={styles.modalTitle}>Détails du Panneau</Text>
-      <View style={[styles.calloutHeader, { backgroundColor: getPanelColor(item.etat), borderRadius: 10, marginBottom: 15 }]}>
-        <Text style={styles.calloutTitle}>{item.type}</Text>
+      <Text style={styles.modalTitle}>Panneau publicitaire</Text>
+      <View style={[styles.modalBadge, { backgroundColor: getPanelColor(item.etat) }]}>
+        <Text style={styles.modalBadgeText}>{item.type} · {item.etat}</Text>
       </View>
       {item.imageUrl && <Image source={{ uri: item.imageUrl }} style={styles.modalImage} />}
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Format:</Text><Text style={styles.infoValue}>{item.format}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Régime:</Text><Text style={styles.infoValue}>{item.regime}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>État:</Text><Text style={styles.infoValue}>{item.etat}</Text></View>
-      {item.price && <View style={styles.infoRow}><Text style={styles.infoLabel}>Prix:</Text><Text style={styles.infoValue}>{item.price.toLocaleString()} FCFA</Text></View>}
+      <InfoRow label="Format" value={item.format} />
+      <InfoRow label="Régime" value={item.regime} />
+      <InfoRow label="État" value={item.etat} />
+      {item.price ? <InfoRow label="Prix" value={`${item.price.toLocaleString()} FCFA`} /> : null}
+      <TouchableOpacity style={styles.modalBtn}>
+        <Text style={styles.modalBtnText}>
+          {item.etat === 'DISPONIBLE' ? 'Réserver ce panneau' : 'Voir la disponibilité'}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -55,19 +74,23 @@ function ZoneDetail({ item }) {
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <Text style={styles.modalTitle}>Zone</Text>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Nom:</Text><Text style={styles.infoValue}>{item.name}</Text></View>
-      <View style={styles.infoRow}><Text style={styles.infoLabel}>Type:</Text><Text style={styles.infoValue}>{item.type}</Text></View>
+      <View style={[styles.modalBadge, { backgroundColor: COLORS.primary }]}>
+        <Text style={styles.modalBadgeText}>{item.type}</Text>
+      </View>
+      <InfoRow label="Nom" value={item.name} />
+      <InfoRow label="Type" value={item.type} />
     </ScrollView>
   );
 }
 
 export default function DetailModal({ item, onClose }) {
   return (
-    <Modal visible={!!item} animationType="slide" transparent>
+    <Modal visible={!!item} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalBg}>
+        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         <View style={styles.modalContent}>
           <TouchableOpacity style={styles.modalClose} onPress={onClose}>
-            <Text style={styles.modalCloseText}>✕</Text>
+            <FontAwesomeIcon icon={faXmark} color={COLORS.textSecondary} style={{ fontSize: 15 }} />
           </TouchableOpacity>
           {item?.type === 'signalement' && <SignalementDetail item={item} />}
           {item?.type === 'panneau' && <PanneauDetail item={item} />}

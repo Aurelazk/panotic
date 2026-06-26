@@ -7,6 +7,8 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEarthAfrica, faLocationDot, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
 
 const { height } = Dimensions.get('window');
@@ -43,7 +45,7 @@ const styles = {
     marginBottom: 4,
   },
   selectedVilleItem: {
-    backgroundColor: 'rgba(30,115,190,0.08)',
+    backgroundColor: COLORS.chipBg,
   },
   villeName: {
     fontSize: 16,
@@ -93,11 +95,11 @@ export default function VilleSelector({ visible, villes, selected, onSelect, onC
               style={[styles.villeItem, selected === 'toutes' && styles.selectedVilleItem]}
               onPress={() => onSelect('toutes')}
             >
-              <Text style={{ fontSize: 20 }}>🌍</Text>
+              <FontAwesomeIcon icon={faEarthAfrica} color={COLORS.primary} style={{ fontSize: 18 }} />
               <Text style={[styles.villeName, selected === 'toutes' && styles.selectedVilleName]}>
                 Toutes les villes
               </Text>
-              {selected === 'toutes' && <Text style={styles.checkMark}>✓</Text>}
+              {selected === 'toutes' && <FontAwesomeIcon icon={faCheck} color={COLORS.primary} style={{ fontSize: 16, marginLeft: 'auto' }} />}
             </TouchableOpacity>
             {villes.map((ville) => (
               <TouchableOpacity
@@ -105,14 +107,14 @@ export default function VilleSelector({ visible, villes, selected, onSelect, onC
                 style={[styles.villeItem, selected === ville.id && styles.selectedVilleItem]}
                 onPress={() => onSelect(ville.id)}
               >
-                <Text style={{ fontSize: 20 }}>📍</Text>
+                <FontAwesomeIcon icon={faLocationDot} color={COLORS.primary} style={{ fontSize: 18 }} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.villeName, selected === ville.id && styles.selectedVilleName]}>
                     {ville.nom}
                   </Text>
                   <Text style={styles.villePays}>{ville.pays}</Text>
                 </View>
-                {selected === ville.id && <Text style={styles.checkMark}>✓</Text>}
+                {selected === ville.id && <FontAwesomeIcon icon={faCheck} color={COLORS.primary} style={{ fontSize: 16, marginLeft: 'auto' }} />}
               </TouchableOpacity>
             ))}
           </ScrollView>

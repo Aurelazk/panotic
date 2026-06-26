@@ -1,62 +1,72 @@
+// Palette "Sable" — couleur principale de l'application Panotic/AANID.
+// Tons beige/sable chauds, fonctionnels lisibles harmonisés.
 export const COLORS = {
-  primary: '#1E73BE',
-  primaryLight: '#4A90D9',
-  primaryDark: '#1557A0',
-  secondary: '#F5A623',
-  secondaryLight: '#F7C948',
-  secondaryDark: '#D4891A',
-  success: '#3BB273',
-  successLight: '#5CC98A',
-  error: '#E94E3C',
-  errorLight: '#F06050',
-  warning: '#F5A623',
-  info: '#4A90D9',
-  background: '#F0F4F8',
+  primary: '#C19A6B',        // sable / camel
+  primaryLight: '#D9C2A0',
+  primaryDark: '#9C7C4F',
+  secondary: '#8C6A43',      // brun sable profond
+  secondaryLight: '#B08C5E',
+  secondaryDark: '#6E5333',
+  accent: '#C19A6B',
+
+  success: '#6E8B5B',
+  successLight: '#88A574',
+  warning: '#D9A441',
+  error: '#C75D4F',
+  errorLight: '#D77A6E',
+  info: '#9C7C4F',
+
+  background: '#F9F1E5',      // crème sable (fond app)
+  backgroundAlt: '#F2E7D3',
   surface: '#FFFFFF',
-  text: '#1A1A2E',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
-  border: '#E5E7EB',
   white: '#FFFFFF',
-  overlay: 'rgba(0,0,0,0.5)',
-  cardBg: 'rgba(255,255,255,0.95)',
-  chipBg: 'rgba(30,115,190,0.1)',
-  tabInactive: '#9CA3AF',
+
+  text: '#2E2A24',           // brun très foncé
+  textSecondary: '#7A7166',
+  textTertiary: '#A89E90',
+
+  border: '#E8DCC8',
+  overlay: 'rgba(46, 42, 36, 0.45)',
+  cardBg: 'rgba(255, 255, 255, 0.96)',
+  chipBg: 'rgba(193, 154, 107, 0.14)',
+  tabInactive: '#A89E90',
+
+  shadow: '#2E2A24',
 
   signalement: {
-    DEGRADE: '#F5A623',
-    DANGEREUX: '#E94E3C',
-    ILLEGAL: '#E94E3C',
-    OBSOLETE: '#BDBDBD',
-    TRAVAUX: '#1E73BE',
-    BON_ETAT: '#3BB273',
+    DEGRADE: '#D9A441',
+    DANGEREUX: '#C75D4F',
+    ILLEGAL: '#A8443A',
+    OBSOLETE: '#A89E90',
+    TRAVAUX: '#C19A6B',
+    BON_ETAT: '#6E8B5B',
   },
 
   panel: {
-    CLASSIQUE: '#1E73BE',
-    DIGITAL: '#4A90D9',
-    ABRIBUS: '#3BB273',
-    TOTEM: '#F5A623',
-    AUTRE: '#BDBDBD',
+    CLASSIQUE: '#C19A6B',
+    DIGITAL: '#9C7C4F',
+    ABRIBUS: '#6E8B5B',
+    TOTEM: '#D9A441',
+    AUTRE: '#A89E90',
   },
 
   panelStatus: {
-    DISPONIBLE: '#3BB273',
-    LOUE: '#F5A623',
-    MAINTENANCE: '#E94E3C',
+    DISPONIBLE: '#6E8B5B',
+    LOUE: '#D9A441',
+    MAINTENANCE: '#C75D4F',
   },
 
   zone: {
-    commerciale: 'rgba(30, 115, 190, 0.25)',
-    residentielle: 'rgba(59, 178, 115, 0.25)',
-    speciale: 'rgba(245, 166, 35, 0.25)',
-    interdite: 'rgba(233, 78, 60, 0.25)',
+    commerciale: 'rgba(193, 154, 107, 0.28)',
+    residentielle: 'rgba(110, 139, 91, 0.26)',
+    speciale: 'rgba(217, 164, 65, 0.26)',
+    interdite: 'rgba(199, 93, 79, 0.26)',
   },
 
   zoneStroke: {
-    commerciale: '#1E73BE',
-    residentielle: '#3BB273',
-    speciale: '#F5A623',
-    interdite: '#E94E3C',
+    commerciale: '#9C7C4F',
+    residentielle: '#6E8B5B',
+    speciale: '#D9A441',
+    interdite: '#C75D4F',
   },
 };

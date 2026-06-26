@@ -1,62 +1,37 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMap, faSatellite } from '@fortawesome/free-solid-svg-icons';
+import { COLORS } from '../constants/colors';
+import { styles } from '../styles/CarteInteractive.styles';
 
 const TILE_TYPES = [
-  { id: 'standard', label: 'Standard', icon: '🗺️' },
-  { id: 'satellite', label: 'Satellite', icon: '🛰️' },
+  { id: 'standard', label: 'Plan', icon: faMap },
+  { id: 'satellite', label: 'Satellite', icon: faSatellite },
 ];
 
 export default function MapOptions({ mapType, onToggle }) {
   return (
-    <View style={styles.container}>
-      {TILE_TYPES.map((t) => {
+    <View style={styles.mapOptions}>
+      {TILE_TYPES.map((t, i) => {
         const active = mapType === t.id;
         return (
-          <TouchableOpacity
-            key={t.id}
-            onPress={() => onToggle(t.id)}
-            style={[styles.option, active && styles.optionActive]}
-          >
-            <Text style={styles.icon}>{t.icon}</Text>
-            <Text style={[styles.label, active && styles.labelActive]}>{t.label}</Text>
-          </TouchableOpacity>
+          <React.Fragment key={t.id}>
+            {i > 0 && <View style={styles.optionDivider} />}
+            <TouchableOpacity
+              onPress={() => onToggle(t.id)}
+              style={[styles.optionBtn, active && styles.optionBtnActive]}
+              accessibilityLabel={t.label}
+            >
+              <FontAwesomeIcon
+                icon={t.icon}
+                color={active ? COLORS.primary : COLORS.textSecondary}
+                style={{ fontSize: 17 }}
+              />
+            </TouchableOpacity>
+          </React.Fragment>
         );
       })}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 4,
-    flexDirection: 'row',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  option: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  optionActive: {
-    backgroundColor: '#1E73BE',
-  },
-  icon: { fontSize: 14 },
-  label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#6B7280',
-    fontFamily: 'CenturyGothic',
-  },
-  labelActive: {
-    color: '#FFFFFF',
-  },
-});

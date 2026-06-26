@@ -1,19 +1,15 @@
 import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Marker, Callout, Polygon, UrlTile, Heatmap } from 'react-native-maps';
 import MapView from 'react-native-map-clustering/lib/ClusteredMapView';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
-import { SIGNALEMENT_TYPES, PANEL_STATUSES, INITIAL_REGION } from '../constants/mapData';
+import {
+  SIGNALEMENT_TYPES, PANEL_STATUSES, INITIAL_REGION, TILE_URLS,
+  SIGNALEMENT_ICONS, PANEL_ICONS,
+} from '../constants/mapData';
 import { styles } from '../styles/CarteInteractive.styles';
-
-const TILE_URLS = {
-  standard: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-};
-
-const ICON_MAP = {
-  CLASSIQUE: 'C', DIGITAL: 'D', ABRIBUS: 'A', TOTEM: 'T', AUTRE: '•',
-};
 
 function getSignalementColor(type) {
   const found = SIGNALEMENT_TYPES.find(t => t.value === type);
@@ -26,7 +22,7 @@ function getPanelColor(etat) {
 }
 
 function getZoneFillColor(type) {
-  return COLORS.zone[type] || 'rgba(0,0,0,0.1)';
+  return COLORS.zone[type] || 'rgba(193,154,107,0.25)';
 }
 
 function getZoneStrokeColor(type) {
@@ -38,15 +34,38 @@ function formatDate(dateStr) {
   return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
 }
 
-function SignalementMarker({ item, onSelect }) {
+// Marqueur "goutte" moderne : tête ronde + pointe, pictogramme central.
+function PinGraphic({ color, icon, selected }) {
+  const scale = selected ? 1.14 : 1;
   return (
-    <Marker key={item.id} coordinate={{ latitude: item.lat, longitude: item.lng }}>
-      <View style={[styles.markerSignalement, { backgroundColor: getSignalementColor(item.type) }]}>
-        <View style={[styles.markerDot, { backgroundColor: COLORS.white }]} />
+    <View style={[pin.wrap, { transform: [{ scale }] }]}>
+      <View style={[pin.head, { backgroundColor: color }]}>
+        <View style={pin.inner}>
+          <FontAwesomeIcon icon={icon} color={color} style={{ fontSize: 14 }} />
+        </View>
       </View>
+      <View style={[pin.tail, { borderTopColor: color }]} />
+    </View>
+  );
+}
+
+// Les fonctions ci-dessous RETOURNENT directement des <Marker>/<Polygon> (avec key)
+// afin qu'ils soient des enfants directs du MapView (requis par le rendu web/Leaflet).
+function renderSignalement(item, onSelect, selected) {
+  const color = getSignalementColor(item.type);
+  return (
+    <Marker
+      key={item.id}
+      coordinate={{ latitude: item.lat, longitude: item.lng }}
+      iconSize={[46, 56]}
+      iconAnchor={[23, 52]}
+      anchor={{ x: 0.5, y: 0.95 }}
+      zIndexOffset={selected ? 1000 : 0}
+    >
+      <PinGraphic color={color} icon={SIGNALEMENT_ICONS[item.type] || faLocationDot} selected={selected} />
       <Callout tooltip onPress={() => onSelect({ type: 'signalement', ...item })}>
         <View style={styles.calloutCard}>
-          <View style={[styles.calloutHeader, { backgroundColor: getSignalementColor(item.type) }]}>
+          <View style={[styles.calloutHeader, { backgroundColor: color }]}>
             <Text style={styles.calloutTitle}>{item.type.replace('_', ' ')}</Text>
           </View>
           <View style={styles.calloutBody}>
@@ -59,22 +78,25 @@ function SignalementMarker({ item, onSelect }) {
   );
 }
 
-function PanelMarker({ item, onSelect }) {
+function renderPanneau(item, onSelect, selected) {
   const color = getPanelColor(item.etat);
   return (
-    <Marker key={item.id} coordinate={{ latitude: item.lat, longitude: item.lng }}>
-      <View style={[styles.markerPanel, { borderColor: color }]}>
-        <View style={[styles.markerPanelInner, { backgroundColor: color }]}>
-          <Text style={styles.panelIcon}>{ICON_MAP[item.type] || '•'}</Text>
-        </View>
-      </View>
+    <Marker
+      key={item.id}
+      coordinate={{ latitude: item.lat, longitude: item.lng }}
+      iconSize={[46, 56]}
+      iconAnchor={[23, 52]}
+      anchor={{ x: 0.5, y: 0.95 }}
+      zIndexOffset={selected ? 1000 : 0}
+    >
+      <PinGraphic color={color} icon={PANEL_ICONS[item.type] || faLocationDot} selected={selected} />
       <Callout tooltip onPress={() => onSelect({ type: 'panneau', ...item })}>
         <View style={styles.calloutCard}>
           <View style={[styles.calloutHeader, { backgroundColor: color }]}>
             <Text style={styles.calloutTitle}>{item.type}</Text>
           </View>
           <View style={styles.calloutBody}>
-            <View style={{ ...styles.infoRow }}>
+            <View style={styles.infoRow}>
               <Text style={[styles.infoLabel, { width: 60 }]}>Format:</Text>
               <Text style={styles.infoValue}>{item.format}</Text>
             </View>
@@ -90,7 +112,7 @@ function PanelMarker({ item, onSelect }) {
   );
 }
 
-function ZonePolygon({ item, onPress }) {
+function renderZone(item, onPress) {
   return (
     <Polygon
       key={item.id}
@@ -107,26 +129,10 @@ function ZonePolygon({ item, onPress }) {
   );
 }
 
-function LoadingSkeleton() {
-  return (
-    <View style={styles.loadingOverlay}>
-      <ActivityIndicator size="large" color={COLORS.primary} />
-    </View>
-  );
-}
-
-function TileError() {
-  return (
-    <View style={styles.loadingOverlay}>
-      <Text style={{ color: COLORS.textSecondary, fontSize: 14, fontFamily: 'CenturyGothic' }}>Erreur de chargement des tuiles</Text>
-    </View>
-  );
-}
-
 export default function MapMarkers({
   mapRef, mapType, activeLayer,
   signalements, panneaux, zones, heatmapPoints,
-  onSelectItem, loading, tileError,
+  onSelectItem, selectedId,
 }) {
   return (
     <MapView
@@ -142,23 +148,57 @@ export default function MapMarkers({
         tileSize={256}
       />
       {activeLayer === 'signalements' && signalements.map((item) => (
-        <SignalementMarker key={item.id} item={item} onSelect={onSelectItem} />
+        renderSignalement(item, onSelectItem, selectedId === item.id)
       ))}
       {activeLayer === 'panneaux' && panneaux.map((item) => (
-        <PanelMarker key={item.id} item={item} onSelect={onSelectItem} />
+        renderPanneau(item, onSelectItem, selectedId === item.id)
       ))}
       {activeLayer === 'zones' && zones.map((item) => (
-        <ZonePolygon key={item.id} item={item} onPress={onSelectItem} />
+        renderZone(item, onSelectItem)
       ))}
       {activeLayer === 'heatmap' && heatmapPoints.length > 0 && (
-        <Heatmap
-          points={heatmapPoints}
-          radius={40}
-          opacity={0.6}
-        />
+        <Heatmap points={heatmapPoints} radius={40} opacity={0.6} />
       )}
-      {loading && !tileError && <LoadingSkeleton />}
-      {tileError && <TileError />}
     </MapView>
   );
 }
+
+const pin = StyleSheet.create({
+  wrap: {
+    width: 46,
+    height: 56,
+    alignItems: 'center',
+  },
+  head: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 3,
+    borderColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  inner: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tail: {
+    marginTop: -5,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderTopWidth: 11,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
+});

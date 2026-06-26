@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faXmark, faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
 
 const { height } = Dimensions.get('window');
@@ -258,7 +260,7 @@ export default function AnalyseVille({ visible, villeId, villes, apiGet, onClose
           <View style={styles.header}>
             <Text style={styles.modalTitle}>Analyse de la zone</Text>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <Text style={styles.closeText}>✕</Text>
+              <FontAwesomeIcon icon={faXmark} color={COLORS.textSecondary} style={{ fontSize: 18 }} />
             </TouchableOpacity>
           </View>
 
@@ -270,7 +272,8 @@ export default function AnalyseVille({ visible, villeId, villes, apiGet, onClose
           ) : stats ? (
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.villeName}>
-                📍 {stats.ville}
+                <FontAwesomeIcon icon={faLocationDot} color={COLORS.primary} style={{ fontSize: 13, marginRight: 6 }} />
+                {' '}{stats.ville}
                 {currentVille && ` (${currentVille.pays})`}
               </Text>
 

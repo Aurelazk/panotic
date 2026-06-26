@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Platform, PermissionsAndroid } from 'react-native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLocationDot, faChevronDown, faChartColumn } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
-import { API_BASE } from '../constants/mapData';
+import { API_BASE, INITIAL_REGION } from '../constants/mapData';
 import { styles } from '../styles/CarteInteractive.styles';
 import SearchBar from '../components/SearchBar';
 import LayerTabs from '../components/LayerTabs';
@@ -11,6 +13,13 @@ import MapOptions from '../components/MapOptions';
 import DetailModal from '../components/DetailModal';
 import VilleSelector from '../components/VilleSelector';
 import AnalyseVille from '../components/AnalyseVille';
+
+const LAYER_META = {
+  signalements: { title: 'Signalements', key: 'signalements' },
+  panneaux: { title: 'Panneaux', key: 'panneaux' },
+  zones: { title: 'Zones', key: 'zones' },
+  heatmap: { title: 'Carte de chaleur', key: 'heatmap' },
+};
 
 export default function CarteInteractive() {
   const mapRef = useRef(null);
@@ -57,7 +66,7 @@ export default function CarteInteractive() {
 
   const fetchVilles = async () => {
     const data = await apiGet('/carte/villes');
-    setVilles(data);
+    setVilles(Array.isArray(data) ? data : []);
   };
 
   const fetchData = useCallback(async () => {
@@ -76,12 +85,12 @@ export default function CarteInteractive() {
           break;
         }
         case 'zones': {
-          const data = await apiGet(`/carte/zones${villeParam}`);
+          const data = await apiGet(`/carte/zones${villeParam ? `?${villeParam.slice(1)}` : ''}`);
           setZones(Array.isArray(data) ? data : []);
           break;
         }
         case 'heatmap': {
-          const data = await apiGet(`/carte/heatmap${villeParam}`);
+          const data = await apiGet(`/carte/heatmap${villeParam ? `?${villeParam.slice(1)}` : ''}`);
           setHeatmapPoints(Array.isArray(data) ? data : []);
           break;
         }
@@ -107,59 +116,58 @@ export default function CarteInteractive() {
     setLoading(false);
   };
 
-  const centerOnCoordinate = (lat, lng) => {
+  const centerOnCoordinate = (lat, lng, delta = 0.02) => {
     if (mapRef.current) {
       mapRef.current.animateToRegion({
         latitude: lat,
         longitude: lng,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      }, 1000);
+        latitudeDelta: delta,
+        longitudeDelta: delta,
+      }, 900);
     }
     setSearchResults(null);
     setSearchQuery('');
   };
 
+  const handleLocate = () => {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => centerOnCoordinate(pos.coords.latitude, pos.coords.longitude, 0.03),
+        () => centerOnCoordinate(INITIAL_REGION.latitude, INITIAL_REGION.longitude, INITIAL_REGION.latitudeDelta),
+        { enableHighAccuracy: true, timeout: 5000 },
+      );
+    } else {
+      centerOnCoordinate(INITIAL_REGION.latitude, INITIAL_REGION.longitude, INITIAL_REGION.latitudeDelta);
+    }
+  };
+
   const handleLayerSelect = (layerId) => {
     setActiveLayer(layerId);
-    if (layerId === 'analyse') setShowAnalyse(true);
+    setSelectedItem(null);
   };
 
   useEffect(() => {
     if (selectedVille !== 'toutes') {
       const ville = villes.find(v => v.id === selectedVille);
       if (ville && ville.lat && ville.lng) {
-        centerOnCoordinate(ville.lat, ville.lng);
+        centerOnCoordinate(ville.lat, ville.lng, 0.06);
       }
     }
   }, [selectedVille, villes]);
 
+  const counts = {
+    signalements: signalements.length,
+    panneaux: panneaux.length,
+    zones: zones.length,
+    heatmap: heatmapPoints.length,
+  };
+  const meta = LAYER_META[activeLayer] || LAYER_META.signalements;
+  const selectedVilleLabel = selectedVille === 'toutes'
+    ? 'Toutes les villes'
+    : (villes.find(v => v.id === selectedVille)?.nom || selectedVille);
+
   return (
     <View style={styles.container}>
-      <SearchBar
-        query={searchQuery}
-        onChange={setSearchQuery}
-        onSubmit={performSearch}
-        onClear={() => { setSearchQuery(''); setSearchResults(null); }}
-        results={searchResults}
-        onResultPress={centerOnCoordinate}
-        onZoneResultPress={(z) => {
-          if (z.boundary?.coordinates?.[0]?.[0]) {
-            centerOnCoordinate(z.boundary.coordinates[0][0][1], z.boundary.coordinates[0][0][0]);
-          }
-        }}
-      />
-
-      <TouchableOpacity style={styles.villeBtn} onPress={() => setShowVilleSelector(true)}>
-        <Text style={{ fontSize: 14 }}>📍</Text>
-        <Text style={styles.villeBtnText}>
-          {selectedVille === 'toutes' ? 'Toutes les villes' : (villes.find(v => v.id === selectedVille)?.nom || selectedVille)}
-        </Text>
-      </TouchableOpacity>
-
-      <LayerTabs activeLayer={activeLayer} onSelect={handleLayerSelect} />
-      <MapOptions mapType={mapType} onToggle={(id) => setMapType(id)} />
-
       <MapMarkers
         mapRef={mapRef}
         mapType={mapType}
@@ -169,19 +177,67 @@ export default function CarteInteractive() {
         zones={zones}
         heatmapPoints={heatmapPoints}
         onSelectItem={setSelectedItem}
-        loading={loading}
-        tileError={false}
+        selectedId={selectedItem?.id}
       />
 
-      <FilterBar
-        activeLayer={activeLayer}
-        sigFilter={sigFilter}
-        panelTypeFilter={panelTypeFilter}
-        panelStatusFilter={panelStatusFilter}
-        onSigFilter={setSigFilter}
-        onPanelTypeFilter={setPanelTypeFilter}
-        onPanelStatusFilter={setPanelStatusFilter}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingPill}>
+            <ActivityIndicator size="small" color={COLORS.primary} />
+            <Text style={styles.loadingPillText}>Chargement…</Text>
+          </View>
+        </View>
+      )}
+
+      <SearchBar
+        query={searchQuery}
+        onChange={setSearchQuery}
+        onSubmit={performSearch}
+        onClear={() => { setSearchQuery(''); setSearchResults(null); }}
+        onLocate={handleLocate}
+        results={searchResults}
+        onResultPress={(lat, lng) => centerOnCoordinate(lat, lng)}
+        onZoneResultPress={(z) => {
+          if (z.boundary?.coordinates?.[0]?.[0]) {
+            centerOnCoordinate(z.boundary.coordinates[0][0][1], z.boundary.coordinates[0][0][0]);
+          }
+        }}
       />
+
+      <TouchableOpacity style={styles.villeBtn} onPress={() => setShowVilleSelector(true)}>
+        <FontAwesomeIcon icon={faLocationDot} color={COLORS.primary} style={{ fontSize: 13 }} />
+        <Text style={styles.villeBtnText} numberOfLines={1}>{selectedVilleLabel}</Text>
+        <FontAwesomeIcon icon={faChevronDown} color={COLORS.textTertiary} style={{ fontSize: 10, marginLeft: 6 }} />
+      </TouchableOpacity>
+
+      <LayerTabs activeLayer={activeLayer} onSelect={handleLayerSelect} />
+      <MapOptions mapType={mapType} onToggle={setMapType} />
+
+      <View style={styles.sheet}>
+        <View style={styles.sheetHandle} />
+        <View style={styles.sheetHeader}>
+          <View style={styles.sheetTitleWrap}>
+            <Text style={styles.sheetTitle}>{meta.title}</Text>
+            <View style={styles.sheetCountBadge}>
+              <Text style={styles.sheetCountText}>{counts[meta.key] ?? 0}</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.sheetAnalyseBtn} onPress={() => setShowAnalyse(true)}>
+            <FontAwesomeIcon icon={faChartColumn} color={COLORS.white} style={{ fontSize: 13, marginRight: 6 }} />
+            <Text style={styles.sheetAnalyseText}>Analyse</Text>
+          </TouchableOpacity>
+        </View>
+
+        <FilterBar
+          activeLayer={activeLayer}
+          sigFilter={sigFilter}
+          panelTypeFilter={panelTypeFilter}
+          panelStatusFilter={panelStatusFilter}
+          onSigFilter={setSigFilter}
+          onPanelTypeFilter={setPanelTypeFilter}
+          onPanelStatusFilter={setPanelStatusFilter}
+        />
+      </View>
 
       <DetailModal item={selectedItem} onClose={() => setSelectedItem(null)} />
 
@@ -198,7 +254,7 @@ export default function CarteInteractive() {
         villeId={selectedVille}
         villes={villes}
         apiGet={apiGet}
-        onClose={() => { setShowAnalyse(false); setActiveLayer('signalements'); }}
+        onClose={() => setShowAnalyse(false)}
       />
     </View>
   );
