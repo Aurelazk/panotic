@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   TextInput, Modal, Alert, SafeAreaView, KeyboardAvoidingView,
-  Platform, Animated, Dimensions, StatusBar,
+  Platform, Animated, Dimensions, StatusBar, Image,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -342,10 +342,7 @@ export default function Consultation() {
           {/* Header */}
           <View style={s.header}>
             <View style={s.headerContent}>
-              <View style={s.logoWrap}>
-                <Text style={s.logoAccent}>✦</Text>
-                <Text style={s.logo}>aanid</Text>
-              </View>
+              <Image source={{ uri: '/aanid_logo.jpeg' }} style={s.logoImg} resizeMode="contain" />
               <View style={s.headerRight}>
                 <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnText}>🔔</Text></TouchableOpacity>
                 <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnText}>👤</Text></TouchableOpacity>
@@ -690,9 +687,7 @@ const s = StyleSheet.create({
     borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
   },
-  logoWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  logoAccent: { fontSize: 14, color: '#F5A623' },
-  logo: { fontSize: 24, fontWeight: '800', fontStyle: 'italic', color: '#1A1A1A', letterSpacing: -0.5 },
+  logoImg: { width: 28, height: 28 },
   headerRight: { flexDirection: 'row', gap: 6 },
   iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.04)', justifyContent: 'center', alignItems: 'center' },
   iconBtnText: { fontSize: 16 },
