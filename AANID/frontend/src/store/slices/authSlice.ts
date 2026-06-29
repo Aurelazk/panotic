@@ -9,6 +9,9 @@ interface User {
   role?: string;
   profilePicture?: string;
   avatar?: string;
+  villeId?: string;
+  villeNom?: string;
+  pays?: string;
 }
 
 interface AuthState {
@@ -37,11 +40,21 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
     },
+    setVille: (state, action: PayloadAction<{ villeId: string; villeNom: string }>) => {
+      if (state.user) {
+        state.user.villeId = action.payload.villeId;
+        state.user.villeNom = action.payload.villeNom;
+      }
+    },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, setVille } = authSlice.actions;
 export default authSlice.reducer;
 
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;
 export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+export const selectCurrentVille = (state: { auth: AuthState }) => ({
+  villeId: state.auth.user?.villeId || null,
+  villeNom: state.auth.user?.villeNom || null,
+});

@@ -1,24 +1,40 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, StatusBar, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useDispatch } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setCredentials } from '../../store/slices/authSlice';
 import { COLORS } from '../../constants/theme';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import SocialButtons from '../../components/SocialButtons';
 
+const VILLE_ID_KEY = '@aanid/v1/ville_id';
+const VILLE_NOM_KEY = '@aanid/v1/ville_nom';
+
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
       return;
     }
+    let villeId, villeNom;
+    try {
+      villeId = await AsyncStorage.getItem(VILLE_ID_KEY);
+      villeNom = await AsyncStorage.getItem(VILLE_NOM_KEY);
+    } catch {}
     dispatch(setCredentials({
-      user: { id: '1', email, firstName: 'Citoyen', role: 'CITOYEN' },
+      user: {
+        id: '1',
+        email,
+        firstName: 'Citoyen',
+        role: 'CITOYEN',
+        villeId: villeId || undefined,
+        villeNom: villeNom || undefined,
+      },
       token: 'mock-token',
     }));
   };
