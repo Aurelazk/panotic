@@ -1,9 +1,10 @@
 /**
  * URL de base de l'API AANID (sans /api/v1).
  * - Web dev : chaîne vide → Vite proxy `/api` → localhost:4000
- * - Android émulateur : http://10.0.2.2:4000
- * - Production : définir AANID_API_URL (ex. https://aanid-api.onrender.com)
+ * - React Native : https://aanid-api.onrender.com (surcharge via AANID_API_URL)
  */
+const PRODUCTION_API_ORIGIN = 'https://aanid-api.onrender.com';
+
 function detectReactNative() {
   return typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
 }
@@ -21,11 +22,9 @@ function getApiOrigin() {
   if (env) return env;
 
   if (detectReactNative()) {
-    // Émulateur Android → machine hôte ; appareil physique → remplacer par l'URL Render
-    return 'http://10.0.2.2:4000';
+    return PRODUCTION_API_ORIGIN;
   }
 
-  // Web (Vite) : proxy relatif
   if (typeof window !== 'undefined' && window.location) {
     return '';
   }
@@ -39,4 +38,4 @@ function getApiBaseUrl() {
   return `${origin}/api/v1`;
 }
 
-module.exports = { getApiOrigin, getApiBaseUrl };
+module.exports = { getApiOrigin, getApiBaseUrl, PRODUCTION_API_ORIGIN };

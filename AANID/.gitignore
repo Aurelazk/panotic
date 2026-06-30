@@ -41,6 +41,7 @@ Thumbs.db
 **/android/local.properties
 **/android/app/build/
 **/android/.cxx/
+**/android/app/.cxx/
 ios/
 *.jks
 *.p8

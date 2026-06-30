@@ -37,7 +37,7 @@ DATABASE_URL=postgresql://...
 | Champ | Valeur |
 |-------|--------|
 | Root Directory | `AANID` |
-| Build Command | `npm install && npm run prisma:generate -w backend && npm run prisma:deploy -w backend` |
+| Build Command | `npm install && npm run prisma:generate -w backend && npm run prisma:push -w backend` |
 | Start Command | `npm start -w backend` |
 | Runtime | Node |
 
@@ -60,8 +60,7 @@ cp backend/.env.example backend/.env
 
 npm install
 npm run prisma:generate -w backend
-npm run prisma:deploy -w backend    # applique les migrations
-npm run prisma:seed -w backend      # données de démo (villes, carte, formations…)
+npm run prisma:setup -w backend    # db push + seed (Neon)
 npm run dev:backend
 ```
 
