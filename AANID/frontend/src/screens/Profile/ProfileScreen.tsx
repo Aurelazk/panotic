@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCreditCard, faBell, faLock, faCircleQuestion,
   faRightFromBracket, faChevronRight, faGear, faPen,
-  faTrophy, faFlag, faSeedling,
+  faTrophy, faFlag, faSeedling, faHouse,
 } from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
@@ -39,8 +39,11 @@ export default function ProfileScreen({ navigation }: any) {
 
       <View style={styles.header}>
         <View style={styles.topRow}>
+          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7} onPress={() => navigation.navigate('Main', { screen: 'Dashboard' })}>
+            <FontAwesomeIcon icon={faHouse} style={{ fontSize: 15 }} color={COLORS.white} />
+          </TouchableOpacity>
           <Text style={styles.topTitle}>Profil</Text>
-          <TouchableOpacity style={styles.gearBtn} activeOpacity={0.7} onPress={() => navigation.navigate('Confidentialite')}>
+          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7} onPress={() => navigation.navigate('Confidentialite')}>
             <FontAwesomeIcon icon={faGear} style={{ fontSize: 16 }} color={COLORS.white} />
           </TouchableOpacity>
         </View>
@@ -112,7 +115,7 @@ export default function ProfileScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: {
-    backgroundColor: COLORS.primaryDark, paddingTop: 40, paddingBottom: 30,
+    backgroundColor: COLORS.primaryDark, paddingTop: 40, paddingBottom: 24,
     alignItems: 'center', borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
   },
   topRow: {
@@ -120,7 +123,7 @@ const styles = StyleSheet.create({
     width: '100%', paddingHorizontal: 20, marginBottom: 8,
   },
   topTitle: { color: COLORS.white, fontSize: 17, fontWeight: '700', fontFamily: FONT_FAMILY },
-  gearBtn: {
+  iconBtn: {
     width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)',
     justifyContent: 'center', alignItems: 'center',
   },
