@@ -13,3 +13,7 @@ mobile/build/
 
 # macOS
 .DS_Store
+
+# HTML maquettes de référence
+AANID/bryan-fanou/*.html
+AANID/frontend/etats-des-lieux.html
