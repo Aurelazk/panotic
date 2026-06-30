@@ -1,9 +1,15 @@
 window.onerror = function(msg, url, line, col, err) {
-  document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap">Error: ' + msg + '\n' + (err && err.stack || '') + '</pre>';
+  try {
+    document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap;font-family:monospace">🔥 Error: ' + (msg || 'unknown') + '\n' + ((err && err.stack) || '') + '</pre>';
+  } catch(e) {}
+  console.error('window.onerror:', msg, err);
   return true;
 };
 window.addEventListener('unhandledrejection', function(e) {
-  document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap">Unhandled Rejection: ' + (e.reason && e.reason.message || e.reason) + '\n' + (e.reason && e.reason.stack || '') + '</pre>';
+  try {
+    document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap;font-family:monospace">🔥 Unhandled Rejection: ' + ((e.reason && e.reason.message) || e.reason || 'unknown') + '\n' + ((e.reason && e.reason.stack) || '') + '</pre>';
+  } catch(e2) {}
+  console.error('unhandledrejection:', e.reason);
 });
 
 import './src/global.css';
@@ -30,8 +36,17 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-AppRegistry.registerComponent(appName, () => App);
-AppRegistry.runApplication(appName, {
-  initialProps: {},
-  rootTag: document.getElementById('root'),
-});
+console.log('[AANID] Starting app registration...');
+try {
+  AppRegistry.registerComponent(appName, () => App);
+  AppRegistry.runApplication(appName, {
+    initialProps: {},
+    rootTag: document.getElementById('root'),
+  });
+  console.log('[AANID] App started');
+} catch(e) {
+  console.error('[AANID] Fatal error:', e);
+  try {
+    document.getElementById('root').innerHTML = '<pre style="color:red;padding:20px;font-size:14px;white-space:pre-wrap;font-family:monospace">🔥 Fatal: ' + e.message + '\n' + (e.stack || '') + '</pre>';
+  } catch(e2) {}
+}

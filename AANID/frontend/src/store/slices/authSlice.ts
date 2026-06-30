@@ -21,9 +21,9 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  user: null,
-  token: null,
-  isAuthenticated: false,
+  user: { id: 'dev-1', email: 'dev@aanid.bj', firstName: 'Dev', lastName: 'User', role: 'admin' },
+  token: 'dev-token',
+  isAuthenticated: true,
 };
 
 const authSlice = createSlice({

@@ -1,9 +1,4 @@
-/**
- * URL de base de l'API AANID (sans /api/v1).
- * - Web dev : chaîne vide → Vite proxy `/api` → localhost:4000
- * - React Native : https://aanid-api.onrender.com (surcharge via AANID_API_URL)
- */
-const PRODUCTION_API_ORIGIN = 'https://aanid-api.onrender.com';
+export const PRODUCTION_API_ORIGIN = 'https://aanid-api.onrender.com';
 
 function detectReactNative() {
   return typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
@@ -17,7 +12,7 @@ function fromEnv() {
   return null;
 }
 
-function getApiOrigin() {
+export function getApiOrigin() {
   const env = fromEnv();
   if (env) return env;
 
@@ -32,10 +27,8 @@ function getApiOrigin() {
   return 'http://localhost:4000';
 }
 
-function getApiBaseUrl() {
+export function getApiBaseUrl() {
   const origin = getApiOrigin();
   if (!origin) return '/api/v1';
   return `${origin}/api/v1`;
 }
-
-module.exports = { getApiOrigin, getApiBaseUrl, PRODUCTION_API_ORIGIN };

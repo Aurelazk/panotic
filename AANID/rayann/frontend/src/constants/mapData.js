@@ -69,5 +69,5 @@ export const INITIAL_REGION = {
   longitudeDelta: 0.08,
 };
 
-const { getApiBaseUrl } = require('@aanid/shared/api');
+import { getApiBaseUrl } from '@aanid/shared/api';
 export const API_BASE = getApiBaseUrl();

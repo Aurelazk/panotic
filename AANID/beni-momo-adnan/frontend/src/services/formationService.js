@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiBaseUrl } from '@aanid/shared/api';
 
-const { getApiBaseUrl } = require('@aanid/shared/api');
 const API_BASE = getApiBaseUrl();
 const TOKEN_KEY = '@aanid/v1/access_token';
 
