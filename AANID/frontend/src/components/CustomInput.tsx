@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import { COLORS } from '../constants/theme';
+import { COLORS, FONT_FAMILY } from '../constants/theme';
 
 interface Props {
   placeholder: string;
@@ -41,15 +41,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F7FA',
-    borderRadius: 12,
+    backgroundColor: COLORS.backgroundAlt,
+    borderRadius: 14,
     paddingHorizontal: 16,
     height: 52,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#E8ECF0',
+    borderColor: COLORS.border,
   },
   icon: { fontSize: 18, marginRight: 10 },
-  input: { flex: 1, fontSize: 15, color: '#1A2A3A', outlineStyle: 'none', outlineWidth: 0 },
+  input: { flex: 1, fontSize: 15, color: COLORS.text, outlineStyle: 'none', outlineWidth: 0, fontFamily: FONT_FAMILY },
   toggle: { fontSize: 18, marginLeft: 8 },
 });

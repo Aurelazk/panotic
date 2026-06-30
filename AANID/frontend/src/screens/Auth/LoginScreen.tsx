@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Alert, StatusBar, TouchableOpacity,
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setCredentials } from '../../store/slices/authSlice';
-import { COLORS } from '../../constants/theme';
+import { COLORS, FONT_FAMILY } from '../../constants/theme';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import SocialButtons from '../../components/SocialButtons';
@@ -41,10 +41,10 @@ export default function LoginScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#001B3D" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.brand}>AANID</Text>
+          <Text style={styles.brand}>aanid</Text>
           <Text style={styles.tagline}>Transformation Urbaine</Text>
         </View>
 
@@ -76,17 +76,17 @@ export default function LoginScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#001B3D' },
+  root: { flex: 1, backgroundColor: COLORS.background },
   scroll: { flexGrow: 1, paddingHorizontal: 20, justifyContent: 'center' },
   header: { alignItems: 'center', marginBottom: 40 },
-  brand: { fontSize: 36, fontWeight: '800', color: COLORS.white },
-  tagline: { fontSize: 10, color: 'rgba(255,255,255,0.35)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 4, marginTop: 4 },
-  card: { backgroundColor: COLORS.white, borderRadius: 24, padding: 32, elevation: 12, shadowColor: '#001B3D', shadowOpacity: 0.25, shadowRadius: 40 },
-  cardTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, textAlign: 'center', marginBottom: 4 },
-  cardSubtitle: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 32 },
+  brand: { fontSize: 44, fontWeight: '800', fontStyle: 'italic', color: COLORS.primaryDark, fontFamily: FONT_FAMILY },
+  tagline: { fontSize: 10, color: COLORS.textTertiary, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 4, marginTop: 4, fontFamily: FONT_FAMILY },
+  card: { backgroundColor: COLORS.white, borderRadius: 24, padding: 32, elevation: 12, shadowColor: COLORS.shadow, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.14, shadowRadius: 40 },
+  cardTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, textAlign: 'center', marginBottom: 4, fontFamily: FONT_FAMILY },
+  cardSubtitle: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 32, fontFamily: FONT_FAMILY },
   forgotRow: { alignSelf: 'flex-end', marginTop: -6, marginBottom: 6 },
-  forgotText: { color: '#FF6600', fontSize: 12, fontWeight: '600' },
+  forgotText: { color: COLORS.primary, fontSize: 12, fontWeight: '600', fontFamily: FONT_FAMILY },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  footerText: { color: COLORS.textSecondary, fontSize: 13 },
-  footerLink: { color: '#FF6600', fontSize: 13, fontWeight: '700' },
+  footerText: { color: COLORS.textSecondary, fontSize: 13, fontFamily: FONT_FAMILY },
+  footerLink: { color: COLORS.primary, fontSize: 13, fontWeight: '700', fontFamily: FONT_FAMILY },
 });

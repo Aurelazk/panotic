@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle, faFacebookF, faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { COLORS, FONT_FAMILY } from '../constants/theme';
 
 const SOCIALS = [
   { label: 'Google', icon: faGoogle, color: '#DB4437' },
@@ -31,13 +32,13 @@ export default function SocialButtons() {
 const styles = StyleSheet.create({
   container: { marginTop: 12 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  line: { flex: 1, height: 1, backgroundColor: '#E8ECF0' },
-  or: { marginHorizontal: 12, fontSize: 12, color: '#94A3B8', fontWeight: '600' },
+  line: { flex: 1, height: 1, backgroundColor: COLORS.border },
+  or: { marginHorizontal: 12, fontSize: 12, color: COLORS.textTertiary, fontWeight: '600', fontFamily: FONT_FAMILY },
   row: { flexDirection: 'row', justifyContent: 'center', gap: 20 },
   btn: {
     width: 48, height: 48, borderRadius: 14,
-    backgroundColor: '#F5F7FA', justifyContent: 'center', alignItems: 'center',
-    borderWidth: 1, borderColor: '#E8ECF0',
+    backgroundColor: COLORS.backgroundAlt, justifyContent: 'center', alignItems: 'center',
+    borderWidth: 1, borderColor: COLORS.border,
   },
 
 });
