@@ -1,6 +1,8 @@
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useState } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
 import { payForFormation, getPaymentStatus } from '../services/formationService';
 
 export default function PaiementMobile() {
@@ -36,7 +38,9 @@ export default function PaiementMobile() {
     return (
       <View style={styles.container}>
         <View style={styles.successCard}>
-          <Text style={styles.successIcon}>✓</Text>
+          <View style={styles.successIcon}>
+            <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: 44 }} color="#6E8B5B" />
+          </View>
           <Text style={styles.successTitle}>Paiement réussi !</Text>
           <Text style={styles.successAmount}>
             {amount.toLocaleString()} {currency}
@@ -59,7 +63,7 @@ export default function PaiementMobile() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>←</Text>
+          <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 16 }} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Paiement Mobile Money</Text>
       </View>
@@ -84,7 +88,7 @@ export default function PaiementMobile() {
           <TextInput
             style={styles.input}
             placeholder="+229 XX XX XX XX"
-            placeholderTextColor="#BDBDBD"
+            placeholderTextColor="#C9BBA4"
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
@@ -107,9 +111,10 @@ export default function PaiementMobile() {
           )}
         </TouchableOpacity>
 
-        <Text style={styles.secureText}>
-          Paiement sécurisé via Mobile Money
-        </Text>
+        <View style={styles.secureRow}>
+          <FontAwesomeIcon icon={faLock} style={{ fontSize: 10 }} color="#A89E90" />
+          <Text style={styles.secureText}>Paiement sécurisé via Mobile Money</Text>
+        </View>
       </View>
     </View>
   );
@@ -118,15 +123,17 @@ export default function PaiementMobile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F9F1E5',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3BB273',
-    paddingTop: 50,
+    backgroundColor: '#9C7C4F',
+    paddingTop: 14,
     paddingBottom: 16,
     paddingHorizontal: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   backBtn: {
     width: 36,
@@ -153,19 +160,21 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 18,
+    padding: 18,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
     elevation: 2,
   },
   summaryLabel: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: '#9E9E9E',
+    color: '#A89E90',
     textTransform: 'uppercase',
     fontWeight: '600',
   },
@@ -173,12 +182,12 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 16,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
     marginTop: 4,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: '#EEEEEE',
+    backgroundColor: '#E8DCC8',
     marginVertical: 12,
   },
   summaryRow: {
@@ -190,12 +199,12 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 20,
     fontWeight: '700',
-    color: '#3BB273',
+    color: '#C19A6B',
   },
   instruction: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
-    color: '#6B6B6B',
+    color: '#7A7166',
     lineHeight: 20,
     marginBottom: 16,
   },
@@ -206,35 +215,36 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 13,
     fontWeight: '600',
-    color: '#212121',
+    color: '#2E2A24',
     marginBottom: 8,
   },
   input: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 14,
+    borderRadius: 14,
+    padding: 16,
     fontSize: 16,
-    color: '#212121',
+    color: '#2E2A24',
+    fontFamily: 'CenturyGothic',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#E8DCC8',
   },
   errorText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#E94E3C',
+    color: '#C75D4F',
     marginBottom: 12,
   },
   payBtn: {
-    backgroundColor: '#3BB273',
-    height: 48,
-    borderRadius: 8,
+    backgroundColor: '#C19A6B',
+    height: 52,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: '#C19A6B',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 4,
   },
   payBtnDisabled: {
     opacity: 0.7,
@@ -245,12 +255,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
   },
+  secureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 14,
+  },
   secureText: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: '#BDBDBD',
+    color: '#A89E90',
     textAlign: 'center',
-    marginTop: 12,
   },
   successCard: {
     flex: 1,
@@ -259,47 +275,48 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   successIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#E8F5E9',
-    textAlign: 'center',
-    lineHeight: 72,
-    fontSize: 32,
-    color: '#2E7D32',
-    fontWeight: '700',
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: 'rgba(110,139,91,0.16)',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 20,
-    overflow: 'hidden',
   },
   successTitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 22,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
     marginBottom: 8,
   },
   successAmount: {
     fontFamily: 'CenturyGothic',
     fontSize: 28,
     fontWeight: '700',
-    color: '#3BB273',
+    color: '#C19A6B',
     marginBottom: 12,
   },
   successDesc: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
-    color: '#6B6B6B',
+    color: '#7A7166',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 32,
   },
   doneBtn: {
-    backgroundColor: '#3BB273',
-    height: 44,
-    borderRadius: 8,
+    backgroundColor: '#C19A6B',
+    height: 50,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 48,
+    shadowColor: '#C19A6B',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 4,
   },
   doneBtnText: {
     fontFamily: 'CenturyGothic',

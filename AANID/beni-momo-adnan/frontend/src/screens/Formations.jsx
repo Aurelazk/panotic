@@ -1,14 +1,16 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGraduationCap, faClock, faUsers } from '@fortawesome/free-solid-svg-icons';
 import { getFormationsPaginated } from '../services/formationService';
 
 const CATEGORIES = [
-  { label: 'Toutes', value: 'toutes', color: '#6B6B6B' },
-  { label: 'Panneautique', value: 'PANNEAUTIQUE', color: '#3BB273' },
-  { label: 'Environnement', value: 'ENVIRONNEMENT', color: '#2ECC71' },
-  { label: 'Santé', value: 'SANTE', color: '#27AE60' },
-  { label: 'Infrastructure', value: 'INFRASTRUCTURE', color: '#1E8449' },
+  { label: 'Toutes', value: 'toutes', color: '#7A7166' },
+  { label: 'Panneautique', value: 'PANNEAUTIQUE', color: '#C19A6B' },
+  { label: 'Environnement', value: 'ENVIRONNEMENT', color: '#B08C5E' },
+  { label: 'Santé', value: 'SANTE', color: '#9C7C4F' },
+  { label: 'Infrastructure', value: 'INFRASTRUCTURE', color: '#6E5333' },
 ];
 
 function formatPrice(price, isFree) {
@@ -104,7 +106,7 @@ export default function Formations() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#3BB273" style={styles.loader} />
+        <ActivityIndicator size="large" color="#C19A6B" style={styles.loader} />
       ) : (
         <FlatList
           data={formations}
@@ -112,17 +114,19 @@ export default function Formations() {
           numColumns={2}
           contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.gridRow}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3BB273" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C19A6B" />}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore ? (
-              <ActivityIndicator size="small" color="#3BB273" style={styles.loaderMore} />
+              <ActivityIndicator size="small" color="#C19A6B" style={styles.loaderMore} />
             ) : null
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>○</Text>
+              <View style={styles.emptyIconWrap}>
+                <FontAwesomeIcon icon={faGraduationCap} style={{ fontSize: 34 }} color="#C19A6B" />
+              </View>
               <Text style={styles.emptyText}>Aucune formation trouvée</Text>
             </View>
           }
@@ -132,14 +136,20 @@ export default function Formations() {
               activeOpacity={0.85}
               onPress={() => navigation.navigate('FormationDetail', { formationId: item.id })}
             >
-              <View style={[styles.cardBadge, { backgroundColor: CATEGORIES.find(c => c.value === item.category)?.color || '#3BB273' }]}>
-                <Text style={styles.cardBadgeText}>{item.category}</Text>
+              <View style={[styles.cardBadge, { backgroundColor: (CATEGORIES.find(c => c.value === item.category)?.color || '#C19A6B') + '22' }]}>
+                <Text style={[styles.cardBadgeText, { color: CATEGORIES.find(c => c.value === item.category)?.color || '#9C7C4F' }]}>{item.category}</Text>
               </View>
               <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-              <Text style={styles.cardMeta}>{item.duration}</Text>
+              <View style={styles.cardMetaRow}>
+                <FontAwesomeIcon icon={faClock} style={{ fontSize: 11 }} color="#A89E90" />
+                <Text style={styles.cardMeta}>{item.duration}</Text>
+              </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.cardPrice}>{formatPrice(item.price, item.isFree)}</Text>
-                <Text style={styles.cardEnrolled}>{item.enrolledCount}/{item.capacity}</Text>
+                <View style={styles.cardEnrolledRow}>
+                  <FontAwesomeIcon icon={faUsers} style={{ fontSize: 10 }} color="#A89E90" />
+                  <Text style={styles.cardEnrolled}>{item.enrolledCount}/{item.capacity}</Text>
+                </View>
               </View>
             </TouchableOpacity>
           )}
@@ -152,46 +162,44 @@ export default function Formations() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F9F1E5',
   },
   header: {
-    backgroundColor: '#3BB273',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    paddingHorizontal: 20,
   },
   headerTitle: {
     fontFamily: 'CenturyGothic',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#fff',
+    color: '#2E2A24',
   },
   headerSubtitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
+    color: '#7A7166',
+    marginTop: 2,
   },
   filterRow: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    paddingVertical: 10,
   },
   filterList: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     gap: 8,
   },
   filterChip: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#EEEEEE',
+    paddingVertical: 9,
+    borderRadius: 999,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E8DCC8',
   },
   filterChipText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#6B6B6B',
+    color: '#7A7166',
     fontWeight: '600',
   },
   filterChipTextActive: {
@@ -204,82 +212,99 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   grid: {
-    padding: 12,
+    padding: 16,
+    paddingBottom: 24,
   },
   gridRow: {
-    gap: 12,
+    gap: 14,
   },
   card: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
   },
   cardBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    marginBottom: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginBottom: 10,
   },
   cardBadgeText: {
     fontFamily: 'CenturyGothic',
-    fontSize: 10,
-    color: '#fff',
+    fontSize: 9.5,
     fontWeight: '700',
     textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   cardTitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
     fontWeight: '700',
-    color: '#212121',
-    marginBottom: 6,
+    color: '#2E2A24',
+    marginBottom: 8,
     lineHeight: 18,
+  },
+  cardMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 12,
   },
   cardMeta: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
-    color: '#6B6B6B',
-    marginBottom: 8,
+    color: '#7A7166',
   },
   cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingTop: 8,
+    borderTopColor: '#F0E6D6',
+    paddingTop: 10,
   },
   cardPrice: {
     fontFamily: 'CenturyGothic',
-    fontSize: 12,
-    color: '#3BB273',
+    fontSize: 12.5,
+    color: '#9C7C4F',
     fontWeight: '700',
+  },
+  cardEnrolledRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   cardEnrolled: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: '#9E9E9E',
+    color: '#A89E90',
   },
   empty: {
     alignItems: 'center',
     marginTop: 60,
   },
-  emptyIcon: {
-    fontSize: 40,
-    color: '#BDBDBD',
-    marginBottom: 12,
+  emptyIconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: 'rgba(193,154,107,0.14)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyText: {
     fontFamily: 'CenturyGothic',
     fontSize: 15,
-    color: '#9E9E9E',
+    color: '#A89E90',
   },
 });

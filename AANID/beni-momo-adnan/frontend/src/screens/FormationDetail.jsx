@@ -1,6 +1,8 @@
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight, faCheck, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { getFormationById, enroll, unenroll, getPaymentStatus } from '../services/formationService';
 
 function formatPrice(price, isFree) {
@@ -86,18 +88,18 @@ export default function FormationDetail() {
 
   const getCategoryColor = () => {
     const colors = {
-      PANNEAUTIQUE: '#3BB273',
-      ENVIRONNEMENT: '#2ECC71',
-      SANTE: '#27AE60',
-      INFRASTRUCTURE: '#1E8449',
+      PANNEAUTIQUE: '#C19A6B',
+      ENVIRONNEMENT: '#B08C5E',
+      SANTE: '#9C7C4F',
+      INFRASTRUCTURE: '#6E5333',
     };
-    return colors[formation?.category] || '#3BB273';
+    return colors[formation?.category] || '#C19A6B';
   };
 
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#3BB273" />
+        <ActivityIndicator size="large" color="#C19A6B" />
       </View>
     );
   }
@@ -118,7 +120,7 @@ export default function FormationDetail() {
         )}
         <View style={styles.heroOverlay} />
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>←</Text>
+          <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 16 }} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.heroTitle}>{formation.title}</Text>
         <View style={styles.heroBadge}>
@@ -173,15 +175,17 @@ export default function FormationDetail() {
               }}
             >
               <View style={[styles.moduleNumber, isModuleComplete && styles.moduleNumberComplete]}>
-                <Text style={styles.moduleNumberText}>
-                  {isModuleComplete ? '✓' : idx + 1}
-                </Text>
+                {isModuleComplete ? (
+                  <FontAwesomeIcon icon={faCheck} style={{ fontSize: 13 }} color="#fff" />
+                ) : (
+                  <Text style={styles.moduleNumberText}>{idx + 1}</Text>
+                )}
               </View>
               <View style={styles.moduleInfo}>
                 <Text style={styles.moduleTitle}>{mod.title}</Text>
                 <Text style={styles.moduleDuration}>{mod.duration}</Text>
               </View>
-              {isEnrolled && <Text style={styles.moduleArrow}>›</Text>}
+              {isEnrolled && <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 13 }} color="#C9BBA4" />}
             </TouchableOpacity>
           );
         })}
@@ -202,9 +206,12 @@ export default function FormationDetail() {
           </TouchableOpacity>
         ) : (
           <View style={styles.enrolledBanner}>
-            <Text style={styles.enrolledBannerText}>
-              {allModulesComplete ? '✓ Formation terminée !' : '✓ Vous êtes inscrit'}
-            </Text>
+            <View style={styles.enrolledBannerHead}>
+              <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: 16 }} color="#6E8B5B" />
+              <Text style={styles.enrolledBannerText}>
+                {allModulesComplete ? 'Formation terminée !' : 'Vous êtes inscrit'}
+              </Text>
+            </View>
             {allModulesComplete && formation.userProgress?.completedAt && (
               <Text style={styles.completedDate}>
                 Complétée le {new Date(formation.userProgress.completedAt).toLocaleDateString()}
@@ -230,7 +237,7 @@ export default function FormationDetail() {
                 disabled={unenrolling}
               >
                 {unenrolling ? (
-                  <ActivityIndicator size="small" color="#E94E3C" />
+                  <ActivityIndicator size="small" color="#C75D4F" />
                 ) : (
                   <Text style={styles.unenrollBtnText}>Se désinscrire</Text>
                 )}
@@ -246,7 +253,7 @@ export default function FormationDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F9F1E5',
   },
   loaderContainer: {
     flex: 1,
@@ -254,10 +261,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hero: {
-    paddingTop: 50,
-    paddingBottom: 30,
-    paddingHorizontal: 16,
-    minHeight: 200,
+    paddingTop: 18,
+    paddingBottom: 26,
+    paddingHorizontal: 18,
+    minHeight: 180,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
   },
   heroImage: {
     ...StyleSheet.absoluteFillObject,
@@ -294,8 +304,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.25)',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingVertical: 5,
+    borderRadius: 999,
     marginTop: 12,
   },
   heroBadgeText: {
@@ -311,13 +321,15 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 18,
+    padding: 18,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
     elevation: 2,
   },
   metaItem: {
@@ -328,47 +340,49 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 15,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
   },
   metaLabel: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: '#9E9E9E',
+    color: '#A89E90',
     marginTop: 3,
   },
   progressCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 18,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
     elevation: 2,
   },
   progressLabel: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
     fontWeight: '600',
-    color: '#212121',
+    color: '#2E2A24',
     marginBottom: 8,
   },
   progressBarBg: {
     height: 8,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#EFE3CD',
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: 8,
-    backgroundColor: '#3BB273',
+    backgroundColor: '#C19A6B',
     borderRadius: 4,
   },
   progressText: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: '#9E9E9E',
+    color: '#A89E90',
     marginTop: 6,
     textAlign: 'right',
   },
@@ -376,14 +390,14 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 16,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
     marginBottom: 10,
     marginTop: 8,
   },
   description: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
-    color: '#6B6B6B',
+    color: '#7A7166',
     lineHeight: 21,
     marginBottom: 16,
   },
@@ -391,13 +405,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 14,
     padding: 14,
-    marginBottom: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 2,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 1,
   },
   moduleRowComplete: {
@@ -407,13 +423,13 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#3BB273',
+    backgroundColor: '#C19A6B',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   moduleNumberComplete: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#6E8B5B',
   },
   moduleNumberText: {
     fontFamily: 'CenturyGothic',
@@ -428,31 +444,31 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 14,
     fontWeight: '600',
-    color: '#212121',
+    color: '#2E2A24',
   },
   moduleDuration: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
-    color: '#9E9E9E',
+    color: '#A89E90',
     marginTop: 2,
   },
   moduleArrow: {
     fontSize: 20,
-    color: '#BDBDBD',
+    color: '#C9BBA4',
     marginLeft: 8,
   },
   enrollBtn: {
-    height: 44,
-    borderRadius: 8,
+    height: 52,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowColor: '#C19A6B',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 4,
   },
   enrollBtnText: {
     fontFamily: 'CenturyGothic',
@@ -461,24 +477,36 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   enrolledBanner: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 18,
     alignItems: 'center',
     marginTop: 20,
     marginBottom: 40,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
+  },
+  enrolledBannerHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
   },
   enrolledBannerText: {
     fontFamily: 'CenturyGothic',
-    fontSize: 14,
-    color: '#2E7D32',
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: 15,
+    color: '#2E2A24',
+    fontWeight: '700',
   },
   completedDate: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
-    color: '#2E7D32',
+    color: '#9C7C4F',
     marginBottom: 10,
   },
   enrolledActions: {
@@ -489,27 +517,27 @@ const styles = StyleSheet.create({
   },
   startBtn: {
     flex: 1,
-    backgroundColor: '#3BB273',
-    height: 44,
-    borderRadius: 8,
+    backgroundColor: '#C19A6B',
+    height: 48,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
   },
   unenrollBtn: {
-    height: 44,
-    borderRadius: 8,
+    height: 48,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#E94E3C',
+    borderColor: '#E6C9C3',
   },
   unenrollBtnText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#E94E3C',
+    color: '#C75D4F',
     fontWeight: '600',
   },
   startBtnText: {

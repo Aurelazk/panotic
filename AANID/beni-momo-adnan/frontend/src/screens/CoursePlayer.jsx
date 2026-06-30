@@ -1,6 +1,8 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronLeft, faChevronRight, faCheck, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { getFormationById, updateProgress } from '../services/formationService';
 
 export default function CoursePlayer() {
@@ -59,7 +61,7 @@ export default function CoursePlayer() {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#3BB273" />
+        <ActivityIndicator size="large" color="#C19A6B" />
       </View>
     );
   }
@@ -76,7 +78,7 @@ export default function CoursePlayer() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backBtnText}>←</Text>
+          <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 15 }} color="#fff" />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle} numberOfLines={1}>{formation.title}</Text>
@@ -103,8 +105,9 @@ export default function CoursePlayer() {
       <View style={styles.footer}>
         {allComplete && (
           <View style={styles.allCompleteBanner}>
+            <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: 15 }} color="#6E8B5B" />
             <Text style={styles.allCompleteText}>
-              ✓ Félicitations ! Vous avez terminé tous les modules.
+              Félicitations ! Tous les modules sont terminés.
             </Text>
           </View>
         )}
@@ -115,8 +118,9 @@ export default function CoursePlayer() {
             onPress={handlePrev}
             disabled={currentIndex === 0}
           >
+            <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 12 }} color={currentIndex === 0 ? '#C9BBA4' : '#9C7C4F'} />
             <Text style={[styles.navBtnText, currentIndex === 0 && styles.navBtnTextDisabled]}>
-              ← Précédent
+              Précédent
             </Text>
           </TouchableOpacity>
 
@@ -128,9 +132,12 @@ export default function CoursePlayer() {
             {saving ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={styles.completeBtnText}>
-                {isCurrentComplete ? '✓ Terminé' : 'Marquer terminé'}
-              </Text>
+              <View style={styles.completeBtnInner}>
+                {isCurrentComplete && <FontAwesomeIcon icon={faCheck} style={{ fontSize: 12 }} color="#fff" />}
+                <Text style={styles.completeBtnText}>
+                  {isCurrentComplete ? 'Terminé' : 'Marquer terminé'}
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
 
@@ -140,8 +147,9 @@ export default function CoursePlayer() {
             disabled={currentIndex >= totalModules - 1}
           >
             <Text style={[styles.navBtnText, currentIndex >= totalModules - 1 && styles.navBtnTextDisabled]}>
-              Suivant →
+              Suivant
             </Text>
+            <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 12 }} color={currentIndex >= totalModules - 1 ? '#C9BBA4' : '#9C7C4F'} />
           </TouchableOpacity>
         </View>
 
@@ -169,10 +177,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 50,
-    paddingBottom: 12,
+    paddingTop: 14,
+    paddingBottom: 14,
     paddingHorizontal: 16,
-    backgroundColor: '#3BB273',
+    backgroundColor: '#9C7C4F',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   backBtn: {
     width: 32,
@@ -205,11 +215,11 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     height: 4,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#E0D2BB',
   },
   progressBarFill: {
     height: 4,
-    backgroundColor: '#3BB273',
+    backgroundColor: '#C19A6B',
     borderRadius: 2,
   },
   content: {
@@ -222,7 +232,7 @@ const styles = StyleSheet.create({
   moduleImage: {
     width: '100%',
     height: 180,
-    borderRadius: 8,
+    borderRadius: 16,
     marginBottom: 16,
     resizeMode: 'cover',
   },
@@ -230,44 +240,47 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 20,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
     marginBottom: 6,
   },
   moduleDuration: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#9E9E9E',
+    color: '#A89E90',
     marginBottom: 12,
   },
   divider: {
     height: 1,
-    backgroundColor: '#EEEEEE',
+    backgroundColor: '#E8DCC8',
     marginBottom: 16,
   },
   moduleContent: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
-    color: '#6B6B6B',
+    color: '#7A7166',
     lineHeight: 22,
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
+    borderTopColor: '#E8DCC8',
     padding: 16,
     paddingBottom: 32,
   },
   allCompleteBanner: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(110,139,91,0.14)',
+    borderRadius: 14,
     padding: 12,
     marginBottom: 12,
-    alignItems: 'center',
   },
   allCompleteText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#2E7D32',
-    fontWeight: '600',
+    color: '#5C7349',
+    fontWeight: '700',
   },
   navRow: {
     flexDirection: 'row',
@@ -276,8 +289,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   navBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
   navBtnDisabled: {
     opacity: 0.35,
@@ -285,25 +301,31 @@ const styles = StyleSheet.create({
   navBtnText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#3BB273',
+    color: '#9C7C4F',
     fontWeight: '600',
   },
   navBtnTextDisabled: {
-    color: '#BDBDBD',
+    color: '#C9BBA4',
   },
   completeBtn: {
-    backgroundColor: '#3BB273',
+    backgroundColor: '#C19A6B',
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    paddingVertical: 12,
+    borderRadius: 999,
+    shadowColor: '#C19A6B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 3,
   },
   completeBtnDone: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#6E8B5B',
+    shadowColor: '#6E8B5B',
+  },
+  completeBtnInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   completeBtnText: {
     fontFamily: 'CenturyGothic',
@@ -318,7 +340,7 @@ const styles = StyleSheet.create({
   quitBtnText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#9E9E9E',
+    color: '#A89E90',
     textDecorationLine: 'underline',
   },
 });

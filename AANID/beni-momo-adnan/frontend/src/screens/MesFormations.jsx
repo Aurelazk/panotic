@@ -1,6 +1,8 @@
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMedal, faBookOpen, faTrophy } from '@fortawesome/free-solid-svg-icons';
 import { getMyFormations, getMyBadges } from '../services/formationService';
 
 function formatPrice(price, isFree) {
@@ -59,7 +61,7 @@ export default function MesFormations() {
       </View>
 
       <View style={styles.progressBarBg}>
-        <View style={[styles.progressBarFill, { width: `${item.progress}%`, backgroundColor: item.completedAt ? '#2E7D32' : '#3BB273' }]} />
+        <View style={[styles.progressBarFill, { width: `${item.progress}%`, backgroundColor: item.completedAt ? '#9C7C4F' : '#C19A6B' }]} />
       </View>
 
       <View style={styles.cardFooter}>
@@ -77,7 +79,7 @@ export default function MesFormations() {
   const renderBadge = ({ item }) => (
     <View style={styles.badgeCard}>
       <View style={styles.badgeIcon}>
-        <Text style={styles.badgeIconText}>🏅</Text>
+        <FontAwesomeIcon icon={faMedal} style={{ fontSize: 26 }} color="#D9A441" />
       </View>
       <Text style={styles.badgeTitle} numberOfLines={2}>{item.label}</Text>
       <Text style={styles.badgeDate}>
@@ -121,7 +123,7 @@ export default function MesFormations() {
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#3BB273" style={styles.loader} />
+        <ActivityIndicator size="large" color="#C19A6B" style={styles.loader} />
       ) : tab === 'badges' ? (
         <FlatList
           data={badges}
@@ -129,10 +131,12 @@ export default function MesFormations() {
           numColumns={2}
           contentContainerStyle={styles.grid}
           columnWrapperStyle={styles.gridRow}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3BB273" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C19A6B" />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>🏅</Text>
+              <View style={styles.emptyIconWrap}>
+                <FontAwesomeIcon icon={faMedal} style={{ fontSize: 32 }} color="#D9A441" />
+              </View>
               <Text style={styles.emptyTitle}>Aucun badge</Text>
               <Text style={styles.emptyText}>Terminez une formation pour gagner un badge</Text>
             </View>
@@ -144,10 +148,12 @@ export default function MesFormations() {
           data={tab === 'enCours' ? enCours : terminees}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#3BB273" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C19A6B" />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>{tab === 'enCours' ? '📚' : '🎉'}</Text>
+              <View style={styles.emptyIconWrap}>
+                <FontAwesomeIcon icon={tab === 'enCours' ? faBookOpen : faTrophy} style={{ fontSize: 30 }} color="#C19A6B" />
+              </View>
               <Text style={styles.emptyTitle}>
                 {tab === 'enCours' ? 'Aucune formation en cours' : 'Aucune formation terminée'}
               </Text>
@@ -166,50 +172,57 @@ export default function MesFormations() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F9F1E5',
   },
   header: {
-    backgroundColor: '#3BB273',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    paddingHorizontal: 20,
   },
   headerTitle: {
     fontFamily: 'CenturyGothic',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#fff',
+    color: '#2E2A24',
   },
   headerSubtitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
-    color: 'rgba(255,255,255,0.85)',
-    marginTop: 4,
+    color: '#7A7166',
+    marginTop: 2,
   },
   tabRow: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#F2E7D3',
+    borderRadius: 999,
+    padding: 4,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    gap: 4,
   },
   tab: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 9,
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderRadius: 999,
   },
   tabActive: {
-    borderBottomColor: '#3BB273',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
   },
   tabText: {
     fontFamily: 'CenturyGothic',
-    fontSize: 13,
-    color: '#9E9E9E',
+    fontSize: 12.5,
+    color: '#A89E90',
     fontWeight: '600',
   },
   tabTextActive: {
-    color: '#3BB273',
+    color: '#9C7C4F',
     fontWeight: '700',
   },
   loader: {
@@ -217,22 +230,26 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
+    paddingBottom: 24,
   },
   grid: {
-    padding: 12,
+    padding: 16,
+    paddingBottom: 24,
   },
   gridRow: {
-    gap: 12,
+    gap: 14,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
     elevation: 2,
   },
   cardHeader: {
@@ -245,37 +262,37 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 15,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
     flex: 1,
     marginRight: 8,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
   },
   statusProgress: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: 'rgba(193,154,107,0.16)',
   },
   statusDone: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: 'rgba(110,139,91,0.18)',
   },
   statusText: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#9C7C4F',
   },
   progressBarBg: {
-    height: 6,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: '#EFE3CD',
+    borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   progressBarFill: {
-    height: 6,
-    borderRadius: 3,
+    height: 8,
+    borderRadius: 4,
   },
   cardFooter: {
     flexDirection: 'row',
@@ -285,71 +302,76 @@ const styles = StyleSheet.create({
   cardMeta: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
-    color: '#9E9E9E',
+    color: '#9C7C4F',
+    fontWeight: '700',
   },
   cardDate: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: '#BDBDBD',
+    color: '#A89E90',
   },
   badgeCard: {
     flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 14,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
     elevation: 2,
   },
   badgeIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFF8E1',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(217,164,65,0.16)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
-  },
-  badgeIconText: {
-    fontSize: 28,
   },
   badgeTitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
     fontWeight: '600',
-    color: '#212121',
+    color: '#2E2A24',
     textAlign: 'center',
     marginBottom: 6,
   },
   badgeDate: {
     fontFamily: 'CenturyGothic',
     fontSize: 10,
-    color: '#9E9E9E',
+    color: '#A89E90',
   },
   empty: {
     alignItems: 'center',
     marginTop: 60,
     paddingHorizontal: 40,
   },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
+  emptyIconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: 'rgba(193,154,107,0.14)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   emptyTitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 16,
     fontWeight: '700',
-    color: '#212121',
+    color: '#2E2A24',
     marginBottom: 6,
   },
   emptyText: {
     fontFamily: 'CenturyGothic',
     fontSize: 13,
-    color: '#9E9E9E',
+    color: '#A89E90',
     textAlign: 'center',
   },
 });
