@@ -3,6 +3,12 @@ import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Activi
 import { useNavigation } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faBullhorn, faGraduationCap, faClipboardList, faComments, faThumbtack,
+  faCity, faTriangleExclamation, faChevronDown, faChevronRight, faXmark,
+  faMagnifyingGlass, faCheck, faStar,
+} from '@fortawesome/free-solid-svg-icons';
 import { selectCurrentVille, setVille } from '../../../../frontend/src/store/slices/authSlice';
 import { getVilleById, getVilles } from '../services/villeService';
 
@@ -21,16 +27,17 @@ const FLAGS = {
   'Niger': '🇳🇪',
 };
 
+// Palette "Sable" (harmonisée avec le thème global)
 const COLORS = {
-  bleu: '#1E73BE',
-  orange: '#F5A623',
-  vert: '#3BB273',
-  rouge: '#E94E3C',
-  violet: '#8E44AD',
-  grisClair: '#F5F7FA',
-  gris: '#6B7280',
-  grisMoyen: '#9CA3AF',
-  noir: '#1F2937',
+  bleu: '#C19A6B',
+  orange: '#D9A441',
+  vert: '#6E8B5B',
+  rouge: '#C75D4F',
+  violet: '#8C6A43',
+  grisClair: '#F9F1E5',
+  gris: '#7A7166',
+  grisMoyen: '#A89E90',
+  noir: '#2E2A24',
   blanc: '#FFFFFF',
 };
 
@@ -42,10 +49,10 @@ const TYPE_COLORS = {
 };
 
 const TYPE_ICONS = {
-  relais: '📢',
-  formations: '📚',
-  etats: '📋',
-  posts: '💬',
+  relais: faBullhorn,
+  formations: faGraduationCap,
+  etats: faClipboardList,
+  posts: faComments,
 };
 
 const TYPE_LABELS = {
@@ -70,7 +77,7 @@ function formatNumber(n) {
 }
 
 function RubriqueCard({ rubrique, onPress }) {
-  const icon = TYPE_ICONS[rubrique.id] || '📌';
+  const icon = TYPE_ICONS[rubrique.id] || faThumbtack;
   const label = rubrique.label || TYPE_LABELS[rubrique.id] || rubrique.id;
   const color = rubrique.color || TYPE_COLORS[rubrique.id] || COLORS.bleu;
 
@@ -81,8 +88,8 @@ function RubriqueCard({ rubrique, onPress }) {
       activeOpacity={0.7}
     >
       <View style={styles.rubriqueRow}>
-        <View style={[styles.rubriqueIconWrap, { backgroundColor: color + '15' }]}>
-          <Text style={styles.rubriqueIcon}>{icon}</Text>
+        <View style={[styles.rubriqueIconWrap, { backgroundColor: color + '22' }]}>
+          <FontAwesomeIcon icon={icon} size={18} color={color} />
         </View>
         <View style={styles.rubriqueInfo}>
           <Text style={styles.rubriqueTitle}>{label}</Text>
@@ -108,14 +115,14 @@ function VilleDetail({ ville, isFavorite, onToggleFavorite, onRubriquePress, sho
   return (
     <ScrollView style={styles.detailContainer} showsVerticalScrollIndicator={false}>
       {showWelcome && (
-        <View style={[styles.welcomeBanner, { backgroundColor: ville.couleur }]}>
+        <View style={[styles.welcomeBanner, { backgroundColor: COLORS.primaryDark }]}>
           <Text style={styles.welcomeBannerText}>
             {flag} Bienvenue à {ville.nom} !
           </Text>
         </View>
       )}
 
-      <View style={[styles.detailHeader, { backgroundColor: ville.couleur }]}>
+      <View style={[styles.detailHeader, { backgroundColor: COLORS.primaryDark }]}>
         <View style={styles.detailHeaderContent}>
           <View style={styles.detailAvatarWrap}>
             <View style={styles.detailAvatar}>
@@ -126,9 +133,7 @@ function VilleDetail({ ville, isFavorite, onToggleFavorite, onRubriquePress, sho
               onPress={() => onToggleFavorite(ville.id)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Text style={[styles.detailFavIcon, isFavorite && styles.detailFavIconActive]}>
-                {isFavorite ? '★' : '☆'}
-              </Text>
+              <FontAwesomeIcon icon={faStar} size={15} color={isFavorite ? '#D9A441' : '#A89E90'} />
             </TouchableOpacity>
           </View>
           <Text style={styles.detailTitle}>{ville.nom}</Text>
@@ -345,14 +350,10 @@ export default function Villes() {
   if (!villeId) {
     return (
       <View style={styles.container}>
-        <View style={[styles.header, { backgroundColor: COLORS.bleu }]}>
-          <View>
-            <Text style={styles.headerTitle}>AANID</Text>
-            <Text style={styles.headerSubtitle}>Panneautique urbaine</Text>
-          </View>
-        </View>
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyIcon}>🏙️</Text>
+          <View style={styles.emptyIconWrap}>
+            <FontAwesomeIcon icon={faCity} size={44} color={COLORS.primary} />
+          </View>
           <Text style={styles.emptyText}>Bienvenue sur AANID</Text>
           <Text style={styles.emptySubtext}>
             Sélectionnez une ville pour découvrir{'\n'}ses informations et fonctionnalités.
@@ -381,13 +382,14 @@ export default function Villes() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { backgroundColor: ville?.couleur || COLORS.bleu }]}>
+      <View style={styles.header}>
         <TouchableOpacity style={styles.citySwitcherBtn} onPress={openSwitcher} activeOpacity={0.7}>
+          <View style={[styles.cityAccentDot, { backgroundColor: ville?.couleur || COLORS.primary }]} />
           <View style={styles.citySwitcherLeft}>
             <Text style={styles.citySwitcherLabel}>Ville actuelle</Text>
             <View style={styles.citySwitcherRow}>
               <Text style={styles.citySwitcherName}>{villeNom || 'Choisir'}</Text>
-              <Text style={styles.citySwitcherArrow}>▼</Text>
+              <FontAwesomeIcon icon={faChevronDown} size={12} color={COLORS.primaryDark} />
             </View>
           </View>
         </TouchableOpacity>
@@ -398,7 +400,7 @@ export default function Villes() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={ville?.couleur || COLORS.bleu} />
+          <ActivityIndicator size="large" color={COLORS.primary} />
           <Text style={styles.loadingText}>Chargement...</Text>
         </View>
       ) : ville ? (
@@ -411,7 +413,9 @@ export default function Villes() {
         />
       ) : (
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyIcon}>⚠️</Text>
+          <View style={styles.emptyIconWrap}>
+            <FontAwesomeIcon icon={faTriangleExclamation} size={40} color={COLORS.rouge} />
+          </View>
           <Text style={styles.emptyText}>Ville introuvable</Text>
           <TouchableOpacity style={styles.selectCityBtn} onPress={openSwitcher}>
             <Text style={styles.selectCityBtnText}>Changer de ville</Text>
@@ -444,23 +448,23 @@ function CitySwitcherModal({ visible, sections, loading, searchQuery, onSearchCh
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Changer de ville</Text>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.modalClose}>✕</Text>
+              <FontAwesomeIcon icon={faXmark} size={20} color="#A89E90" />
             </TouchableOpacity>
           </View>
 
           <View style={styles.modalSearch}>
-            <Text style={styles.modalSearchIcon}>🔍</Text>
+            <FontAwesomeIcon icon={faMagnifyingGlass} size={14} color="#A89E90" style={{ marginRight: 8 }} />
             <TextInput
               style={styles.modalSearchInput}
               placeholder="Rechercher une ville..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#A89E90"
               value={searchQuery}
               onChangeText={onSearchChange}
             />
           </View>
 
           {loading ? (
-            <ActivityIndicator size="large" color="#1E73BE" style={{ marginTop: 40 }} />
+            <ActivityIndicator size="large" color="#C19A6B" style={{ marginTop: 40 }} />
           ) : sections.length === 0 ? (
             <Text style={styles.modalEmpty}>Aucune ville trouvée</Text>
           ) : (
@@ -488,13 +492,13 @@ function CitySwitcherModal({ visible, sections, loading, searchQuery, onSearchCh
                     onPress={() => onCityTap(item.id, item.nom)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.cityDot, { backgroundColor: item.couleur || '#1E73BE' }]} />
+                    <View style={[styles.cityDot, { backgroundColor: item.couleur || '#C19A6B' }]} />
                     <View style={styles.cityItemInfo}>
                       <Text style={styles.cityItemName}>{item.nom}</Text>
                       <Text style={styles.cityItemCountry}>{item.region}</Text>
                     </View>
-                    {isSelected && <Text style={styles.cityCheck}>✓</Text>}
-                    {isPending && <Text style={styles.cityCheck}>▸</Text>}
+                    {isSelected && <FontAwesomeIcon icon={faCheck} size={15} color="#C19A6B" />}
+                    {isPending && <FontAwesomeIcon icon={faChevronRight} size={14} color="#C19A6B" />}
                   </TouchableOpacity>
                 );
               }}
@@ -524,7 +528,7 @@ function CitySwitcherModal({ visible, sections, loading, searchQuery, onSearchCh
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA' },
+  container: { flex: 1, backgroundColor: '#F9F1E5' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
 
   // ─── Welcome Banner ────────────────────────────────────────────
@@ -540,47 +544,38 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 
-  // ─── Header ──────────────────────────────────────────────────
+  // ─── Header (clair) ──────────────────────────────────────────
   header: {
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 6,
+    paddingBottom: 14,
     paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  headerTitle: {
-    fontFamily: 'CenturyGothic',
-    fontSize: 26,
-    fontWeight: '700',
-    color: COLORS.blanc,
-  },
-  headerSubtitle: {
-    fontFamily: 'CenturyGothic',
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
-    marginTop: 2,
+    alignItems: 'center',
   },
   headerBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E8DCC8',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
   },
   headerBadgeText: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
-    fontWeight: '600',
-    color: COLORS.blanc,
+    fontWeight: '700',
+    color: COLORS.noir,
   },
 
   // ─── City Switcher dans le header ───────────────────────────
-  citySwitcherBtn: { flex: 1, marginRight: 12 },
+  citySwitcherBtn: { flex: 1, marginRight: 12, flexDirection: 'row', alignItems: 'center' },
+  cityAccentDot: { width: 12, height: 12, borderRadius: 6, marginRight: 12 },
   citySwitcherLeft: {},
   citySwitcherLabel: {
     fontFamily: 'CenturyGothic',
     fontSize: 11,
-    color: 'rgba(255,255,255,0.7)',
+    color: COLORS.gris,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 2,
@@ -590,10 +585,9 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.blanc,
+    color: COLORS.noir,
     marginRight: 8,
   },
-  citySwitcherArrow: { fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
 
   // ─── Select City Btn ──────────────────────────────────────────
   selectCityBtn: {
@@ -623,6 +617,7 @@ const styles = StyleSheet.create({
     color: COLORS.gris,
   },
   emptyIcon: { fontSize: 52, marginBottom: 16 },
+  emptyIconWrap: { width: 92, height: 92, borderRadius: 46, backgroundColor: 'rgba(193,154,107,0.14)', justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
   emptyText: {
     fontFamily: 'CenturyGothic',
     fontSize: 18,
@@ -653,25 +648,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#E8DCC8',
   },
-  modalTitle: { fontFamily: 'CenturyGothic', fontSize: 18, fontWeight: '700', color: '#1F2937' },
-  modalClose: { fontSize: 20, color: '#9CA3AF', padding: 4 },
+  modalTitle: { fontFamily: 'CenturyGothic', fontSize: 18, fontWeight: '700', color: '#2E2A24' },
+  modalClose: { fontSize: 20, color: '#A89E90', padding: 4 },
   modalSearch: {
     flexDirection: 'row',
     alignItems: 'center',
     margin: 16,
-    backgroundColor: '#F5F7FA',
-    borderRadius: 10,
+    backgroundColor: '#F2E7D3',
+    borderRadius: 12,
     paddingHorizontal: 14,
     height: 44,
   },
   modalSearchIcon: { fontSize: 14, marginRight: 8 },
-  modalSearchInput: { flex: 1, fontSize: 14, color: '#1F2937', padding: 0 },
+  modalSearchInput: { flex: 1, fontSize: 14, color: '#2E2A24', padding: 0 },
   modalList: { paddingHorizontal: 16, paddingBottom: 16 },
   modalEmpty: {
     textAlign: 'center',
-    color: '#9CA3AF',
+    color: '#A89E90',
     marginTop: 30,
     fontFamily: 'CenturyGothic',
     fontSize: 14,
@@ -683,20 +678,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: '#E8DCC8',
   },
   sectionHeaderFlag: { fontSize: 16, marginRight: 8 },
   sectionHeaderTitle: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
     fontWeight: '700',
-    color: '#374151',
+    color: '#2E2A24',
     flex: 1,
   },
   sectionHeaderCount: {
     fontFamily: 'CenturyGothic',
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#A89E90',
   },
   cityItem: {
     flexDirection: 'row',
@@ -706,20 +701,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 2,
   },
-  cityItemActive: { backgroundColor: '#EBF5FF' },
-  cityItemPending: { backgroundColor: '#FEF3C7' },
+  cityItemActive: { backgroundColor: '#EFE3CD' },
+  cityItemPending: { backgroundColor: '#EFE3CD' },
   cityDot: { width: 10, height: 10, borderRadius: 5, marginRight: 12 },
   cityItemInfo: { flex: 1 },
-  cityItemName: { fontFamily: 'CenturyGothic', fontSize: 15, fontWeight: '600', color: '#1F2937' },
-  cityItemCountry: { fontFamily: 'CenturyGothic', fontSize: 12, color: '#6B7280', marginTop: 2 },
-  cityCheck: { fontSize: 16, color: '#1E73BE', fontWeight: '700' },
+  cityItemName: { fontFamily: 'CenturyGothic', fontSize: 15, fontWeight: '600', color: '#2E2A24' },
+  cityItemCountry: { fontFamily: 'CenturyGothic', fontSize: 12, color: '#7A7166', marginTop: 2 },
+  cityCheck: { fontSize: 16, color: '#C19A6B', fontWeight: '700' },
   confirmBar: {
     marginTop: 12,
     padding: 16,
-    backgroundColor: '#FFFBEB',
+    backgroundColor: '#F9F1E5',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#E8DCC8',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -728,7 +723,7 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 13,
     fontWeight: '600',
-    color: '#92400E',
+    color: '#9C7C4F',
     flex: 1,
     marginRight: 12,
   },
@@ -739,20 +734,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#E8DCC8',
   },
-  confirmCancelText: { fontFamily: 'CenturyGothic', fontSize: 12, color: '#6B7280', fontWeight: '600' },
+  confirmCancelText: { fontFamily: 'CenturyGothic', fontSize: 12, color: '#7A7166', fontWeight: '600' },
   confirmBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#1E73BE',
+    backgroundColor: '#C19A6B',
   },
   confirmBtnText: { fontFamily: 'CenturyGothic', fontSize: 12, color: '#fff', fontWeight: '700' },
 
   // ─── Detail View ──────────────────────────────────────────────
-  detailContainer: { flex: 1, backgroundColor: '#F5F7FA' },
-  detailHeader: { paddingBottom: 28 },
+  detailContainer: { flex: 1, backgroundColor: '#F9F1E5' },
+  detailHeader: { paddingBottom: 30, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: 'hidden' },
   detailHeaderContent: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 12 },
   detailAvatarWrap: { position: 'relative', marginBottom: 12 },
   detailAvatar: {
@@ -780,8 +775,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  detailFavIcon: { fontSize: 16, color: '#9CA3AF' },
-  detailFavIconActive: { color: '#F5A623' },
+  detailFavIcon: { fontSize: 16, color: '#A89E90' },
+  detailFavIconActive: { color: '#D9A441' },
   detailTitle: { fontFamily: 'CenturyGothic', fontSize: 26, fontWeight: 'bold', color: COLORS.blanc, textAlign: 'center' },
   detailSubtitle: { fontFamily: 'CenturyGothic', fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
   detailDesc: { fontFamily: 'CenturyGothic', fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 10, lineHeight: 20, textAlign: 'center' },
@@ -790,20 +785,22 @@ const styles = StyleSheet.create({
   quickStatsRow: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    marginTop: -20,
+    marginTop: -24,
     backgroundColor: COLORS.blanc,
-    borderRadius: 14,
-    paddingVertical: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
+    borderRadius: 18,
+    paddingVertical: 18,
+    borderWidth: 1,
+    borderColor: '#F0E6D6',
+    shadowColor: '#2E2A24',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
   quickStat: { flex: 1, alignItems: 'center' },
   quickStatValue: { fontFamily: 'CenturyGothic', fontSize: 18, fontWeight: 'bold', color: COLORS.noir },
   quickStatLabel: { fontFamily: 'CenturyGothic', fontSize: 10, color: COLORS.gris, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.3 },
-  quickStatDivider: { width: 1, backgroundColor: '#E5E7EB', marginVertical: 6 },
+  quickStatDivider: { width: 1, backgroundColor: '#E8DCC8', marginVertical: 6 },
 
   // ─── Sections ─────────────────────────────────────────────────
   section: { marginTop: 24, paddingHorizontal: 16 },
@@ -811,22 +808,22 @@ const styles = StyleSheet.create({
 
   // ─── Progress ─────────────────────────────────────────────────
   progressRow: { gap: 14 },
-  progressItem: { backgroundColor: COLORS.blanc, borderRadius: 12, padding: 14, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2 },
+  progressItem: { backgroundColor: COLORS.blanc, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#F0E6D6', shadowColor: '#2E2A24', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 2 },
   progressHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   progressLabel: { fontFamily: 'CenturyGothic', fontSize: 13, fontWeight: '600', color: COLORS.gris },
   progressValue: { fontFamily: 'CenturyGothic', fontSize: 14, fontWeight: '700', color: COLORS.noir },
-  progressBar: { height: 8, backgroundColor: '#E5E7EB', borderRadius: 4, overflow: 'hidden' },
+  progressBar: { height: 8, backgroundColor: '#E8DCC8', borderRadius: 4, overflow: 'hidden' },
   progressFill: { height: '100%', borderRadius: 4 },
   progressDetail: { fontFamily: 'CenturyGothic', fontSize: 11, color: COLORS.grisMoyen, marginTop: 6 },
 
   // ─── Status Chips ─────────────────────────────────────────────
   statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  statusChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10 },
+  statusChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999 },
   statusDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
   statusText: { fontFamily: 'CenturyGothic', fontSize: 12, fontWeight: '600', color: COLORS.noir },
 
   // ─── Rubriques ────────────────────────────────────────────────
-  rubriqueCard: { backgroundColor: COLORS.blanc, marginBottom: 10, borderRadius: 12, borderLeftWidth: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2, overflow: 'hidden' },
+  rubriqueCard: { backgroundColor: COLORS.blanc, marginBottom: 12, borderRadius: 16, borderLeftWidth: 4, shadowColor: '#2E2A24', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 2, overflow: 'hidden' },
   rubriqueRow: { flexDirection: 'row', alignItems: 'center', padding: 14 },
   rubriqueIconWrap: { width: 42, height: 42, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   rubriqueIcon: { fontSize: 20 },

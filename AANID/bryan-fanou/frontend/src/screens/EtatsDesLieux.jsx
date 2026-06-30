@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 
 const C = {
-  bleu: '#1E73BE', vert: '#3BB273', orange: '#F5A623',
-  rouge: '#E94E3C', noir: '#212121', gris: '#BDBDBD',
-  grisClair: '#F5F5F5', blanc: '#FFFFFF',
+  bleu: '#C19A6B', vert: '#6E8B5B', orange: '#D9A441',
+  rouge: '#C75D4F', noir: '#2E2A24', gris: '#A89E90',
+  grisClair: '#F2E7D3', blanc: '#FFFFFF',
 };
 
 const MIN_W = 420;
@@ -271,11 +271,11 @@ function MiniMap({ compact, f }) {
     : [{ top: 40, left: 70, c: C.vert }, { top: 95, left: 150, c: C.orange }, { top: 70, left: 200, c: C.rouge }, { top: 150, left: 240, c: C.bleu }, { top: 160, left: 60, c: C.rouge }, { top: 180, left: 130, c: C.vert }];
   return (
     <View>
-      <View style={{ height: h, borderRadius: 7, backgroundColor: '#eef3f7', position: 'relative', overflow: 'hidden', marginTop: compact ? 4 : 0 }}>
+      <View style={{ height: h, borderRadius: 7, backgroundColor: '#EFE3CD', position: 'relative', overflow: 'hidden', marginTop: compact ? 4 : 0 }}>
         <View style={{ position: 'absolute', top: compact ? 20 : 30, left: compact ? 40 : 50, width: compact ? 70 : 100, height: compact ? 70 : 100, borderRadius: compact ? 35 : 50, backgroundColor: C.rouge, opacity: 0.15 }} />
         <View style={{ position: 'absolute', top: compact ? 50 : 80, left: compact ? 130 : 170, width: compact ? 60 : 80, height: compact ? 60 : 80, borderRadius: compact ? 30 : 40, backgroundColor: C.orange, opacity: 0.12 }} />
-        <View style={{ position: 'absolute', top: compact ? 30 : 45, width: '70%', left: 0, height: 3, borderRadius: 1.5, backgroundColor: '#cfd9e0', transform: [{ rotate: compact ? '-3deg' : '-2deg' }], opacity: 0.6 }} />
-        <View style={{ position: 'absolute', top: compact ? 90 : 130, width: '60%', right: 0, height: 3, borderRadius: 1.5, backgroundColor: '#cfd9e0', transform: [{ rotate: compact ? '2deg' : '1deg' }], opacity: 0.6 }} />
+        <View style={{ position: 'absolute', top: compact ? 30 : 45, width: '70%', left: 0, height: 3, borderRadius: 1.5, backgroundColor: '#D9C2A0', transform: [{ rotate: compact ? '-3deg' : '-2deg' }], opacity: 0.6 }} />
+        <View style={{ position: 'absolute', top: compact ? 90 : 130, width: '60%', right: 0, height: 3, borderRadius: 1.5, backgroundColor: '#D9C2A0', transform: [{ rotate: compact ? '2deg' : '1deg' }], opacity: 0.6 }} />
         {pins.map((p, i) => (
           <View key={i} style={{ position: 'absolute', top: p.top, left: p.left, width: pinS, height: pinS, borderRadius: pinS / 2, backgroundColor: p.c, borderWidth: 2, borderColor: C.blanc, ...shadow }} />
         ))}
@@ -459,16 +459,16 @@ export default function EtatsDesLieux() {
         </View>
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: kpiGap, marginBottom: 18 }}>
-          <KpiCard label="Panneaux recensés" value={k ? formatNb(k.panneauxRecenses.valeur) : '1,284'} delta={k?.panneauxRecenses.delta ?? '6.2'} direction="up" foot={k?.panneauxRecenses.details ?? 'dont 812 modernes'} iconBg="rgba(30,115,190,0.12)" f={f}>
+          <KpiCard label="Panneaux recensés" value={k ? formatNb(k.panneauxRecenses.valeur) : '1,284'} delta={k?.panneauxRecenses.delta ?? '6.2'} direction="up" foot={k?.panneauxRecenses.details ?? 'dont 812 modernes'} iconBg="rgba(193,154,107,0.16)" f={f}>
             <IconScreen color={C.bleu} />
           </KpiCard>
-          <KpiCard label="Panneaux obsolètes" value={k ? formatNb(k.panneauxObsoletes.valeur) : '472'} delta={k?.panneauxObsoletes.delta ?? '2.1'} direction="up" foot={k?.panneauxObsoletes.details ?? "36,8% du parc total"} iconBg="rgba(245,166,35,0.14)" f={f}>
+          <KpiCard label="Panneaux obsolètes" value={k ? formatNb(k.panneauxObsoletes.valeur) : '472'} delta={k?.panneauxObsoletes.delta ?? '2.1'} direction="up" foot={k?.panneauxObsoletes.details ?? "36,8% du parc total"} iconBg="rgba(217,164,65,0.16)" f={f}>
             <IconWarning color={C.orange} />
           </KpiCard>
-          <KpiCard label="Signalements actifs" value={k ? formatNb(k.signalementsActifs.valeur) : '63'} delta={k?.signalementsActifs.delta ?? '11'} direction="up" foot={k?.signalementsActifs.details ?? '18 en attente de validation'} iconBg="rgba(233,78,60,0.12)" f={f}>
+          <KpiCard label="Signalements actifs" value={k ? formatNb(k.signalementsActifs.valeur) : '63'} delta={k?.signalementsActifs.delta ?? '11'} direction="up" foot={k?.signalementsActifs.details ?? '18 en attente de validation'} iconBg="rgba(199,93,79,0.14)" f={f}>
             <IconPin color={C.rouge} />
           </KpiCard>
-          <KpiCard label="Taux de conformité" value={k ? `${k.tauxConformite.valeur}%` : '78.4%'} delta={k?.tauxConformite.delta ?? '3.4'} direction="up" foot={k?.tauxConformite.details ?? 'objectif annuel : 85%'} iconBg="rgba(59,178,115,0.14)" f={f}>
+          <KpiCard label="Taux de conformité" value={k ? `${k.tauxConformite.valeur}%` : '78.4%'} delta={k?.tauxConformite.delta ?? '3.4'} direction="up" foot={k?.tauxConformite.details ?? 'objectif annuel : 85%'} iconBg="rgba(110,139,91,0.16)" f={f}>
             <IconCheck color={C.vert} />
           </KpiCard>
         </View>
@@ -509,7 +509,7 @@ export default function EtatsDesLieux() {
 
   // ── Mobile Layout ──────────────────────────────────────────────────────────
   return (
-    <View style={{ flex: 1, backgroundColor: '#e7e9ec' }}>
+    <View style={{ flex: 1, backgroundColor: '#F2E7D3' }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={{
           backgroundColor: C.blanc, paddingHorizontal: 18, paddingTop: f(12, 14), paddingBottom: f(14, 16),
@@ -545,16 +545,16 @@ export default function EtatsDesLieux() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 18, marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <KpiCard compact label="Panneaux recensés" value={k ? formatNb(k.panneauxRecenses.valeur) : '1,284'} delta={k?.panneauxRecenses.delta ?? '6.2'} direction="up" iconBg="rgba(30,115,190,0.12)" f={f}>
+            <KpiCard compact label="Panneaux recensés" value={k ? formatNb(k.panneauxRecenses.valeur) : '1,284'} delta={k?.panneauxRecenses.delta ?? '6.2'} direction="up" iconBg="rgba(193,154,107,0.16)" f={f}>
               <IconScreen color={C.bleu} sz={14} />
             </KpiCard>
-            <KpiCard compact label="Obsolètes" value={k ? formatNb(k.panneauxObsoletes.valeur) : '472'} delta={k?.panneauxObsoletes.delta ?? '2.1'} direction="up" iconBg="rgba(245,166,35,0.14)" f={f}>
+            <KpiCard compact label="Obsolètes" value={k ? formatNb(k.panneauxObsoletes.valeur) : '472'} delta={k?.panneauxObsoletes.delta ?? '2.1'} direction="up" iconBg="rgba(217,164,65,0.16)" f={f}>
               <IconWarning color={C.orange} sz={14} />
             </KpiCard>
-            <KpiCard compact label="Signalements" value={k ? formatNb(k.signalementsActifs.valeur) : '63'} delta={k?.signalementsActifs.delta ?? '11'} direction="up" iconBg="rgba(233,78,60,0.12)" f={f}>
+            <KpiCard compact label="Signalements" value={k ? formatNb(k.signalementsActifs.valeur) : '63'} delta={k?.signalementsActifs.delta ?? '11'} direction="up" iconBg="rgba(199,93,79,0.14)" f={f}>
               <IconPin color={C.rouge} sz={14} />
             </KpiCard>
-            <KpiCard compact label="Conformité" value={k ? `${k.tauxConformite.valeur}%` : '78.4%'} delta={k?.tauxConformite.delta ?? '3.4'} direction="up" iconBg="rgba(59,178,115,0.14)" f={f}>
+            <KpiCard compact label="Conformité" value={k ? `${k.tauxConformite.valeur}%` : '78.4%'} delta={k?.tauxConformite.delta ?? '3.4'} direction="up" iconBg="rgba(110,139,91,0.16)" f={f}>
               <IconCheck color={C.vert} sz={14} />
             </KpiCard>
           </View>
