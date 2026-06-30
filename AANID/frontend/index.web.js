@@ -9,6 +9,7 @@ window.addEventListener('unhandledrejection', function(e) {
 import './src/global.css';
 
 import { AppRegistry } from 'react-native';
+import centuryGothicUrl from './assets/fonts/CenturyGothic.ttf';
 import App from './App';
 import { name as appName } from './app.json';
 
@@ -18,6 +19,14 @@ style.textContent = `
     font-family: 'Ionicons';
     src: url('https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/fonts/ionicons.ttf') format('truetype');
   }
+  @font-face {
+    font-family: 'CenturyGothic';
+    src: url('${centuryGothicUrl}') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+  }
+  body, #root { font-family: 'CenturyGothic', system-ui, -apple-system, sans-serif; }
 `;
 document.head.appendChild(style);
 
