@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBell } from '@fortawesome/free-solid-svg-icons';
+import { COLORS, FONT_FAMILY } from '../../constants/theme';
 
 export default function NotificationScreen() {
   return (
@@ -11,7 +13,9 @@ export default function NotificationScreen() {
         contentContainerStyle={styles.empty}
         ListEmptyComponent={
           <View style={styles.emptyContent}>
-            <Text style={styles.emptyIcon}>🔔</Text>
+            <View style={styles.iconCircle}>
+              <FontAwesomeIcon icon={faBell} size={32} color={COLORS.primary} />
+            </View>
             <Text style={styles.emptyTitle}>Aucune notification</Text>
             <Text style={styles.emptyDesc}>Vous serez notifié des mises à jour ici.</Text>
           </View>
@@ -22,10 +26,10 @@ export default function NotificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F5F9' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   emptyContent: { alignItems: 'center' },
-  emptyIcon: { fontSize: 64, marginBottom: 16, opacity: 0.4 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8 },
-  emptyDesc: { fontSize: 14, color: COLORS.textTertiary, textAlign: 'center' },
+  iconCircle: { width: 84, height: 84, borderRadius: 42, backgroundColor: COLORS.chipBg, justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: COLORS.text, marginBottom: 8, fontFamily: FONT_FAMILY },
+  emptyDesc: { fontSize: 14, color: COLORS.textTertiary, textAlign: 'center', fontFamily: FONT_FAMILY },
 });

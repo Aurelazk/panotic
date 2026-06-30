@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Linking } from 'react-native';
-import { COLORS } from '../../constants/theme';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleQuestion, faEnvelope, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { COLORS, FONT_FAMILY } from '../../constants/theme';
 
 const FAQ = [
   { q: 'Comment signaler un problème ?', a: 'Utilisez l\'onglet "Signaler" dans le menu principal.' },
@@ -23,7 +25,7 @@ export default function AideSupportScreen() {
         {FAQ.map((item, i) => (
           <View key={i} style={styles.faqCard}>
             <View style={styles.faqHeader}>
-              <Text style={{ fontSize: 16, color: '#FF6600' }}>❓</Text>
+              <FontAwesomeIcon icon={faCircleQuestion} size={16} color={COLORS.primary} />
               <Text style={styles.faqQuestion}>{item.q}</Text>
             </View>
             <Text style={styles.faqAnswer}>{item.a}</Text>
@@ -32,14 +34,14 @@ export default function AideSupportScreen() {
 
         <Text style={[styles.subTitle, { marginTop: 24 }]}>Contact</Text>
         <TouchableOpacity style={styles.contactItem} onPress={() => Linking.openURL('mailto:support@aanid.com')}>
-          <View style={[styles.iconBg, { backgroundColor: 'rgba(0,122,255,0.08)' }]}>
-            <Text style={{ fontSize: 18 }}>✉️</Text>
+          <View style={[styles.iconBg, { backgroundColor: COLORS.chipBg }]}>
+            <FontAwesomeIcon icon={faEnvelope} size={16} color={COLORS.primary} />
           </View>
           <View style={styles.contactContent}>
             <Text style={styles.contactLabel}>Email</Text>
             <Text style={styles.contactValue}>support@aanid.com</Text>
           </View>
-          <Text style={{ fontSize: 18, color: COLORS.textTertiary }}>›</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={14} color={COLORS.textTertiary} />
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -50,16 +52,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   body: { flex: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 },
   section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginBottom: 6 },
-  desc: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18 },
-  subTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textTertiary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
-  faqCard: { backgroundColor: COLORS.white, padding: 16, borderRadius: 14, marginBottom: 10 },
+  sectionTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text, marginBottom: 6, fontFamily: FONT_FAMILY },
+  desc: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18, fontFamily: FONT_FAMILY },
+  subTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textTertiary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, fontFamily: FONT_FAMILY },
+  faqCard: { backgroundColor: COLORS.surface, padding: 16, borderRadius: 14, marginBottom: 10, shadowColor: COLORS.shadow, shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   faqHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  faqQuestion: { fontSize: 14, fontWeight: '600', color: COLORS.text, flex: 1 },
-  faqAnswer: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18, marginLeft: 24 },
-  contactItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, padding: 16, borderRadius: 14, marginBottom: 8 },
+  faqQuestion: { fontSize: 14, fontWeight: '600', color: COLORS.text, flex: 1, fontFamily: FONT_FAMILY },
+  faqAnswer: { fontSize: 13, color: COLORS.textSecondary, lineHeight: 18, marginLeft: 24, fontFamily: FONT_FAMILY },
+  contactItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface, padding: 16, borderRadius: 14, marginBottom: 8, shadowColor: COLORS.shadow, shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   iconBg: { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   contactContent: { flex: 1, marginLeft: 14 },
-  contactLabel: { fontSize: 15, fontWeight: '600', color: '#1A2A3A' },
-  contactValue: { fontSize: 12, color: COLORS.textTertiary, marginTop: 2 },
+  contactLabel: { fontSize: 15, fontWeight: '600', color: COLORS.text, fontFamily: FONT_FAMILY },
+  contactValue: { fontSize: 12, color: COLORS.textTertiary, marginTop: 2, fontFamily: FONT_FAMILY },
 });

@@ -1,15 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faCreditCard, faBell, faLock, faCircleQuestion,
+  faRightFromBracket, faChevronRight,
+} from '@fortawesome/free-solid-svg-icons';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
-import { COLORS } from '../../constants/theme';
+import { COLORS, FONT_FAMILY } from '../../constants/theme';
 
 const MENU_ITEMS = [
-  { label: 'Mon Abonnement', icon: '💳', screen: 'Pricing', color: '#FF6600' },
-  { label: 'Notifications', icon: '🔔', screen: 'Notifications', color: '#007AFF' },
-  { label: 'Confidentialité', icon: '🔒', screen: 'Confidentialite', color: '#34C759' },
-  { label: 'Aide & Support', icon: '❓', screen: 'AideSupport', color: '#5856D6' },
+  { label: 'Mon Abonnement', icon: faCreditCard, screen: 'Pricing', color: COLORS.warning },
+  { label: 'Notifications', icon: faBell, screen: 'Notifications', color: COLORS.primary },
+  { label: 'Confidentialité', icon: faLock, screen: 'Confidentialite', color: COLORS.success },
+  { label: 'Aide & Support', icon: faCircleQuestion, screen: 'AideSupport', color: COLORS.secondary },
 ];
 
 export default function ProfileScreen({ navigation }: any) {
@@ -19,7 +24,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0A1628" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primaryDark} />
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initials}</Text>
@@ -45,20 +50,20 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={styles.menu}>
           {MENU_ITEMS.map((item) => (
             <TouchableOpacity key={item.screen} style={styles.menuItem} onPress={() => navigation.navigate(item.screen)}>
-              <View style={[styles.menuIcon, { backgroundColor: item.color + '15' }]}>
-                <Text style={{ fontSize: 18 }}>{item.icon}</Text>
+              <View style={[styles.menuIcon, { backgroundColor: item.color + '22' }]}>
+                <FontAwesomeIcon icon={item.icon} size={17} color={item.color} />
               </View>
               <Text style={styles.menuText}>{item.label}</Text>
-              <Text style={{ fontSize: 18, color: COLORS.textTertiary }}>›</Text>
+              <FontAwesomeIcon icon={faChevronRight} size={14} color={COLORS.textTertiary} />
             </TouchableOpacity>
           ))}
 
           <TouchableOpacity style={styles.logoutBtn} onPress={() => dispatch(logout())}>
-            <View style={[styles.menuIcon, { backgroundColor: 'rgba(255,59,48,0.08)' }]}>
-              <Text style={{ fontSize: 18 }}>🚪</Text>
+            <View style={[styles.menuIcon, { backgroundColor: COLORS.error + '18' }]}>
+              <FontAwesomeIcon icon={faRightFromBracket} size={17} color={COLORS.error} />
             </View>
             <Text style={styles.logoutText}>Déconnexion</Text>
-            <Text style={{ fontSize: 18, color: '#FF3B30' }}>›</Text>
+            <FontAwesomeIcon icon={faChevronRight} size={14} color={COLORS.error} />
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -67,39 +72,40 @@ export default function ProfileScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F5F9' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
-    backgroundColor: '#0A1628', paddingTop: 56, paddingBottom: 36,
+    backgroundColor: COLORS.primaryDark, paddingTop: 56, paddingBottom: 36,
     alignItems: 'center', borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
   },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#FF6600', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 3, borderColor: 'rgba(255,255,255,0.2)' },
-  avatarText: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
-  name: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  email: { color: 'rgba(255,255,255,0.5)', fontSize: 13, marginTop: 3 },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.22)', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 3, borderColor: 'rgba(255,255,255,0.3)' },
+  avatarText: { color: COLORS.white, fontSize: 32, fontWeight: 'bold', fontFamily: FONT_FAMILY },
+  name: { color: COLORS.white, fontSize: 20, fontWeight: '700', fontFamily: FONT_FAMILY },
+  email: { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 3, fontFamily: FONT_FAMILY },
   badgeRow: { flexDirection: 'row', marginTop: 12 },
-  badge: { backgroundColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14 },
-  badgeText: { color: '#fff', fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
+  badge: { backgroundColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14 },
+  badgeText: { color: COLORS.white, fontSize: 9, fontWeight: '700', letterSpacing: 0.5, fontFamily: FONT_FAMILY },
   body: { flex: 1 },
   statsCard: {
-    flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 20,
+    flexDirection: 'row', backgroundColor: COLORS.surface, marginHorizontal: 20,
     marginTop: -26, borderRadius: 18, paddingVertical: 20, elevation: 3,
-    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 10,
+    shadowColor: COLORS.shadow, shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
   },
   stat: { flex: 1, alignItems: 'center' },
-  divider: { width: 1, backgroundColor: '#EDF1F7' },
-  statValue: { fontSize: 18, fontWeight: '800', color: COLORS.primary },
-  statLabel: { fontSize: 10, color: COLORS.textTertiary, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2 },
+  divider: { width: 1, backgroundColor: COLORS.border },
+  statValue: { fontSize: 18, fontWeight: '800', color: COLORS.primary, fontFamily: FONT_FAMILY },
+  statLabel: { fontSize: 10, color: COLORS.textTertiary, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 2, fontFamily: FONT_FAMILY },
   menu: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 },
   menuItem: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface,
     padding: 16, borderRadius: 14, marginBottom: 8, elevation: 1,
+    shadowColor: COLORS.shadow, shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 },
   },
   menuIcon: { width: 38, height: 38, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  menuText: { flex: 1, marginLeft: 14, fontSize: 15, fontWeight: '600', color: '#1A2A3A' },
+  menuText: { flex: 1, marginLeft: 14, fontSize: 15, fontWeight: '600', color: COLORS.text, fontFamily: FONT_FAMILY },
   logoutBtn: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.surface,
     padding: 16, borderRadius: 14, marginTop: 16, borderWidth: 1,
-    borderColor: 'rgba(255,59,48,0.15)', elevation: 1,
+    borderColor: COLORS.error + '33', elevation: 1,
   },
-  logoutText: { flex: 1, marginLeft: 14, fontSize: 15, fontWeight: '600', color: '#FF3B30' },
+  logoutText: { flex: 1, marginLeft: 14, fontSize: 15, fontWeight: '600', color: COLORS.error, fontFamily: FONT_FAMILY },
 });
