@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>AANID — États des Lieux (Mobile)</title>
+<style>
+  @import url('https://fonts.cdnfonts.com/css/century-gothic');
+
+  :root{
+    --bleu:#1E73BE;
+    --vert:#3BB273;
+    --orange:#F5A623;
+    --rouge:#E94E3C;
+    --noir:#212121;
+    --gris-moyen:#BDBDBD;
+    --gris-clair:#F5F5F5;
+    --blanc:#FFFFFF;
+    --radius:8px;
+    --shadow:0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.08);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
+    background:#e7e9ec;
+    display:flex;
+    justify-content:center;
+    padding:30px 10px;
+  }
+
+  /* ---------- PHONE FRAME ---------- */
+  .phone{
+    width:375px;
+    height:812px;
+    background:var(--gris-clair);
+    border-radius:42px;
+    box-shadow:0 30px 60px rgba(0,0,0,0.25), 0 0 0 12px #111;
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .notch{
+    position:absolute;
+    top:0; left:50%;
+    transform:translateX(-50%);
+    width:150px; height:28px;
+    background:#111;
+    border-radius:0 0 18px 18px;
+    z-index:30;
+  }
+  .statusbar{
+    height:46px;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 24px;
+    font-size:13px;
+    font-weight:bold;
+    color:var(--noir);
+    background:var(--gris-clair);
+  }
+  .statusbar .icons{display:flex; align-items:center; gap:5px;}
+
+  .scroll{
+    flex:1;
+    overflow-y:auto;
+    padding-bottom:90px;
+  }
+  .scroll::-webkit-scrollbar{display:none;}
+
+  /* ---------- APP HEADER ---------- */
+  .app-header{
+    background:var(--blanc);
+    padding:14px 18px 16px;
+    border-radius:0 0 18px 18px;
+    box-shadow:var(--shadow);
+    margin-bottom:14px;
+  }
+  .header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .logo-row{display:flex; align-items:center; gap:8px;}
+  .logo{font-weight:bold; font-size:16px; color:var(--bleu); letter-spacing:0.3px;}
+  .city-pill{
+    display:flex; align-items:center; gap:6px;
+    background:var(--gris-clair);
+    border-radius:999px;
+    padding:5px 10px 5px 6px;
+    font-size:11px;
+    font-weight:bold;
+  }
+  .city-pill .dot{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--rouge);
+    display:flex;align-items:center;justify-content:center;
+    color:white;font-size:8px;
+  }
+  .bell{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--gris-clair);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    flex-shrink:0;
+  }
+  .bell .badge{
+    position:absolute; top:5px; right:6px;
+    width:7px;height:7px;border-radius:50%;
+    background:var(--rouge);
+    border:1.5px solid white;
+  }
+  .page-title{font-size:21px; font-weight:bold; margin:2px 0 0;}
+  .page-sub{font-size:12px; color:#6b6b6b; margin-top:2px;}
+
+  /* ---------- FILTER CHIPS ---------- */
+  .chips{
+    display:flex;
+    gap:8px;
+    padding:0 18px 14px;
+    overflow-x:auto;
+  }
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    background:var(--blanc);
+    box-shadow:var(--shadow);
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:11.5px;
+    font-weight:bold;
+    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:5px;
+    flex-shrink:0;
+    color:var(--noir);
+  }
+  .chip.active{background:var(--rouge); color:white; box-shadow:none;}
+
+  /* ---------- SECTION CARDS ---------- */
+  .section{padding:0 18px; margin-bottom:16px;}
+  .section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .section-title{font-size:14px; font-weight:bold;}
+  .section-link{font-size:11.5px; color:var(--bleu); font-weight:bold;}
+
+  /* KPI horizontal scroll */
+  .kpi-scroll{
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    padding:0 18px 4px;
+    margin-bottom:16px;
+  }
+  .kpi-scroll::-webkit-scrollbar{display:none;}
+  .kpi-card{
+    background:var(--blanc);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:14px;
+    min-width:128px;
+    flex-shrink:0;
+  }
+  .kpi-icon{
+    width:26px;height:26px;border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:8px;
+  }
+  .kpi-label{font-size:10.5px; color:#6b6b6b; margin-bottom:4px;}
+  .kpi-value{font-size:22px; font-weight:bold; line-height:1;}
+  .kpi-delta{font-size:10.5px; font-weight:bold; margin-top:5px; display:flex; align-items:center; gap:3px;}
+  .up{color:var(--vert);}
+  .down{color:var(--rouge);}
+
+  /* chart card */
+  .chart-card, .map-card, .cat-card, .donut-card{
+    background:var(--blanc);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:16px;
+  }
+  .legend-mini{
+    display:flex;
+    gap:12px;
+    font-size:10.5px;
+    color:#6b6b6b;
+    margin:8px 0 4px;
+    flex-wrap:wrap;
+  }
+  .legend-mini span{display:flex; align-items:center; gap:5px;}
+  .legend-mini i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+  /* map card */
+  .map-mini{
+    height:160px;
+    border-radius:7px;
+    background:linear-gradient(135deg,#eef3f7,#e3ecf1);
+    position:relative;
+    overflow:hidden;
+    margin-top:4px;
+  }
+  .map-pin{
+    position:absolute;
+    width:11px;height:11px;
+    border-radius:50%;
+    border:2px solid white;
+    box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  }
+  .map-foot{
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    color:#9b9b9b;
+    margin-top:8px;
+  }
+
+  /* signalement list */
+  .sig-item{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    background:var(--blanc);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:11px;
+    margin-bottom:9px;
+  }
+  .sig-thumb{
+    width:38px;height:38px;border-radius:7px;
+    background:var(--gris-clair);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .sig-info{flex:1; min-width:0;}
+  .sig-title{font-size:12.5px; font-weight:bold;}
+  .sig-meta{font-size:10.5px; color:#9b9b9b; margin-top:2px;}
+  .sig-status{
+    font-size:9.5px;
+    font-weight:bold;
+    padding:3px 8px;
+    border-radius:999px;
+    white-space:nowrap;
+    height:fit-content;
+    flex-shrink:0;
+  }
+
+  /* category bars */
+  .cat-row{display:flex; align-items:center; gap:8px; margin-bottom:11px;}
+  .cat-row:last-child{margin-bottom:0;}
+  .cat-name{font-size:11px; width:100px; color:#444; flex-shrink:0;}
+  .cat-bar-bg{flex:1; background:var(--gris-clair); height:7px; border-radius:5px; overflow:hidden;}
+  .cat-bar-fill{height:100%; border-radius:5px;}
+  .cat-num{font-size:11px; font-weight:bold; width:20px; text-align:right;}
+
+  /* ---------- FAB ---------- */
+  .fab{
+    position:absolute;
+    right:20px;
+    bottom:96px;
+    width:54px;height:54px;
+    border-radius:50%;
+    background:var(--rouge);
+    box-shadow:0 6px 16px rgba(233,78,60,0.45);
+    display:flex;align-items:center;justify-content:center;
+    z-index:20;
+  }
+
+  /* ---------- BOTTOM NAV ---------- */
+  .bottom-nav{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:78px;
+    background:var(--blanc);
+    border-top:1px solid #ececec;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-around;
+    padding-top:10px;
+    padding-bottom:18px;
+    z-index:20;
+  }
+  .nav-item{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    font-size:10px;
+    color:var(--gris-moyen);
+    font-weight:bold;
+  }
+  .nav-item.active{color:var(--rouge);}
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <span>9:41</span>
+    <div class="icons">
+      <svg width="16" height="11" viewBox="0 0 16 11"><rect x="0" y="1" width="3" height="9" rx="0.5" fill="#212121"/><rect x="4.5" y="0" width="3" height="10" rx="0.5" fill="#212121"/><rect x="9" y="3.5" width="3" height="6.5" rx="0.5" fill="#212121"/></svg>
+      <svg width="15" height="11" viewBox="0 0 16 12" fill="none"><path d="M8 9.5a1 1 0 100-2 1 1 0 000 2z" fill="#212121"/><path d="M5 6.3a4.2 4.2 0 016 0M2.5 4a8 8 0 0111 0" stroke="#212121" stroke-width="1.3" stroke-linecap="round"/></svg>
+      <svg width="22" height="11" viewBox="0 0 24 12"><rect x="1" y="1" width="19" height="9.5" rx="2" stroke="#212121" stroke-width="1" fill="none"/><rect x="2.5" y="2.5" width="14" height="6.5" rx="1" fill="#212121"/><rect x="21" y="4" width="1.5" height="3.5" rx="0.7" fill="#212121"/></svg>
+    </div>
+  </div>
+
+  <div class="scroll">
+
+    <!-- HEADER -->
+    <div class="app-header">
+      <div class="header-top">
+        <div class="logo-row">
+          <span class="logo">AANID</span>
+          <div class="city-pill">
+            <span class="dot">CO</span>
+            Cotonou
+            <svg width="7" height="5" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#212121" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+        <div class="bell">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 8a6 6 0 10-12 0c0 4-2 5-2 6h16c0-1-2-2-2-6z" stroke="#212121" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 19a2 2 0 004 0" stroke="#212121" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <div class="badge"></div>
+        </div>
+      </div>
+      <div class="page-title">États des Lieux</div>
+      <div class="page-sub">Suivi en temps réel de la panneautique</div>
+    </div>
+
+    <!-- FILTER CHIPS -->
+    <div class="chips">
+      <div class="chip active">Tous</div>
+      <div class="chip"><i style="width:7px;height:7px;border-radius:50%;background:#3BB273;display:inline-block;"></i> Modernes</div>
+      <div class="chip"><i style="width:7px;height:7px;border-radius:50%;background:#F5A623;display:inline-block;"></i> Obsolètes</div>
+      <div class="chip"><i style="width:7px;height:7px;border-radius:50%;background:#E94E3C;display:inline-block;"></i> Dégradés</div>
+      <div class="chip"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.2-7-11a7 7 0 1114 0c0 5.8-7 11-7 11z" stroke="#212121" stroke-width="2.4"/><circle cx="12" cy="10" r="2.6" stroke="#212121" stroke-width="2.4"/></svg> Près de moi</div>
+    </div>
+
+    <!-- KPI SCROLL -->
+    <div class="kpi-scroll">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(30,115,190,0.12);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="11" rx="2" stroke="#1E73BE" stroke-width="2"/><path d="M9 19h6M12 15v4" stroke="#1E73BE" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="kpi-label">Panneaux recensés</div>
+        <div class="kpi-value">1,284</div>
+        <div class="kpi-delta up">↑ 6.2%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(245,166,35,0.14);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 16H3z" stroke="#F5A623" stroke-width="2" stroke-linejoin="round"/><path d="M12 9v4M12 16h.01" stroke="#F5A623" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="kpi-label">Obsolètes</div>
+        <div class="kpi-value">472</div>
+        <div class="kpi-delta down">↑ 2.1%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(233,78,60,0.12);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.2-7-11a7 7 0 1114 0c0 5.8-7 11-7 11z" stroke="#E94E3C" stroke-width="2"/><circle cx="12" cy="10" r="2.4" stroke="#E94E3C" stroke-width="2"/></svg>
+        </div>
+        <div class="kpi-label">Signalements</div>
+        <div class="kpi-value">63</div>
+        <div class="kpi-delta down">↑ 11%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:rgba(59,178,115,0.14);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l4.5 4.5L20 6" stroke="#3BB273" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="kpi-label">Conformité</div>
+        <div class="kpi-value">78.4%</div>
+        <div class="kpi-delta up">↑ 3.4%</div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Évolution sur 30 jours</span>
+      </div>
+      <div class="chart-card">
+        <div class="legend-mini">
+          <span><i style="background:#3BB273;"></i> Modernes</span>
+          <span><i style="background:#F5A623;"></i> Obsolètes</span>
+          <span><i style="background:#E94E3C;"></i> Signalements</span>
+        </div>
+        <svg viewBox="0 0 320 150" width="100%" height="130">
+          <line x1="0" y1="130" x2="320" y2="130" stroke="#ECECEC" stroke-width="1"/>
+          <line x1="0" y1="70" x2="320" y2="70" stroke="#F5F5F5" stroke-width="1"/>
+          <line x1="0" y1="10" x2="320" y2="10" stroke="#F5F5F5" stroke-width="1"/>
+
+          <path d="M0,90 C40,75 80,60 120,63 C160,66 200,46 240,50 C280,54 300,38 320,40 L320,130 L0,130 Z"
+                fill="#3BB273" opacity="0.28"/>
+          <path d="M0,90 C40,75 80,60 120,63 C160,66 200,46 240,50 C280,54 300,38 320,40"
+                fill="none" stroke="#3BB273" stroke-width="2.2"/>
+
+          <path d="M0,112 C40,108 80,116 120,106 C160,98 200,112 240,100 C280,90 300,98 320,88"
+                fill="none" stroke="#F5A623" stroke-width="2.2"/>
+
+          <path d="M0,124 C40,123 80,120 120,121 C160,123 200,116 240,118 C280,120 300,108 320,112"
+                fill="none" stroke="#E94E3C" stroke-width="2.2"/>
+        </svg>
+        <div style="display:flex; justify-content:space-between; font-size:9.5px; color:#9b9b9b; margin-top:2px;">
+          <span>J1</span><span>J8</span><span>J16</span><span>J23</span><span>J30</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Carte interactive</span>
+        <span class="section-link">Plein écran</span>
+      </div>
+      <div class="map-card">
+        <div class="map-mini">
+          <svg width="100%" height="100%" viewBox="0 0 320 160" preserveAspectRatio="none">
+            <defs>
+              <radialGradient id="hot1" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#E94E3C" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#E94E3C" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="hot2" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#F5A623" stop-opacity="0.45"/>
+                <stop offset="100%" stop-color="#F5A623" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="110" cy="60" r="42" fill="url(#hot1)"/>
+            <circle cx="220" cy="105" r="38" fill="url(#hot2)"/>
+            <path d="M0,40 Q80,20 160,38 T320,28" stroke="#cfd9e0" stroke-width="3" fill="none"/>
+            <path d="M0,105 Q100,128 200,98 T320,118" stroke="#cfd9e0" stroke-width="3" fill="none"/>
+          </svg>
+          <div class="map-pin" style="background:#3BB273; top:25px; left:50px;"></div>
+          <div class="map-pin" style="background:#F5A623; top:65px; left:110px;"></div>
+          <div class="map-pin" style="background:#E94E3C; top:45px; left:150px;"></div>
+          <div class="map-pin" style="background:#1E73BE; top:105px; left:200px;"></div>
+          <div class="map-pin" style="background:#E94E3C; top:115px; left:70px;"></div>
+        </div>
+        <div class="map-foot">
+          <span style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:3px;"><i style="width:6px;height:6px;border-radius:50%;background:#3BB273;display:inline-block;"></i>Moderne</span>
+            <span style="display:flex;align-items:center;gap:3px;"><i style="width:6px;height:6px;border-radius:50%;background:#F5A623;display:inline-block;"></i>Obsolète</span>
+            <span style="display:flex;align-items:center;gap:3px;"><i style="width:6px;height:6px;border-radius:50%;background:#E94E3C;display:inline-block;"></i>Dégradé</span>
+            <span style="display:flex;align-items:center;gap:3px;"><i style="width:6px;height:6px;border-radius:50%;background:#1E73BE;display:inline-block;"></i>Disponible</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNALEMENTS RECENTS -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Signalements récents</span>
+        <span class="section-link">Voir tout</span>
+      </div>
+
+      <div class="sig-item">
+        <div class="sig-thumb">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="2" stroke="#E94E3C" stroke-width="1.8"/><path d="M3 14l5-4 4 3 5-5 4 4" stroke="#E94E3C" stroke-width="1.8"/></svg>
+        </div>
+        <div class="sig-info">
+          <div class="sig-title">Panneau dégradé — Av. Steinmetz</div>
+          <div class="sig-meta">Akpakpa · il y a 2h</div>
+        </div>
+        <div class="sig-status" style="background:rgba(233,78,60,0.12); color:#E94E3C;">Urgent</div>
+      </div>
+
+      <div class="sig-item">
+        <div class="sig-thumb">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="2" stroke="#F5A623" stroke-width="1.8"/><path d="M3 14l5-4 4 3 5-5 4 4" stroke="#F5A623" stroke-width="1.8"/></svg>
+        </div>
+        <div class="sig-info">
+          <div class="sig-title">Panneau obsolète — Rond-point Étoile Rouge</div>
+          <div class="sig-meta">Ganhi · il y a 5h</div>
+        </div>
+        <div class="sig-status" style="background:rgba(245,166,35,0.14); color:#F5A623;">En cours</div>
+      </div>
+
+      <div class="sig-item">
+        <div class="sig-thumb">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="2" stroke="#1E73BE" stroke-width="1.8"/><path d="M3 14l5-4 4 3 5-5 4 4" stroke="#1E73BE" stroke-width="1.8"/></svg>
+        </div>
+        <div class="sig-info">
+          <div class="sig-title">Emplacement inapproprié — Marché Dantokpa</div>
+          <div class="sig-meta">Dantokpa · il y a 1j</div>
+        </div>
+        <div class="sig-status" style="background:rgba(189,189,189,0.2); color:#6b6b6b;">Nouveau</div>
+      </div>
+
+      <div class="sig-item" style="margin-bottom:0;">
+        <div class="sig-thumb">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="2" stroke="#3BB273" stroke-width="1.8"/><path d="M3 14l5-4 4 3 5-5 4 4" stroke="#3BB273" stroke-width="1.8"/></svg>
+        </div>
+        <div class="sig-info">
+          <div class="sig-title">Besoin de maintenance — Bd. de la Marina</div>
+          <div class="sig-meta">Haie Vive · il y a 2j</div>
+        </div>
+        <div class="sig-status" style="background:rgba(59,178,115,0.14); color:#3BB273;">Résolu</div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Par catégorie</span>
+      </div>
+      <div class="cat-card">
+        <div class="cat-row">
+          <span class="cat-name">Dégradé</span>
+          <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:82%; background:#E94E3C;"></div></div>
+          <span class="cat-num">24</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Dangereux</span>
+          <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:38%; background:#E94E3C;"></div></div>
+          <span class="cat-num">11</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Obsolète</span>
+          <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:58%; background:#F5A623;"></div></div>
+          <span class="cat-num">17</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Mal placé</span>
+          <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:24%; background:#1E73BE;"></div></div>
+          <span class="cat-num">7</span>
+        </div>
+        <div class="cat-row">
+          <span class="cat-name">Maintenance</span>
+          <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:14%; background:#3BB273;"></div></div>
+          <span class="cat-num">4</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFORMITY DONUT -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Qualité de l'aménagement</span>
+      </div>
+      <div class="donut-card" style="display:flex; align-items:center; gap:16px;">
+        <svg viewBox="0 0 140 140" width="100" height="100" style="flex-shrink:0;">
+          <circle cx="70" cy="70" r="50" fill="none" stroke="#F5F5F5" stroke-width="14"/>
+          <circle cx="70" cy="70" r="50" fill="none" stroke="#3BB273" stroke-width="14"
+                  stroke-dasharray="246 314" stroke-linecap="round" transform="rotate(-90 70 70)"/>
+          <text x="70" y="66" font-size="22" font-weight="bold" text-anchor="middle" fill="#212121">78%</text>
+          <text x="70" y="84" font-size="8.5" text-anchor="middle" fill="#9b9b9b">conformité</text>
+        </svg>
+        <div style="font-size:11px; color:#444; line-height:1.7;">
+          <div><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3BB273;margin-right:6px;"></i>Conforme</div>
+          <div><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F5F5F5;border:1px solid #ddd;margin-right:6px;"></i>À revoir</div>
+          <div style="color:#9b9b9b; margin-top:4px;">Objectif annuel : 85%</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FAB -->
+  <div class="fab">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="white" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="4" stroke="white" stroke-width="2"/></svg>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-8 9 8" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v10h14V10" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Villes
+    </div>
+    <div class="nav-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="2" stroke="#BDBDBD" stroke-width="2"/><path d="M3 9h18" stroke="#BDBDBD" stroke-width="2"/></svg>
+      Relais
+    </div>
+    <div class="nav-item active">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="14" rx="2" stroke="#E94E3C" stroke-width="2"/><path d="M3 14l5-4 4 3 5-5 4 4" stroke="#E94E3C" stroke-width="2"/></svg>
+      États
+    </div>
+    <div class="nav-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-5.2-7-11a7 7 0 1114 0c0 5.8-7 11-7 11z" stroke="#BDBDBD" stroke-width="2"/><circle cx="12" cy="10" r="2.4" stroke="#BDBDBD" stroke-width="2"/></svg>
+      Carte
+    </div>
+    <div class="nav-item">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#BDBDBD" stroke-width="2"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="#BDBDBD" stroke-width="2" stroke-linecap="round"/></svg>
+      Profil
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

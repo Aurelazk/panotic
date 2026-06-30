@@ -12,7 +12,7 @@ import TopNavbar from '../components/TopNavbar';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
 import SocialScreen from '../screens/Placeholder/SocialScreen';
-import ReportScreen from '../screens/Placeholder/ReportScreen';
+import EtatsDesLieux from '@aanid/bryan-fanou-frontend/src/screens/EtatsDesLieux';
 import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive';
 
 const Tab = createBottomTabNavigator();
@@ -20,7 +20,7 @@ const Tab = createBottomTabNavigator();
 const TAB_CONFIG: Record<string, { icon: any; label: string }> = {
   Dashboard: { icon: faHouse, label: 'Accueil' },
   Carte: { icon: faMapLocation, label: 'Carte' },
-  Signalement: { icon: faBell, label: 'Signaler' },
+  EtatsDesLieux: { icon: faBell, label: 'États des Lieux' },
   Formation: { icon: faBuildingColumns, label: 'Formation' },
   Social: { icon: faComment, label: 'Social' },
 };
@@ -71,7 +71,7 @@ export default function TabNavigator() {
     >
       <Tab.Screen name="Dashboard" component={Villes} />
       <Tab.Screen name="Carte" component={CarteInteractive} />
-      <Tab.Screen name="Signalement" component={ReportScreen} />
+      <Tab.Screen name="EtatsDesLieux" component={EtatsDesLieux} />
       <Tab.Screen name="Formation" component={FormationNavigator} />
       <Tab.Screen name="Social" component={SocialScreen} />
     </Tab.Navigator>
