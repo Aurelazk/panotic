@@ -432,8 +432,6 @@ export default function EtatsDesLieux() {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22, flexWrap: 'wrap', gap: 14 }}>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Text style={{ fontSize: logoFs, fontWeight: 'bold', letterSpacing: 0.5, color: C.bleu }}>AANID</Text>
-              <Text style={{ fontSize: f(12, 13), color: C.gris }}>Cotonou › Hub Ville › <Text style={{ color: C.noir, fontWeight: 'bold' }}>États des Lieux</Text></Text>
             </View>
             <Text style={{ fontSize: pageTtlS, fontWeight: 'bold', marginTop: 2, color: C.noir }}>États des Lieux</Text>
             <Text style={{ fontSize: pageSubS, color: '#6b6b6b', marginTop: 2 }}>Suivi en temps réel de la panneautique publicitaire</Text>
@@ -517,7 +515,6 @@ export default function EtatsDesLieux() {
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={{ fontSize: logoFs, fontWeight: 'bold', letterSpacing: 0.3, color: C.bleu }}>AANID</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.grisClair, borderRadius: 999, paddingVertical: 5, paddingLeft: 6, paddingRight: 10, height: 28 }}>
                 <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: C.rouge, justifyContent: 'center', alignItems: 'center' }}>
                   <Text style={{ color: C.blanc, fontSize: 8, fontWeight: 'bold' }}>CO</Text>
