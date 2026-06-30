@@ -20,18 +20,18 @@ const evolution = [
 ];
 
 const signalements = [
-  { id: 'sig-1', titre: 'Panneau dégradé — Av. Steinmetz', zone: 'Akpakpa', date: 'il y a 2h', type: 'photo', statut: 'Urgent', statutColor: '#E94E3C' },
-  { id: 'sig-2', titre: 'Panneau obsolète — Rond-point Étoile Rouge', zone: 'Ganhi', date: 'il y a 5h', type: 'vidéo', statut: 'En cours', statutColor: '#F5A623' },
+  { id: 'sig-1', titre: 'Panneau dégradé — Av. Steinmetz', zone: 'Akpakpa', date: 'il y a 2h', type: 'photo', statut: 'Urgent', statutColor: '#D4654A' },
+  { id: 'sig-2', titre: 'Panneau obsolète — Rond-point Étoile Rouge', zone: 'Ganhi', date: 'il y a 5h', type: 'vidéo', statut: 'En cours', statutColor: '#C99A4E' },
   { id: 'sig-3', titre: 'Emplacement inapproprié — Marché Dantokpa', zone: 'Dantokpa', date: 'il y a 1j', type: null, statut: 'Nouveau', statutColor: '#6b6b6b' },
-  { id: 'sig-4', titre: 'Besoin de maintenance — Bd. de la Marina', zone: 'Haie Vive', date: 'il y a 2j', type: null, statut: 'Résolu', statutColor: '#3BB273' },
+  { id: 'sig-4', titre: 'Besoin de maintenance — Bd. de la Marina', zone: 'Haie Vive', date: 'il y a 2j', type: null, statut: 'Résolu', statutColor: '#8B9D77' },
 ];
 
 const categories = [
-  { nom: 'Panneau dégradé', count: 24, color: '#E94E3C', pct: 82 },
-  { nom: 'Panneau dangereux', count: 11, color: '#E94E3C', pct: 38 },
-  { nom: 'Panneau obsolète', count: 17, color: '#F5A623', pct: 58 },
-  { nom: 'Emplacement inapproprié', count: 7, color: '#1E73BE', pct: 24 },
-  { nom: 'Besoin de maintenance', count: 4, color: '#3BB273', pct: 14 },
+  { nom: 'Panneau dégradé', count: 24, color: '#D4654A', pct: 82 },
+  { nom: 'Panneau dangereux', count: 11, color: '#D4654A', pct: 38 },
+  { nom: 'Panneau obsolète', count: 17, color: '#C99A4E', pct: 58 },
+  { nom: 'Emplacement inapproprié', count: 7, color: '#A8B4C4', pct: 24 },
+  { nom: 'Besoin de maintenance', count: 4, color: '#8B9D77', pct: 14 },
 ];
 
 const carte = {
@@ -41,12 +41,12 @@ const carte = {
     { cx: 60, cy: 170, r: 40, intensite: 'moyenne' },
   ],
   pins: [
-    { top: 40, left: 70, color: '#3BB273' },
-    { top: 95, left: 150, color: '#F5A623' },
-    { top: 70, left: 200, color: '#E94E3C' },
-    { top: 150, left: 240, color: '#1E73BE' },
-    { top: 160, left: 60, color: '#E94E3C' },
-    { top: 180, left: 130, color: '#3BB273' },
+    { top: 40, left: 70, color: '#8B9D77' },
+    { top: 95, left: 150, color: '#C99A4E' },
+    { top: 70, left: 200, color: '#D4654A' },
+    { top: 150, left: 240, color: '#A8B4C4' },
+    { top: 160, left: 60, color: '#D4654A' },
+    { top: 180, left: 130, color: '#8B9D77' },
   ],
   totalPoints: 1284,
 };
