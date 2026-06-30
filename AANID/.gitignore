@@ -35,8 +35,12 @@ Thumbs.db
 .idea/
 *.swp
 
-# React Native
-android/
+# React Native — artefacts de build (garder le projet android/ versionné)
+**/android/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/app/build/
+**/android/.cxx/
 ios/
 *.jks
 *.p8

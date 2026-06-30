@@ -23,6 +23,7 @@ export default defineConfig({
   define: {
     global: 'window',
     __DEV__: JSON.stringify(true),
+    'process.env.AANID_API_URL': JSON.stringify(process.env.AANID_API_URL || ''),
   },
   optimizeDeps: {
     esbuildOptions: {

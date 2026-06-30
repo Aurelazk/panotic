@@ -6,17 +6,32 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "jest"
+    "test": "jest",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push --accept-data-loss",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:seed": "node prisma/seed.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@aanid/beni-momo-adnan-backend": "*",
+    "@aanid/bryan-fanou-backend": "*",
+    "@aanid/rayan-backend": "*",
     "@aanid/shared": "*",
+    "@aanid/undef-backend": "*",
+    "@aanid/w-d-backend": "*",
+    "@prisma/client": "^5.22.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "prisma": "^5.22.0",
     "redis": "^4.6.12"
   },
   "devDependencies": {
     "jest": "^25.0.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   }
 }

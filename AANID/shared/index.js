@@ -23,4 +23,4 @@ const SUBSCRIPTIONS = {
   ENTERPRISE: 'enterprise',
 };
 
-module.exports = { REDIS_KEYS, ROLES, SUBSCRIPTIONS };
+module.exports = { REDIS_KEYS, ROLES, SUBSCRIPTIONS, ...require('./api') };

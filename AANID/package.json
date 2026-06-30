@@ -17,7 +17,11 @@
     "dev:backend": "npm run dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w shared && npm run build -w backend",
-    "test": "npm run test -w backend"
+    "test": "npm run test -w backend",
+    "prisma:generate": "npm run prisma:generate -w backend",
+    "prisma:push": "npm run prisma:push -w backend",
+    "prisma:seed": "npm run prisma:seed -w backend",
+    "setup:android": "bash scripts/setup-android.sh"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

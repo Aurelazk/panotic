@@ -7,7 +7,7 @@ import { COLORS, FONT_FAMILY } from '../../constants/theme';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 
-const API_BASE = '/api/v1';
+import { API_BASE_URL } from '../../config/api';
 const VILLE_ID_KEY = '@aanid/v1/ville_id';
 const VILLE_NOM_KEY = '@aanid/v1/ville_nom';
 
@@ -43,7 +43,7 @@ export default function RegisterScreen({ navigation }: any) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/villes`);
+        const res = await fetch(`${API_BASE_URL}/villes`);
         if (res.ok) {
           const data = await res.json();
           setVilles(Array.isArray(data) ? data : []);

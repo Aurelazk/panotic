@@ -69,4 +69,5 @@ export const INITIAL_REGION = {
   longitudeDelta: 0.08,
 };
 
-export const API_BASE = 'http://localhost:4000/api/v1';
+const { getApiBaseUrl } = require('@aanid/shared/api');
+export const API_BASE = getApiBaseUrl();
