@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { COLORS } from '../constants/theme';
+import { COLORS, FONT_FAMILY } from '../constants/theme';
 import ProfileScreen from '../screens/Profile/ProfileScreen';
 import PricingScreen from '../screens/Profile/PricingScreen';
 import ConfidentialiteScreen from '../screens/Profile/ConfidentialiteScreen';
@@ -13,8 +13,9 @@ export default function ProfileNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0A1628' },
-        headerTintColor: '#fff',
+        headerStyle: { backgroundColor: COLORS.primaryDark },
+        headerTintColor: COLORS.white,
+        headerTitleStyle: { fontFamily: FONT_FAMILY },
         headerBackButtonDisplayMode: 'minimal',
       }}
     >

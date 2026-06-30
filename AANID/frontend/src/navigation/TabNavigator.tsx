@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faHouse, faMapLocation, faComment, faBuildingColumns, faBell,
+  faHouse, faMapLocation, faComment, faBuildingColumns, faClipboardList,
 } from '@fortawesome/free-solid-svg-icons';
+import { COLORS, FONT_FAMILY } from '../constants/theme';
 import FormationNavigator from './FormationNavigator';
 import ProfileNavigator from './ProfileNavigator';
 import NotificationScreen from '../screens/Notifications/NotificationScreen';
@@ -20,7 +21,7 @@ const Tab = createBottomTabNavigator();
 const TAB_CONFIG: Record<string, { icon: any; label: string }> = {
   Dashboard: { icon: faHouse, label: 'Accueil' },
   Carte: { icon: faMapLocation, label: 'Carte' },
-  EtatsDesLieux: { icon: faBell, label: 'États des Lieux' },
+  EtatsDesLieux: { icon: faClipboardList, label: 'États des Lieux' },
   Formation: { icon: faBuildingColumns, label: 'Formation' },
   Social: { icon: faComment, label: 'Social' },
 };
@@ -28,21 +29,15 @@ const TAB_CONFIG: Record<string, { icon: any; label: string }> = {
 function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
   const config = TAB_CONFIG[routeName] || { icon: faHouse, label: '' };
   return (
-    <View style={tabStyles.iconWrap}>
-      <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
-        <FontAwesomeIcon icon={config.icon} size={focused ? 24 : 22} color={focused ? '#F5A623' : '#9CA3AF'} />
-      </View>
-      <Text style={[tabStyles.tabLabel, focused && tabStyles.tabLabelActive]}>{config.label}</Text>
+    <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
+      <FontAwesomeIcon icon={config.icon} style={{ fontSize: 19 }} color={focused ? COLORS.tabActive : COLORS.tabInactive} />
     </View>
   );
 }
 
 const tabStyles = StyleSheet.create({
-  iconWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 2 },
-  iconBg: { width: '100%', height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  iconBgActive: { backgroundColor: 'rgba(245, 166, 35, 0.15)' },
-  tabLabel: { fontSize: 10, fontWeight: '500', color: '#9CA3AF', letterSpacing: 0.2, fontFamily: 'CenturyGothic' },
-  tabLabelActive: { color: '#F5A623', fontWeight: '700' },
+  iconBg: { paddingHorizontal: 16, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  iconBgActive: { backgroundColor: COLORS.chipBg },
 });
 
 export default function TabNavigator() {
@@ -50,22 +45,25 @@ export default function TabNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused }) => <TabIcon routeName={route.name} focused={focused} />,
-        tabBarShowLabel: false,
-        tabBarItemStyle: { flex: 1 },
+        tabBarLabel: TAB_CONFIG[route.name]?.label ?? '',
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: COLORS.tabActive,
+        tabBarInactiveTintColor: COLORS.tabInactive,
+        tabBarLabelStyle: { fontSize: 9.5, fontFamily: FONT_FAMILY, fontWeight: '600', marginTop: 2 },
+        tabBarItemStyle: { flex: 1, paddingTop: 2 },
         header: () => <TopNavbar />,
         tabBarStyle: {
-          borderTopWidth: 0,
-          backgroundColor: '#212121',
-          height: 62,
-          paddingBottom: 6,
-          paddingTop: 4,
-          borderTopLeftRadius: 22,
-          borderTopRightRadius: 22,
-          elevation: 24,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -6 },
-          shadowOpacity: 0.35,
-          shadowRadius: 20,
+          borderTopWidth: 1,
+          borderTopColor: COLORS.border,
+          backgroundColor: COLORS.tabBg,
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 8,
+          elevation: 14,
+          shadowColor: COLORS.shadow,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 16,
         },
       })}
     >
