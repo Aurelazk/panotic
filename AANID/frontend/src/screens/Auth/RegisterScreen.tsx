@@ -6,10 +6,13 @@ import { setCredentials } from '../../store/slices/authSlice';
 import { COLORS, FONT_FAMILY } from '../../constants/theme';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
+import { api, getApiErrorMessage } from '../../api/client';
 
 import { API_BASE_URL } from '../../config/api';
 const VILLE_ID_KEY = '@aanid/v1/ville_id';
 const VILLE_NOM_KEY = '@aanid/v1/ville_nom';
+const ACCESS_TOKEN_KEY = '@aanid/v1/access_token';
+const REFRESH_TOKEN_KEY = '@aanid/v1/refresh_token';
 
 const FLAGS = {
   'Bénin': '🇧🇯',
@@ -84,32 +87,50 @@ export default function RegisterScreen({ navigation }: any) {
       Alert.alert('Ville requise', 'Veuillez sélectionner votre ville.');
       return;
     }
+    if (password.length < 8) {
+      Alert.alert('Mot de passe faible', 'Minimum 8 caractères avec majuscule, minuscule, chiffre et caractère spécial (@$!%*?&-_#).');
+      return;
+    }
 
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1200));
-
     try {
+      await api.post('/auth/register', {
+        fullName: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        city: villeNom,
+        password,
+        role: 'CITOYEN',
+      });
+
+      const { data } = await api.post('/auth/login', { email: email.trim(), password });
+      const token = data.accessToken;
+      const u = data.user;
+
       await AsyncStorage.setItem(VILLE_ID_KEY, villeId);
       await AsyncStorage.setItem(VILLE_NOM_KEY, villeNom);
-    } catch {}
+      await AsyncStorage.setItem(ACCESS_TOKEN_KEY, token);
+      if (data.refreshToken) await AsyncStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
 
-    setSubmitting(false);
-    setShowWelcome(true);
-    await new Promise(r => setTimeout(r, 2000));
-
-    dispatch(setCredentials({
-      user: {
-        id: '1',
-        email,
-        firstName: name.split(' ')[0],
-        fullName: name,
-        role: 'CITOYEN',
-        pays,
-        villeId,
-        villeNom,
-      },
-      token: 'mock-token',
-    }));
+      dispatch(setCredentials({
+        user: {
+          id: u.id,
+          email: u.email,
+          firstName: u.fullName?.split(' ')[0] || name.split(' ')[0],
+          fullName: u.fullName,
+          role: u.role,
+          pays,
+          villeId,
+          villeNom,
+        },
+        token,
+      }));
+    } catch (err: any) {
+      const msg = getApiErrorMessage(err, 'Inscription impossible. Vérifiez vos informations.');
+      Alert.alert('Erreur', msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

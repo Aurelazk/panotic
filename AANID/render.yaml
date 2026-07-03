@@ -10,12 +10,14 @@ services:
     buildCommand: >-
       npm install &&
       npm run prisma:generate -w backend &&
-      if [ -n "$DATABASE_URL" ]; then npm run prisma:push -w backend; else echo "DATABASE_URL absent — skip prisma push"; fi
+      if [ -n "$DATABASE_URL" ]; then npm run prisma:setup -w backend; else echo "DATABASE_URL absent — skip prisma setup"; fi
     startCommand: npm start -w backend
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: AANID_AUTO_VERIFY_EMAIL
+        value: "true"
       - key: DATABASE_URL
         sync: false
       - key: AANID_ACCESS_SECRET

@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const userStore = require('./userStore');
 
 const router = express.Router();
 
@@ -41,20 +42,14 @@ if (!ACCESS_SECRET || !REFRESH_SECRET) {
 const _ACCESS_SECRET = ACCESS_SECRET || 'dev-only-access-secret-CHANGE-ME';
 const _REFRESH_SECRET = REFRESH_SECRET || 'dev-only-refresh-secret-CHANGE-ME';
 
-// ─── In-memory stores ─────────────────────────────────────────────────────────
-// Replace with Prisma/PostgreSQL in production
+const AUTO_VERIFY_EMAIL =
+  process.env.AANID_AUTO_VERIFY_EMAIL === 'true' || process.env.NODE_ENV !== 'production';
 
-/** @type {Map<string, object>} email → user */
-const users = new Map();
-
-/** @type {Set<string>} valid refresh tokens */
-const refreshTokens = new Set();
-
-/** @type {Map<string, { email: string, expiresAt: number }>} */
-const verificationTokens = new Map();
-
-/** @type {Map<string, { email: string, expiresAt: number }>} */
-const passwordResetTokens = new Map();
+if (userStore.dbEnabled()) {
+  console.log('[AANID] Auth → PostgreSQL (Neon/Prisma)');
+} else {
+  console.warn('[AANID] Auth → mémoire (DATABASE_URL absent, données perdues au redémarrage)');
+}
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 // Replace with express-rate-limit + Redis in production
@@ -144,7 +139,12 @@ function generateRefreshToken(userId) {
     _REFRESH_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRY, issuer: 'aanid', audience: 'aanid-app' }
   );
-  refreshTokens.add(token);
+  return token;
+}
+
+async function persistRefreshToken(token, userId) {
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  await userStore.saveRefreshToken(token, userId, expiresAt);
   return token;
 }
 
@@ -185,8 +185,7 @@ function authorizeRoles(...roles) {
 // ─── Helper: strip sensitive fields ──────────────────────────────────────────
 
 function safeUser(user) {
-  const { passwordHash, ...rest } = user;
-  return rest;
+  return userStore.toSafeUser(user);
 }
 
 // ─── Helper: get client IP ────────────────────────────────────────────────────
@@ -208,8 +207,8 @@ router.post('/auth/register', async (req, res) => {
   try {
     const { fullName, email, phone, city, password, role } = req.body ?? {};
 
-    if (!fullName || !email || !phone || !city || !password) {
-      return res.status(400).json({ error: 'fullName, email, phone, city et password sont requis' });
+    if (!fullName || !email || !password) {
+      return res.status(400).json({ error: 'fullName, email et password sont requis' });
     }
 
     if (!validateFullName(fullName)) {
@@ -221,11 +220,11 @@ router.post('/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Adresse email invalide' });
     }
 
-    if (!validatePhone(phone)) {
+    if (phone && !validatePhone(phone)) {
       return res.status(400).json({ error: 'Numéro de téléphone invalide (7 à 15 chiffres)' });
     }
 
-    if (!validateCity(city)) {
+    if (city && !validateCity(city)) {
       return res.status(400).json({ error: 'La ville doit contenir entre 2 et 100 caractères' });
     }
 
@@ -240,45 +239,43 @@ router.post('/auth/register', async (req, res) => {
         ? role
         : ROLES.CITOYEN;
 
-    if (users.has(normalizedEmail)) {
+    if (await userStore.findUserByEmail(normalizedEmail)) {
       // Generic delay to prevent email enumeration via timing
       await bcrypt.hash(password, BCRYPT_ROUNDS);
       return res.status(409).json({ error: 'Cet email est déjà utilisé' });
     }
 
     const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-    const userId = crypto.randomUUID();
     const verificationToken = generateOpaqueToken();
+    const emailVerified = AUTO_VERIFY_EMAIL;
 
-    const user = {
-      id: userId,
+    const user = await userStore.createUser({
       fullName: fullName.trim(),
       email: normalizedEmail,
-      phone: normalizePhone(phone),
-      city: city.trim(),
+      phone: phone ? normalizePhone(phone) : null,
+      city: city ? city.trim() : null,
       passwordHash,
       role: assignedRole,
-      subscription: SUBSCRIPTIONS.FREE,
-      emailVerified: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    users.set(normalizedEmail, user);
-    verificationTokens.set(verificationToken, {
-      email: normalizedEmail,
-      expiresAt: Date.now() + VERIFICATION_TOKEN_TTL_MS,
+      emailVerified,
     });
 
-    // TODO: send verification email via transactional email service
-    // emailService.sendVerification(normalizedEmail, verificationToken)
-    if (process.env.NODE_ENV !== 'production') {
-      console.log(`[AANID:DEV] Verification token for ${normalizedEmail}: ${verificationToken}`);
+    if (!emailVerified) {
+      await userStore.saveVerificationToken(
+        verificationToken,
+        normalizedEmail,
+        new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+      );
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`[AANID:DEV] Verification token for ${normalizedEmail}: ${verificationToken}`);
+      }
     }
 
     return res.status(201).json({
-      message: 'Compte créé. Vérifiez votre email pour activer votre compte.',
+      message: emailVerified
+        ? 'Compte créé. Vous pouvez vous connecter.'
+        : 'Compte créé. Vérifiez votre email pour activer votre compte.',
       userId: user.id,
+      emailVerified,
     });
   } catch (err) {
     console.error('[AANID] register error:', err.message);
@@ -305,7 +302,7 @@ router.post('/auth/login', async (req, res) => {
     }
 
     const normalizedEmail = normalizeEmail(email);
-    const user = users.get(normalizedEmail);
+    const user = await userStore.findUserByEmail(normalizedEmail);
 
     if (!user) {
       // Constant-time response to prevent email enumeration
@@ -329,6 +326,7 @@ router.post('/auth/login', async (req, res) => {
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user.id);
+    await persistRefreshToken(refreshToken, user.id);
 
     return res.status(200).json({
       accessToken,
@@ -342,14 +340,14 @@ router.post('/auth/login', async (req, res) => {
 });
 
 // POST /auth/refresh
-router.post('/auth/refresh', (req, res) => {
+router.post('/auth/refresh', async (req, res) => {
   const { refreshToken } = req.body ?? {};
 
   if (!refreshToken || typeof refreshToken !== 'string') {
     return res.status(400).json({ error: 'Refresh token requis' });
   }
 
-  if (!refreshTokens.has(refreshToken)) {
+  if (!(await userStore.refreshTokenExists(refreshToken))) {
     return res.status(401).json({ error: 'Refresh token invalide ou révoqué' });
   }
 
@@ -359,55 +357,52 @@ router.post('/auth/refresh', (req, res) => {
       audience: 'aanid-app',
     });
 
-    const user = [...users.values()].find((u) => u.id === payload.sub);
+    const user = await userStore.findUserById(payload.sub);
     if (!user) {
-      refreshTokens.delete(refreshToken);
+      await userStore.deleteRefreshToken(refreshToken);
       return res.status(401).json({ error: 'Utilisateur introuvable' });
     }
 
-    // Token rotation: revoke old, issue new pair
-    refreshTokens.delete(refreshToken);
+    await userStore.deleteRefreshToken(refreshToken);
     const newAccessToken = generateAccessToken(user);
     const newRefreshToken = generateRefreshToken(user.id);
+    await persistRefreshToken(newRefreshToken, user.id);
 
     return res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
   } catch {
-    refreshTokens.delete(refreshToken);
+    await userStore.deleteRefreshToken(refreshToken);
     return res.status(401).json({ error: 'Refresh token expiré ou invalide' });
   }
 });
 
 // POST /auth/logout
-router.post('/auth/logout', authenticateToken, (req, res) => {
+router.post('/auth/logout', authenticateToken, async (req, res) => {
   const { refreshToken } = req.body ?? {};
   if (refreshToken && typeof refreshToken === 'string') {
-    refreshTokens.delete(refreshToken);
+    await userStore.deleteRefreshToken(refreshToken);
   }
   return res.status(200).json({ message: 'Déconnexion réussie' });
 });
 
 // GET /auth/verify-email/:token
-router.get('/auth/verify-email/:token', (req, res) => {
+router.get('/auth/verify-email/:token', async (req, res) => {
   const { token } = req.params;
   if (!token || !/^[0-9a-f]{64}$/.test(token)) {
     return res.status(400).json({ error: 'Lien de vérification invalide ou expiré' });
   }
-  const record = verificationTokens.get(token);
+  const record = await userStore.consumeVerificationToken(token);
 
   if (!record || Date.now() > record.expiresAt) {
-    verificationTokens.delete(token);
     return res.status(400).json({ error: 'Lien de vérification invalide ou expiré' });
   }
 
-  const user = users.get(record.email);
+  const user = await userStore.findUserByEmail(record.email);
   if (!user) {
-    verificationTokens.delete(token);
     return res.status(404).json({ error: 'Compte introuvable' });
   }
 
   user.emailVerified = true;
-  user.updatedAt = new Date().toISOString();
-  verificationTokens.delete(token);
+  await userStore.updateUser(user);
 
   return res.status(200).json({ message: 'Email vérifié avec succès. Vous pouvez vous connecter.' });
 });
@@ -423,7 +418,7 @@ router.post('/auth/resend-verification', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email requis' });
 
   const normalizedEmail = normalizeEmail(email);
-  const user = users.get(normalizedEmail);
+  const user = await userStore.findUserByEmail(normalizedEmail);
 
   // Generic response to prevent enumeration
   if (!user || user.emailVerified) {
@@ -431,10 +426,11 @@ router.post('/auth/resend-verification', async (req, res) => {
   }
 
   const verificationToken = generateOpaqueToken();
-  verificationTokens.set(verificationToken, {
-    email: normalizedEmail,
-    expiresAt: Date.now() + VERIFICATION_TOKEN_TTL_MS,
-  });
+  await userStore.saveVerificationToken(
+    verificationToken,
+    normalizedEmail,
+    new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+  );
 
   if (process.env.NODE_ENV !== 'production') {
     console.log(`[AANID:DEV] New verification token for ${normalizedEmail}: ${verificationToken}`);
@@ -454,14 +450,15 @@ router.post('/auth/forgot-password', async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Email requis' });
 
   const normalizedEmail = normalizeEmail(email);
-  const user = users.get(normalizedEmail);
+  const user = await userStore.findUserByEmail(normalizedEmail);
 
   if (user) {
     const resetToken = generateOpaqueToken();
-    passwordResetTokens.set(resetToken, {
-      email: normalizedEmail,
-      expiresAt: Date.now() + PASSWORD_RESET_TOKEN_TTL_MS,
-    });
+    await userStore.savePasswordResetToken(
+      resetToken,
+      normalizedEmail,
+      new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS),
+    );
     if (process.env.NODE_ENV !== 'production') {
       console.log(`[AANID:DEV] Password reset token for ${normalizedEmail}: ${resetToken}`);
     }
@@ -483,9 +480,8 @@ router.post('/auth/reset-password', async (req, res) => {
       return res.status(400).json({ error: 'Lien de réinitialisation invalide ou expiré' });
     }
 
-    const record = passwordResetTokens.get(token);
+    const record = await userStore.consumePasswordResetToken(token);
     if (!record || Date.now() > record.expiresAt) {
-      passwordResetTokens.delete(token);
       return res.status(400).json({ error: 'Lien de réinitialisation invalide ou expiré' });
     }
 
@@ -495,25 +491,14 @@ router.post('/auth/reset-password', async (req, res) => {
       });
     }
 
-    const user = users.get(record.email);
+    const user = await userStore.findUserByEmail(record.email);
     if (!user) {
-      passwordResetTokens.delete(token);
       return res.status(404).json({ error: 'Compte introuvable' });
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-    user.updatedAt = new Date().toISOString();
-    passwordResetTokens.delete(token);
-
-    // Revoke all refresh tokens for this user
-    for (const rt of refreshTokens) {
-      try {
-        const payload = jwt.verify(rt, _REFRESH_SECRET, { issuer: 'aanid', audience: 'aanid-app' });
-        if (payload.sub === user.id) refreshTokens.delete(rt);
-      } catch {
-        refreshTokens.delete(rt);
-      }
-    }
+    await userStore.updateUser(user);
+    await userStore.deleteRefreshTokensForUser(user.id);
 
     return res.status(200).json({ message: 'Mot de passe réinitialisé avec succès.' });
   } catch (err) {
@@ -527,8 +512,8 @@ router.post('/auth/reset-password', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // GET /profile
-router.get('/profile', authenticateToken, (req, res) => {
-  const user = [...users.values()].find((u) => u.id === req.user.sub);
+router.get('/profile', authenticateToken, async (req, res) => {
+  const user = await userStore.findUserById(req.user.sub);
   if (!user) return res.status(404).json({ error: 'Profil introuvable' });
 
   return res.status(200).json({ user: safeUser(user) });
@@ -537,7 +522,7 @@ router.get('/profile', authenticateToken, (req, res) => {
 // PATCH /profile
 router.patch('/profile', authenticateToken, async (req, res) => {
   try {
-    const user = [...users.values()].find((u) => u.id === req.user.sub);
+    const user = await userStore.findUserById(req.user.sub);
     if (!user) return res.status(404).json({ error: 'Profil introuvable' });
 
     const { fullName, phone, city } = req.body ?? {};
@@ -563,7 +548,7 @@ router.patch('/profile', authenticateToken, async (req, res) => {
       user.city = city.trim();
     }
 
-    user.updatedAt = new Date().toISOString();
+    await userStore.updateUser(user);
     return res.status(200).json({ user: safeUser(user) });
   } catch (err) {
     console.error('[AANID] update profile error:', err.message);
@@ -579,7 +564,7 @@ router.patch('/profile/password', authenticateToken, async (req, res) => {
   }
 
   try {
-    const user = [...users.values()].find((u) => u.id === req.user.sub);
+    const user = await userStore.findUserById(req.user.sub);
     if (!user) return res.status(404).json({ error: 'Profil introuvable' });
 
     const { currentPassword, newPassword } = req.body ?? {};
@@ -605,17 +590,8 @@ router.patch('/profile/password', authenticateToken, async (req, res) => {
     }
 
     user.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
-    user.updatedAt = new Date().toISOString();
-
-    // Revoke all refresh tokens for this user (force re-login on other devices)
-    for (const rt of refreshTokens) {
-      try {
-        const payload = jwt.verify(rt, _REFRESH_SECRET, { issuer: 'aanid', audience: 'aanid-app' });
-        if (payload.sub === user.id) refreshTokens.delete(rt);
-      } catch {
-        refreshTokens.delete(rt);
-      }
-    }
+    await userStore.updateUser(user);
+    await userStore.deleteRefreshTokensForUser(user.id);
 
     return res.status(200).json({ message: 'Mot de passe modifié. Reconnectez-vous sur vos autres appareils.' });
   } catch (err) {
@@ -625,8 +601,8 @@ router.patch('/profile/password', authenticateToken, async (req, res) => {
 });
 
 // GET /profile/subscription
-router.get('/profile/subscription', authenticateToken, (req, res) => {
-  const user = [...users.values()].find((u) => u.id === req.user.sub);
+router.get('/profile/subscription', authenticateToken, async (req, res) => {
+  const user = await userStore.findUserById(req.user.sub);
   if (!user) return res.status(404).json({ error: 'Profil introuvable' });
 
   const details = {
@@ -666,11 +642,11 @@ router.patch('/profile/subscription', authenticateToken, authorizeRoles(ROLES.AD
     return res.status(400).json({ error: 'userId et subscription valide requis' });
   }
 
-  const user = [...users.values()].find((u) => u.id === userId);
+  const user = await userStore.findUserById(userId);
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
   user.subscription = subscription;
-  user.updatedAt = new Date().toISOString();
+  await userStore.updateUser(user);
 
   return res.status(200).json({
     message: `Abonnement mis à jour vers ${subscription}`,

@@ -1,11 +1,11 @@
 /**
- * Seed Neon/Postgres avec les données de démo des modules AANID.
- * Les routes HTTP utilisent encore les stores en mémoire des modules ;
- * ce seed prépare la persistance pour la migration progressive.
+ * Seed Neon/Postgres avec villes, formations et compte démo.
  */
+const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
+const BCRYPT_ROUNDS = 12;
 
 const VILLES = [
   {
@@ -58,18 +58,23 @@ const VILLES = [
 const FORMATIONS = [
   {
     id: 'fmt-1',
-    title: 'Conception et installation de panneaux publicitaires',
-    description: "Maîtrisez les techniques de conception et d'installation des panneaux publicitaires.",
+    title: 'Formation sur la panneautique : domaine public',
+    description: 'Module 1 — Panneautique, réorganisation du secteur et gestion du mobilier urbain de publicité.',
     category: 'PANNEAUTIQUE',
     imageUrl: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0',
-    duration: '4 semaines',
-    capacity: 50,
-    enrolledCount: 12,
-    price: 25000,
+    duration: 'Module 1',
+    capacity: 200,
+    enrolledCount: 18,
+    price: 0,
     currency: 'XOF',
-    isFree: false,
+    isFree: true,
     modules: [
-      { id: 'mod-1', title: 'Normes et réglementations', content: 'Introduction aux normes.', duration: '1 semaine', imageUrl: null },
+      { id: 'mod-1', title: 'Chapitre 1 — Le panneau publicitaire', content: "Introduction à la panneautique et rôle socio-économique du panneau publicitaire.", duration: '15 min' },
+      { id: 'mod-2', title: 'Leçon 2 — Constat général', content: "Pollution visuelle, délabrement des supports et nécessité de réglementation.", duration: '12 min' },
+      { id: 'mod-3', title: 'Chapitre 2 — Réorganisation du secteur', content: 'Audit, état des lieux, zonage, lots et concession des espaces publicitaires.', duration: '25 min' },
+      { id: 'mod-4', title: 'Chapitre 3 — Évaluation du système', content: "Mécanisme d'évaluation scientifique du secteur.", duration: '10 min' },
+      { id: 'mod-5', title: 'Chapitre 4 — Mise à jour', content: 'Pérennisation et alignement avec l\'urbanisation.', duration: '10 min' },
+      { id: 'mod-6', title: 'Questionnaire — Module 1', content: 'Révisions et auto-évaluation.', duration: '20 min' },
     ],
   },
   {
@@ -85,7 +90,7 @@ const FORMATIONS = [
     currency: 'XOF',
     isFree: true,
     modules: [
-      { id: 'mod-4', title: 'Tri et collecte', content: 'Les bases du tri sélectif.', duration: '3 jours', imageUrl: null },
+      { id: 'mod-4', title: 'Tri et collecte', content: 'Les bases du tri sélectif.', duration: '3 jours' },
     ],
   },
 ];
@@ -110,6 +115,28 @@ async function main() {
     });
   }
   console.log(`  ✓ ${FORMATIONS.length} formations`);
+
+  const demoPassword = await bcrypt.hash('Demo1234!', BCRYPT_ROUNDS);
+  await prisma.user.upsert({
+    where: { email: 'demo@aanid.bj' },
+    update: {
+      fullName: 'Utilisateur Démo',
+      passwordHash: demoPassword,
+      emailVerified: true,
+      city: 'Cotonou',
+      phone: '22900000000',
+    },
+    create: {
+      email: 'demo@aanid.bj',
+      fullName: 'Utilisateur Démo',
+      passwordHash: demoPassword,
+      emailVerified: true,
+      city: 'Cotonou',
+      phone: '22900000000',
+      role: 'CITOYEN',
+    },
+  });
+  console.log('  ✓ compte démo demo@aanid.bj / Demo1234!');
 
   console.log('✅ Seed terminé');
 }
