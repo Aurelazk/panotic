@@ -1,9 +1,13 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 const router = express.Router();
 
 const SECRET = process.env.AANID_ACCESS_SECRET || 'dev-only-access-secret-CHANGE-ME';
+
+// Documents PDF des formations
+router.use('/formations/assets', express.static(path.join(__dirname, '../assets/formations')));
 
 // ─── Données mock ───────────────────────────────────────────────────────────
 
@@ -12,20 +16,61 @@ const CATEGORIES = ['PANNEAUTIQUE', 'ENVIRONNEMENT', 'SANTE', 'INFRASTRUCTURE'];
 const formations = [
   {
     id: 'fmt-1',
-    title: 'Conception et installation de panneaux publicitaires',
-    description: "Maîtrisez les techniques de conception et d'installation des panneaux publicitaires conformément aux normes en vigueur.",
+    title: 'Formation sur la panneautique : domaine public',
+    description: "Première version officielle AANID — Module 1 : introduction à la panneautique, réorganisation du secteur et gestion du mobilier urbain de publicité.",
     category: 'PANNEAUTIQUE',
     imageUrl: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0',
-    duration: '4 semaines',
-    capacity: 50,
-    enrolledCount: 12,
-    price: 25000,
+    duration: 'Module 1',
+    capacity: 200,
+    enrolledCount: 18,
+    price: 0,
     currency: 'XOF',
-    isFree: false,
+    isFree: true,
+    version: '1.0',
+    pdfUrl: '/formations/assets/panneautique-v1.pdf',
     modules: [
-      { id: 'mod-1', title: 'Normes et réglementations', content: "Introduction aux normes en vigueur pour l'affichage publicitaire en milieu urbain. Découvrez les textes législatifs qui encadrent la publicité extérieure et les obligations des afficheurs.", duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85' },
-      { id: 'mod-2', title: 'Design graphique', content: 'Principes de conception graphique appliqués aux panneaux publicitaires. Apprenez à créer des visuels percutants qui captent l\'attention tout en respectant les normes de sécurité.', duration: '2 semaines', imageUrl: 'https://images.unsplash.com/photo-1626785774573-4b799315345d' },
-      { id: 'mod-3', title: 'Installation et maintenance', content: "Techniques d'installation sécurisée et maintenance préventive des panneaux publicitaires. Maîtrisez les procédures de montage, de vérification structurelle et d'entretien courant.", duration: '1 semaine', imageUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd' },
+      {
+        id: 'mod-1',
+        title: 'Chapitre 1 — Le panneau publicitaire',
+        content: "La panneautique regroupe les moyens et techniques d'installation et de gestion des panneaux publicitaires. Le panneau publicitaire stimule la consommation, contribue à l'embellissement des villes et participe au décor de l'espace public lorsqu'il est bien encadré.",
+        duration: '15 min',
+        imageUrl: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85',
+      },
+      {
+        id: 'mod-2',
+        title: 'Leçon 2 — Constat général',
+        content: "Dans de nombreuses villes africaines, la pléthore de panneaux, l'absence de normes et l'état délabré des supports génèrent pollution visuelle, insalubrité et insécurité. Des mesures adéquates sont nécessaires pour garantir la contribution du secteur au développement socio-économique.",
+        duration: '12 min',
+        imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab',
+      },
+      {
+        id: 'mod-3',
+        title: 'Chapitre 2 — Réorganisation du secteur',
+        content: "Les étapes clés : audit des acteurs et du cahier des charges, état des lieux (relevé GPS et plan piquet), zonage des espaces publicitaires, constitution des lots, mise en concession, attribution aux régies et gestion transparente du secteur.",
+        duration: '25 min',
+        imageUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd',
+      },
+      {
+        id: 'mod-4',
+        title: 'Chapitre 3 — Évaluation du système',
+        content: "Un mécanisme d'évaluation scientifique, autonome et continu permet de prévenir les dérapages et de sécuriser les intérêts des acteurs et des populations, de l'audit à la gestion des régies publicitaires.",
+        duration: '10 min',
+        imageUrl: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40',
+      },
+      {
+        id: 'mod-5',
+        title: 'Chapitre 4 — Mise à jour du secteur',
+        content: "La mise à jour pérennise les acquis, favorise le rayonnement des villes et aligne l'exploitation des supports avec l'urbanisation et la croissance démographique.",
+        duration: '10 min',
+        imageUrl: 'https://images.unsplash.com/photo-1449156059539-798052149959',
+      },
+      {
+        id: 'mod-6',
+        title: 'Questionnaire — Module 1',
+        content: "Révisez les définitions (panneautique, zonage, mobilier urbain de publicité, régie publicitaire, pollution visuelle) et préparez vos réponses aux 12 questions du document officiel.",
+        duration: '20 min',
+        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173',
+      },
     ],
     createdAt: '2025-10-01T00:00:00.000Z',
   },

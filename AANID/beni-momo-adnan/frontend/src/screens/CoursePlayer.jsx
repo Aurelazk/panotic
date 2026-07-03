@@ -1,9 +1,20 @@
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image } from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet, Image, Platform } from 'react-native';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import { WebView } from 'react-native-webview';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faCheck, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faCheck, faCircleCheck, faFilePdf } from '@fortawesome/free-solid-svg-icons';
 import { getFormationById, updateProgress } from '../services/formationService';
+
+const { getApiOrigin } = require('@aanid/shared/api');
+
+function buildPdfUrl(pdfUrl) {
+  if (!pdfUrl) return null;
+  if (pdfUrl.startsWith('http')) return pdfUrl;
+  const origin = getApiOrigin();
+  const path = pdfUrl.startsWith('/api/v1') ? pdfUrl : `/api/v1${pdfUrl.startsWith('/') ? pdfUrl : `/${pdfUrl}`}`;
+  return `${origin}${path}`;
+}
 
 export default function CoursePlayer() {
   const route = useRoute();
@@ -15,6 +26,9 @@ export default function CoursePlayer() {
   const [currentIndex, setCurrentIndex] = useState(initialModule || 0);
   const [modulesCompleted, setModulesCompleted] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
+
+  const pdfUrl = useMemo(() => buildPdfUrl(formation?.pdfUrl), [formation?.pdfUrl]);
 
   useEffect(() => {
     (async () => {
@@ -68,6 +82,35 @@ export default function CoursePlayer() {
 
   if (!formation || !currentModule) return null;
 
+  if (showPdf && pdfUrl) {
+    const viewerUrl = Platform.OS === 'android'
+      ? `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(pdfUrl)}`
+      : pdfUrl;
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => setShowPdf(false)}>
+            <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 15 }} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle} numberOfLines={1}>Document PDF</Text>
+            <Text style={styles.headerSubtitle}>Formation v{formation.version || '1.0'}</Text>
+          </View>
+        </View>
+        <WebView
+          source={{ uri: viewerUrl }}
+          style={styles.pdfViewer}
+          startInLoadingState
+          renderLoading={() => (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#C19A6B" />
+            </View>
+          )}
+        />
+      </View>
+    );
+  }
+
   const totalModules = formation.modules.length;
   const completedCount = modulesCompleted.length;
   const progress = totalModules > 0 ? Math.round((completedCount / totalModules) * 100) : 0;
@@ -93,6 +136,12 @@ export default function CoursePlayer() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
+        {pdfUrl && (
+          <TouchableOpacity style={styles.pdfBtn} onPress={() => setShowPdf(true)} activeOpacity={0.85}>
+            <FontAwesomeIcon icon={faFilePdf} size={16} color="#9C7C4F" />
+            <Text style={styles.pdfBtnText}>Consulter le document PDF complet</Text>
+          </TouchableOpacity>
+        )}
         {currentModule.imageUrl && (
           <Image source={{ uri: currentModule.imageUrl }} style={styles.moduleImage} />
         )}
@@ -228,6 +277,29 @@ const styles = StyleSheet.create({
   contentInner: {
     padding: 16,
     paddingBottom: 24,
+  },
+  pdfBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F9F1E5',
+    borderWidth: 1,
+    borderColor: '#E8DCC8',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  pdfBtnText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9C7C4F',
+    flex: 1,
+  },
+  pdfViewer: {
+    flex: 1,
+    backgroundColor: '#F9F1E5',
   },
   moduleImage: {
     width: '100%',

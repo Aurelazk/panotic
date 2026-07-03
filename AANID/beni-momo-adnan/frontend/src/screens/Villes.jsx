@@ -29,6 +29,8 @@ const FLAGS = {
 
 // Palette "Sable" (harmonisée avec le thème global)
 const COLORS = {
+  primary: '#C19A6B',
+  primaryDark: '#9C7C4F',
   bleu: '#C19A6B',
   orange: '#D9A441',
   vert: '#6E8B5B',
