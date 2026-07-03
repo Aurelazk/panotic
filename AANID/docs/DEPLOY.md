@@ -138,16 +138,32 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 
 ---
 
-## 6. Google Maps (carte native)
+## 6. Carte native (gratuite — OpenStreetMap / CARTO)
 
-1. [Google Cloud Console](https://console.cloud.google.com) → activer **Maps SDK for Android**
-2. Créer une clé API (restreinte au package `com.aanid`)
-3. Dans `AANID/frontend/android/app/src/main/AndroidManifest.xml` :
-   ```xml
-   <meta-data
-     android:name="com.google.android.geo.API_KEY"
-     android:value="VOTRE_CLE_API" />
-   ```
+Aucun abonnement Google Maps n'est requis.
+
+- **Web** : Leaflet + tuiles [CARTO](https://carto.com/) / OpenStreetMap (voir `frontend/src/mocks/maps-mock.tsx`)
+- **Android / iOS** : même fond cartographique via **Leaflet dans une WebView** (`rayann/frontend/src/components/LeafletNativeMap.jsx`)
+- Tuiles utilisées : `basemaps.cartocdn.com` (clair) et Esri World Imagery (satellite) — gratuites pour un usage modéré, avec attribution OSM/CARTO affichée sur la carte
+- **Pas de clé API** dans `AndroidManifest.xml`
+
+Pour reconstruire l'APK après modification de la carte :
+
+```bash
+cd AANID && npm run android:apk:debug --workspace=@aanid/frontend
+```
+
+### Écran blanc / « Unable to load script » après installation
+
+L'APK **debug** doit embarquer le bundle JavaScript (config `debuggableVariants = []` dans `android/app/build.gradle`). Sans cela, l'app cherche Metro sur le PC et reste vide sur téléphone.
+
+Vérifier que le bundle est dans l'APK :
+
+```bash
+unzip -l frontend/android/app/build/outputs/apk/debug/app-debug.apk | grep index.android.bundle
+```
+
+L'APK prêt à installer se trouve aussi à la racine du repo : `app-debug.apk` (~130 Mo).
 
 ---
 
@@ -159,7 +175,7 @@ adb install android/app/build/outputs/apk/debug/app-debug.apk
 - [ ] Login appelle `/api/v1/auth/login` (plus de mock-token)
 - [ ] Health check OK
 - [ ] APK testé sur émulateur + appareil physique
-- [ ] Clé Google Maps configurée (carte)
+- [ ] Carte affiche les tuiles OSM/CARTO (connexion Internet requise)
 
 ---
 

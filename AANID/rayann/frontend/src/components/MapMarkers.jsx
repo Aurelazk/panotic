@@ -6,35 +6,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLocationDot } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
 import {
-  SIGNALEMENT_TYPES, PANEL_STATUSES, INITIAL_REGION, TILE_URLS,
-  SIGNALEMENT_ICONS, PANEL_ICONS,
+  INITIAL_REGION, TILE_URLS, SIGNALEMENT_ICONS, PANEL_ICONS,
 } from '../constants/mapData';
+import {
+  getSignalementColor,
+  getPanelColor,
+  getZoneFillColor,
+  getZoneStrokeColor,
+  formatDate,
+} from './mapMarkerHelpers';
 import { styles } from '../styles/CarteInteractive.styles';
 
-function getSignalementColor(type) {
-  const found = SIGNALEMENT_TYPES.find(t => t.value === type);
-  return found ? found.color : COLORS.primary;
-}
-
-function getPanelColor(etat) {
-  const found = PANEL_STATUSES.find(s => s.value === etat);
-  return found ? found.color : COLORS.primary;
-}
-
-function getZoneFillColor(type) {
-  return COLORS.zone[type] || 'rgba(193,154,107,0.25)';
-}
-
-function getZoneStrokeColor(type) {
-  return COLORS.zoneStroke[type] || COLORS.primary;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
-}
-
-// Marqueur "goutte" moderne : tête ronde + pointe, pictogramme central.
 function PinGraphic({ color, icon, selected }) {
   const scale = selected ? 1.14 : 1;
   return (
@@ -49,8 +31,6 @@ function PinGraphic({ color, icon, selected }) {
   );
 }
 
-// Les fonctions ci-dessous RETOURNENT directement des <Marker>/<Polygon> (avec key)
-// afin qu'ils soient des enfants directs du MapView (requis par le rendu web/Leaflet).
 function renderSignalement(item, onSelect, selected) {
   const color = getSignalementColor(item.type);
   return (
@@ -116,7 +96,7 @@ function renderZone(item, onPress) {
   return (
     <Polygon
       key={item.id}
-      coordinates={(item.boundary?.coordinates?.[0] || []).map(c => ({
+      coordinates={(item.boundary?.coordinates?.[0] || []).map((c) => ({
         latitude: c[1],
         longitude: c[0],
       }))}

@@ -1,14 +1,9 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { memo } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faHouse, faMapLocation, faComment, faBuildingColumns, faClipboardList,
-} from '@fortawesome/free-solid-svg-icons';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import { COLORS, FONT_FAMILY } from '../constants/theme';
 import FormationNavigator from './FormationNavigator';
-import ProfileNavigator from './ProfileNavigator';
-import NotificationScreen from '../screens/Notifications/NotificationScreen';
 import TopNavbar from '../components/TopNavbar';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
@@ -18,25 +13,32 @@ import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive
 
 const Tab = createBottomTabNavigator();
 
-const TAB_CONFIG: Record<string, { icon: any; label: string }> = {
-  Dashboard: { icon: faHouse, label: 'Accueil' },
-  Carte: { icon: faMapLocation, label: 'Carte' },
-  EtatsDesLieux: { icon: faClipboardList, label: 'États des Lieux' },
-  Formation: { icon: faBuildingColumns, label: 'Formation' },
-  Social: { icon: faComment, label: 'Social' },
+const TAB_CONFIG: Record<string, { icon: string; label: string }> = {
+  Dashboard: { icon: 'house', label: 'Accueil' },
+  Carte: { icon: 'map-location-dot', label: 'Carte' },
+  EtatsDesLieux: { icon: 'clipboard-list', label: 'États des Lieux' },
+  Formation: { icon: 'building-columns', label: 'Formation' },
+  Social: { icon: 'comment', label: 'Social' },
 };
 
-function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
-  const config = TAB_CONFIG[routeName] || { icon: faHouse, label: '' };
+const TabIcon = memo(function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
+  const config = TAB_CONFIG[routeName] || { icon: 'house', label: '' };
+  const color = focused ? COLORS.tabActive : COLORS.tabInactive;
   return (
     <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
-      <FontAwesomeIcon icon={config.icon} style={{ fontSize: 19 }} color={focused ? COLORS.tabActive : COLORS.tabInactive} />
+      <Icon name={config.icon} size={19} color={color} solid />
     </View>
   );
-}
+});
 
 const tabStyles = StyleSheet.create({
-  iconBg: { paddingHorizontal: 16, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  iconBg: {
+    paddingHorizontal: 16,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   iconBgActive: { backgroundColor: COLORS.chipBg },
 });
 
@@ -52,18 +54,20 @@ export default function TabNavigator() {
         tabBarLabelStyle: { fontSize: 9.5, fontFamily: FONT_FAMILY, fontWeight: '600', marginTop: 2 },
         tabBarItemStyle: { flex: 1, paddingTop: 2 },
         header: () => <TopNavbar />,
+        lazy: true,
+        freezeOnBlur: true,
         tabBarStyle: {
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
           backgroundColor: COLORS.tabBg,
-          height: 70,
-          paddingBottom: 10,
+          height: Platform.OS === 'ios' ? 84 : 70,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
           paddingTop: 8,
-          elevation: 14,
+          elevation: 8,
           shadowColor: COLORS.shadow,
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 16,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
         },
       })}
     >

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Platform, PermissionsAndroid } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLocationDot, faChevronDown, faChartColumn } from '@fortawesome/free-solid-svg-icons';
 import { COLORS } from '../constants/colors';
@@ -22,6 +23,7 @@ const LAYER_META = {
 };
 
 export default function CarteInteractive() {
+  const isFocused = useIsFocused();
   const mapRef = useRef(null);
   const [signalements, setSignalements] = useState([]);
   const [panneaux, setPanneaux] = useState([]);
@@ -168,17 +170,21 @@ export default function CarteInteractive() {
 
   return (
     <View style={styles.container}>
-      <MapMarkers
-        mapRef={mapRef}
-        mapType={mapType}
-        activeLayer={activeLayer}
-        signalements={signalements}
-        panneaux={panneaux}
-        zones={zones}
-        heatmapPoints={heatmapPoints}
-        onSelectItem={setSelectedItem}
-        selectedId={selectedItem?.id}
-      />
+      {isFocused ? (
+        <MapMarkers
+          mapRef={mapRef}
+          mapType={mapType}
+          activeLayer={activeLayer}
+          signalements={signalements}
+          panneaux={panneaux}
+          zones={zones}
+          heatmapPoints={heatmapPoints}
+          onSelectItem={setSelectedItem}
+          selectedId={selectedItem?.id}
+        />
+      ) : (
+        <View style={styles.map} />
+      )}
 
       {loading && (
         <View style={styles.loadingOverlay}>

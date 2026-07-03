@@ -10,7 +10,7 @@ const Stack = createNativeStackNavigator();
 
 export default function FormationNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false, freezeOnBlur: true }}>
       <Stack.Screen name="Formations" component={Formations} />
       <Stack.Screen name="FormationDetail" component={FormationDetail} />
       <Stack.Screen name="CoursePlayer" component={CoursePlayer} />

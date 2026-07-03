@@ -34,17 +34,25 @@ if [ ! -f "$ANDROID/local.properties" ]; then
 fi
 
 echo "→ ANDROID_HOME=$ANDROID_HOME"
+echo "→ Génération icônes launcher..."
+python3 "$ROOT/scripts/generate-android-icons.py"
 echo "→ Build APK ($MODE)..."
 
 cd "$ANDROID"
 chmod +x gradlew
 
 if [ "$MODE" = "debug" ]; then
+  echo "→ Bundle JS embarqué (APK installable sans Metro)"
   ./gradlew assembleDebug --no-daemon
   APK="$ANDROID/app/build/outputs/apk/debug/app-debug.apk"
 else
   ./gradlew assembleRelease --no-daemon
   APK="$ANDROID/app/build/outputs/apk/release/app-release.apk"
+fi
+
+if ! unzip -l "$APK" 2>/dev/null | grep -q "index.android.bundle"; then
+  echo "⚠  Attention : le bundle JavaScript ne semble pas inclus dans l'APK."
+  echo "   Vérifiez metro.config.js et relancez le build."
 fi
 
 echo ""
