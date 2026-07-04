@@ -29,9 +29,11 @@ export default function Formations() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeCategory, setActiveCategory] = useState('toutes');
+  const [loadError, setLoadError] = useState(null);
 
   const fetchPage = useCallback(async (cat, pageNum, append = false) => {
     try {
+      setLoadError(null);
       const result = await getFormationsPaginated(pageNum, PAGE_LIMIT, cat);
       if (append) {
         setFormations(prev => [...prev, ...result.data]);
@@ -40,8 +42,9 @@ export default function Formations() {
       }
       setHasMore(result.hasMore);
       setPage(pageNum);
-    } catch {
+    } catch (err) {
       if (!append) setFormations([]);
+      setLoadError(err?.message || 'Impossible de charger les formations');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -123,12 +126,21 @@ export default function Formations() {
             ) : null
           }
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <View style={styles.emptyIconWrap}>
-                <FontAwesomeIcon icon={faGraduationCap} style={{ fontSize: 34 }} color="#C19A6B" />
+            loadError ? (
+              <View style={styles.empty}>
+                <Text style={styles.emptyText}>{loadError}</Text>
+                <TouchableOpacity style={styles.retryBtn} onPress={onRefresh}>
+                  <Text style={styles.retryBtnText}>Réessayer</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.emptyText}>Aucune formation trouvée</Text>
-            </View>
+            ) : (
+              <View style={styles.empty}>
+                <View style={styles.emptyIconWrap}>
+                  <FontAwesomeIcon icon={faGraduationCap} style={{ fontSize: 34 }} color="#C19A6B" />
+                </View>
+                <Text style={styles.emptyText}>Aucune formation trouvée</Text>
+              </View>
+            )
           }
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -306,5 +318,20 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 15,
     color: '#A89E90',
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+  retryBtn: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: '#C19A6B',
+  },
+  retryBtnText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
   },
 });

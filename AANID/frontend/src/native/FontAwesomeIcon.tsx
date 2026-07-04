@@ -1,62 +1,44 @@
 import React from 'react';
-import { Platform, Text, StyleProp, TextStyle } from 'react-native';
+import { View, StyleProp, ViewStyle } from 'react-native';
 import type { IconProp } from '@fortawesome/fontawesome-svg-core';
+import FA6Icon from 'react-native-vector-icons/FontAwesome6';
 
 type Props = {
   icon: IconProp;
   size?: number;
   color?: string;
-  style?: { fontSize?: number; color?: string };
+  style?: StyleProp<ViewStyle> & { fontSize?: number; color?: string };
 };
 
-const FONT_BY_PREFIX: Record<string, string> = {
-  fas: 'FontAwesome6_Solid',
-  far: 'FontAwesome6_Regular',
-  fab: 'FontAwesome6_Brands',
-};
-
-function extractGlyph(icon: IconProp): { char: string; fontFamily: string } | null {
-  if (!icon || typeof icon !== 'object') return null;
-
-  const prefix = 'prefix' in icon ? String(icon.prefix) : 'fas';
-  const fontFamily = FONT_BY_PREFIX[prefix] || FONT_BY_PREFIX.fas;
-
-  if ('icon' in icon && Array.isArray(icon.icon) && icon.icon[3]) {
-    const codePoint = parseInt(String(icon.icon[3]), 16);
-    if (!Number.isNaN(codePoint)) {
-      return { char: String.fromCodePoint(codePoint), fontFamily };
-    }
-  }
-
-  return null;
+function styleFlags(prefix: string | undefined) {
+  if (prefix === 'fab') return { brand: true as const };
+  if (prefix === 'far') return { regular: true as const };
+  return { solid: true as const };
 }
 
 /** Remplacement natif de @fortawesome/react-fontawesome (web/DOM uniquement). */
 export function FontAwesomeIcon({ icon, size, color, style }: Props) {
-  const resolvedSize = size ?? style?.fontSize ?? 16;
-  const resolvedColor = color ?? style?.color ?? '#2E2A24';
-  const glyph = extractGlyph(icon);
+  const resolvedSize = size ?? (typeof style === 'object' && style && 'fontSize' in style ? style.fontSize : 16) ?? 16;
+  const resolvedColor =
+    color ?? (typeof style === 'object' && style && 'color' in style ? style.color : undefined) ?? '#2E2A24';
 
-  if (!glyph) {
-    return <Text style={{ fontSize: resolvedSize, color: resolvedColor }}>•</Text>;
+  const iconName =
+    icon && typeof icon === 'object' && 'iconName' in icon ? String(icon.iconName) : null;
+  const prefix = icon && typeof icon === 'object' && 'prefix' in icon ? String(icon.prefix) : 'fas';
+
+  if (!iconName) {
+    return <View style={style as StyleProp<ViewStyle>} />;
   }
 
   return (
-    <Text
-      allowFontScaling={false}
-      style={[
-        {
-          fontFamily: glyph.fontFamily,
-          fontSize: resolvedSize,
-          color: resolvedColor,
-          textAlign: 'center',
-          ...(Platform.OS === 'android' ? { includeFontPadding: false, textAlignVertical: 'center' as const } : {}),
-        },
-        style as StyleProp<TextStyle>,
-      ]}
-    >
-      {glyph.char}
-    </Text>
+    <View style={style as StyleProp<ViewStyle>}>
+      <FA6Icon
+        name={iconName}
+        size={resolvedSize}
+        color={resolvedColor}
+        {...styleFlags(prefix)}
+      />
+    </View>
   );
 }
 

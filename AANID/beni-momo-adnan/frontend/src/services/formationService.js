@@ -12,30 +12,53 @@ async function getToken() {
   }
 }
 
-async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...options.headers,
-    },
-  });
+async function request(path, options = {}, attempt = 0) {
+  const maxAttempts = 3;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45000);
 
-  let data;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error('Réponse serveur invalide');
-  }
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        ...options.headers,
+      },
+    });
 
-  if (!response.ok) {
-    const error = new Error(data?.error || 'Une erreur est survenue');
-    error.status = response.status;
-    throw error;
-  }
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Réponse serveur invalide');
+    }
 
-  return data;
+    if (!response.ok) {
+      const error = new Error(data?.error || 'Une erreur est survenue');
+      error.status = response.status;
+      throw error;
+    }
+
+    return data;
+  } catch (err) {
+    const retriable =
+      attempt < maxAttempts - 1 &&
+      (err.name === 'AbortError' || err.message === 'Network request failed' || err.message?.includes('fetch'));
+
+    if (retriable) {
+      await new Promise((resolve) => setTimeout(resolve, 2500 * (attempt + 1)));
+      return request(path, options, attempt + 1);
+    }
+
+    if (err.name === 'AbortError') {
+      throw new Error('Le serveur met trop de temps à répondre. Réessayez dans un instant.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function authRequest(path, options = {}) {

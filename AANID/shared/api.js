@@ -1,7 +1,12 @@
 export const PRODUCTION_API_ORIGIN = 'https://aanid-api.onrender.com';
 
 function detectReactNative() {
-  return typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+  try {
+    const { Platform } = require('react-native');
+    return Platform.OS === 'android' || Platform.OS === 'ios';
+  } catch {
+    return typeof navigator !== 'undefined' && navigator.product === 'ReactNative';
+  }
 }
 
 function fromEnv() {
