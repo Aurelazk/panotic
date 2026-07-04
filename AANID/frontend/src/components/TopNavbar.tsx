@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { faBell, faUser } from '@fortawesome/free-solid-svg-icons';
-import FontAwesomeIcon from '../native/FontAwesomeIcon';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import { COLORS, FONT_FAMILY } from '../constants/theme';
 
 export default function TopNavbar() {
@@ -11,13 +10,13 @@ export default function TopNavbar() {
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.sideBtn} activeOpacity={0.7}>
-        <FontAwesomeIcon icon={faUser} size={17} color={COLORS.primaryDark} />
+        <Icon name="user" size={17} color={COLORS.primaryDark} solid />
       </TouchableOpacity>
 
       <Text style={styles.logoText}>aanid</Text>
 
       <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.sideBtn} activeOpacity={0.7}>
-        <FontAwesomeIcon icon={faBell} size={17} color={COLORS.primaryDark} />
+        <Icon name="bell" size={17} color={COLORS.primaryDark} solid />
       </TouchableOpacity>
     </View>
   );

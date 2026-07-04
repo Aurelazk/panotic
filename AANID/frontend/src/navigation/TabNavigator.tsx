@@ -1,15 +1,8 @@
 import React, { memo } from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import {
-  faBuildingColumns,
-  faClipboardList,
-  faComment,
-  faHouse,
-  faMapLocationDot,
-} from '@fortawesome/free-solid-svg-icons';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import { COLORS, FONT_FAMILY } from '../constants/theme';
-import FontAwesomeIcon from '../native/FontAwesomeIcon';
 import FormationNavigator from './FormationNavigator';
 import TopNavbar from '../components/TopNavbar';
 
@@ -20,20 +13,20 @@ import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive
 
 const Tab = createBottomTabNavigator();
 
-const TAB_CONFIG: Record<string, { icon: typeof faHouse; label: string }> = {
-  Dashboard: { icon: faHouse, label: 'Accueil' },
-  Carte: { icon: faMapLocationDot, label: 'Carte' },
-  EtatsDesLieux: { icon: faClipboardList, label: 'États des Lieux' },
-  Formation: { icon: faBuildingColumns, label: 'Formation' },
-  Social: { icon: faComment, label: 'Social' },
+const TAB_CONFIG: Record<string, { icon: string; label: string }> = {
+  Dashboard: { icon: 'house', label: 'Accueil' },
+  Carte: { icon: 'map-location-dot', label: 'Carte' },
+  EtatsDesLieux: { icon: 'clipboard-list', label: 'États des Lieux' },
+  Formation: { icon: 'building-columns', label: 'Formation' },
+  Social: { icon: 'comment', label: 'Social' },
 };
 
 const TabIcon = memo(function TabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
-  const config = TAB_CONFIG[routeName] || { icon: faHouse, label: '' };
+  const config = TAB_CONFIG[routeName] || { icon: 'house', label: '' };
   const color = focused ? COLORS.tabActive : COLORS.tabInactive;
   return (
     <View style={[tabStyles.iconBg, focused && tabStyles.iconBgActive]}>
-      <FontAwesomeIcon icon={config.icon} size={19} color={color} />
+      <Icon name={config.icon} size={19} color={color} solid />
     </View>
   );
 });

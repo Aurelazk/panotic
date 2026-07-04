@@ -1,10 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions,
+  Alert, RefreshControl, ActivityIndicator,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { getApiBaseUrl } from '@aanid/shared/api';
 
+const API_BASE = getApiBaseUrl();
+
+// Palette « Sable » — alignée sur le thème AANID
 const C = {
-  bleu: '#A8B4C4', vert: '#8B9D77', orange: '#C99A4E',
-  rouge: '#D4654A', noir: '#1A1A1A', gris: '#C9BEB2',
-  grisClair: '#FBF3E9', blanc: '#FFFFFF',
+  primary: '#C19A6B',
+  primaryDark: '#9C7C4F',
+  secondary: '#8C6A43',
+  vert: '#6E8B5B',
+  orange: '#D9A441',
+  rouge: '#C75D4F',
+  bleu: '#9C7C4F',
+  noir: '#2E2A24',
+  gris: '#7A7166',
+  grisClair: '#F9F1E5',
+  grisMoyen: '#A89E90',
+  blanc: '#FFFFFF',
+  border: '#E8DCC8',
 };
 
 const MIN_W = 420;
@@ -25,7 +43,12 @@ function useIsMobile() {
   return width < 640;
 }
 
-function api(e) { return fetch(`/api/v1${e}`).then(r => r.json()); }
+function api(endpoint) {
+  return fetch(`${API_BASE}${endpoint}`).then((r) => {
+    if (!r.ok) throw new Error('Erreur réseau');
+    return r.json();
+  });
+}
 
 const shadow = { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 3, elevation: 2 };
 const badgS = { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, flexShrink: 0 };
@@ -57,20 +80,25 @@ function FilterBox({ label, value, f }) {
 }
 
 // ─── Mobile FilterChip ──────────────────────────────────────────────────────
-function FilterChip({ label, active, icon }) {
+function FilterChip({ label, active, icon, onPress }) {
   return (
-    <View style={[{
-      flexDirection: 'row', alignItems: 'center', gap: 5,
-      backgroundColor: active ? C.rouge : C.blanc, borderRadius: 999,
-      paddingHorizontal: 13, paddingVertical: 7, marginRight: 8,
-      ...shadow, shadowOpacity: active ? 0 : undefined, shadowRadius: active ? 0 : undefined,
-    }]}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      style={[{
+        flexDirection: 'row', alignItems: 'center', gap: 5,
+        backgroundColor: active ? C.primary : C.blanc, borderRadius: 999,
+        paddingHorizontal: 13, paddingVertical: 7, marginRight: 8,
+        borderWidth: active ? 0 : 1, borderColor: C.border,
+        ...shadow, shadowOpacity: active ? 0 : undefined, shadowRadius: active ? 0 : undefined,
+      }]}
+    >
       {icon && typeof icon === 'string' && icon !== 'geo' && <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: icon }} />}
       {icon === 'geo' && (
         <View style={{ width: 9, height: 9, borderRadius: 4.5, borderWidth: 1.8, borderColor: active ? C.blanc : C.noir }} />
       )}
       <Text style={{ fontSize: 11.5, fontWeight: 'bold', color: active ? C.blanc : C.noir }}>{label}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -382,25 +410,66 @@ function CatBar({ nom, count, color, pct, compact, f }) {
 }
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
+const FILTERS = [
+  { id: 'tous', label: 'Tous' },
+  { id: 'modernes', label: 'Modernes', icon: C.vert },
+  { id: 'obsoletes', label: 'Obsolètes', icon: C.orange },
+  { id: 'degrades', label: 'Dégradés', icon: C.rouge },
+  { id: 'pres', label: 'Près de moi', icon: 'geo' },
+];
+
+function matchesFilter(sig, filterId) {
+  if (filterId === 'tous') return true;
+  const s = (sig.statut || '').toLowerCase();
+  const t = (sig.titre || '').toLowerCase();
+  if (filterId === 'modernes') return s === 'résolu' || s === 'resolu';
+  if (filterId === 'obsoletes') return t.includes('obsolète') || t.includes('obsolete');
+  if (filterId === 'degrades') return t.includes('dégradé') || t.includes('degrade') || s === 'urgent';
+  if (filterId === 'pres') return true;
+  return true;
+}
+
 export default function EtatsDesLieux() {
+  const navigation = useNavigation();
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('tous');
   const { width } = useWindowDimensions();
   const isMobile = width < 640;
   const t = useT();
   const f = useFluid();
-  useEffect(() => { api('/etats-lieux').then(setData).catch(() => {}); }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      const result = await api('/etats-lieux');
+      setData(result);
+    } catch {
+      setData(null);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+  }, [loadData]);
 
   const k = data?.kpis;
   const signalements = data?.signalements ?? [];
   const categories = data?.categories ?? [];
   const conformite = data?.conformite?.taux ?? 78;
 
-  const displaySignalements = signalements.length > 0 ? signalements : [
+  const displaySignalements = (signalements.length > 0 ? signalements : [
     { id: 1, titre: 'Panneau dégradé — Av. Steinmetz', zone: 'Zone Akpakpa', date: 'il y a 2h', statut: 'Urgent', statutColor: C.rouge, type: 'photo jointe' },
     { id: 2, titre: 'Panneau obsolète — Rond-point Étoile Rouge', zone: 'Zone Ganhi', date: 'il y a 5h', statut: 'En cours', statutColor: C.orange, type: 'vidéo jointe' },
-    { id: 3, titre: 'Emplacement inapproprié — Marché Dantokpa', zone: 'Zone Dantokpa', date: 'il y a 1j', statut: 'Nouveau', statutColor: '#6b6b6b' },
+    { id: 3, titre: 'Emplacement inapproprié — Marché Dantokpa', zone: 'Zone Dantokpa', date: 'il y a 1j', statut: 'Nouveau', statutColor: C.grisMoyen },
     { id: 4, titre: 'Besoin de maintenance — Bd. de la Marina', zone: 'Zone Haie Vive', date: 'il y a 2j', statut: 'Résolu', statutColor: C.vert },
-  ];
+  ]).filter((sig) => matchesFilter(sig, activeFilter));
   const displayCategories = [
     { nom: 'Panneau dégradé', count: 24, color: C.rouge, pct: 82 },
     { nom: 'Panneau dangereux', count: 11, color: C.rouge, pct: 38 },
@@ -450,7 +519,10 @@ export default function EtatsDesLieux() {
           <FilterBox label="Type de panneau" value="Tous" f={f} />
           <FilterBox label="Statut signalement" value="Tous" f={f} />
           <FilterBox label="Zone" value="Toutes zones" f={f} />
-          <TouchableOpacity style={{ marginLeft: 'auto', backgroundColor: C.rouge, borderRadius: 8, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, ...shadow, height: f(36, 40) }}>
+          <TouchableOpacity
+            style={{ marginLeft: 'auto', backgroundColor: C.primary, borderRadius: 8, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 8, ...shadow, height: f(36, 40) }}
+            onPress={() => Alert.alert('Signalement', 'La création de signalement sera disponible prochainement.')}
+          >
             <IconPlus />
             <Text style={{ color: C.blanc, fontSize: f(12, 13), fontWeight: 'bold' }}>Nouveau signalement</Text>
           </TouchableOpacity>
@@ -508,37 +580,31 @@ export default function EtatsDesLieux() {
   // ── Mobile Layout ──────────────────────────────────────────────────────────
   return (
     <View style={{ flex: 1, backgroundColor: C.grisClair }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        <View style={{
-          backgroundColor: C.blanc, paddingHorizontal: 18, paddingTop: f(12, 14), paddingBottom: f(14, 16),
-          borderBottomLeftRadius: 18, borderBottomRightRadius: 18, ...shadow, marginBottom: 14,
-        }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.grisClair, borderRadius: 999, paddingVertical: 5, paddingLeft: 6, paddingRight: 10, height: 28 }}>
-                <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: C.rouge, justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ color: C.blanc, fontSize: 8, fontWeight: 'bold' }}>CO</Text>
-                </View>
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: C.noir }}>Cotonou</Text>
-                <SvgChevron />
-              </View>
-            </View>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: C.grisClair, justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-              <IconBell />
-              <View style={{ position: 'absolute', top: 9, right: 10, width: 7, height: 7, borderRadius: 3.5, backgroundColor: C.rouge, borderWidth: 1.5, borderColor: C.blanc }} />
-            </View>
-          </View>
-          <Text style={{ fontSize: pageTtlS, fontWeight: 'bold', marginTop: 2, color: C.noir }}>États des Lieux</Text>
-          <Text style={{ fontSize: pageSubS, color: '#6b6b6b', marginTop: 2 }}>Suivi en temps réel de la panneautique</Text>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />}
+      >
+        <View style={mobileStyles.header}>
+          <Text style={mobileStyles.headerTitle}>États des Lieux</Text>
+          <Text style={mobileStyles.headerSubtitle}>Suivi en temps réel de la panneautique</Text>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 18, marginBottom: 14 }} contentContainerStyle={{ paddingRight: 18 }}>
-          <FilterChip label="Tous" active />
-          <FilterChip label="Modernes" icon={C.vert} />
-          <FilterChip label="Obsolètes" icon={C.orange} />
-          <FilterChip label="Dégradés" icon={C.rouge} />
-          <FilterChip label="Près de moi" icon="geo" />
+          {FILTERS.map((filter) => (
+            <FilterChip
+              key={filter.id}
+              label={filter.label}
+              icon={filter.icon}
+              active={activeFilter === filter.id}
+              onPress={() => setActiveFilter(filter.id)}
+            />
+          ))}
         </ScrollView>
+
+        {loading ? (
+          <ActivityIndicator size="large" color={C.primary} style={{ marginTop: 40 }} />
+        ) : (
+          <>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 18, marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -567,7 +633,9 @@ export default function EtatsDesLieux() {
         <View style={{ paddingHorizontal: 18, marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <Text style={{ fontSize: f(13, 14), fontWeight: 'bold', color: C.noir }}>Carte interactive</Text>
-            <Text style={{ fontSize: f(11, 11.5), color: C.bleu, fontWeight: 'bold' }}>Plein écran</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Carte')}>
+              <Text style={{ fontSize: f(11, 11.5), color: C.primaryDark, fontWeight: 'bold' }}>Plein écran</Text>
+            </TouchableOpacity>
           </View>
           <Panel f={f}><MiniMap compact f={f} /></Panel>
         </View>
@@ -575,9 +643,17 @@ export default function EtatsDesLieux() {
         <View style={{ paddingHorizontal: 18, marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
             <Text style={{ fontSize: f(13, 14), fontWeight: 'bold', color: C.noir }}>Signalements récents</Text>
-            <Text style={{ fontSize: f(11, 11.5), color: C.bleu, fontWeight: 'bold' }}>Voir tout</Text>
+            <TouchableOpacity onPress={() => Alert.alert('Signalements', `${displaySignalements.length} signalement(s) affiché(s).`)}>
+              <Text style={{ fontSize: f(11, 11.5), color: C.primaryDark, fontWeight: 'bold' }}>Voir tout</Text>
+            </TouchableOpacity>
           </View>
-          {displaySignalements.map(sig => <SigItem key={sig.id} {...sig} compact f={f} />)}
+          {displaySignalements.length === 0 ? (
+            <Text style={{ fontSize: 14, color: C.grisMoyen, textAlign: 'center', marginVertical: 24 }}>
+              Aucun signalement pour ce filtre
+            </Text>
+          ) : (
+            displaySignalements.map(sig => <SigItem key={sig.id} {...sig} compact f={f} />)
+          )}
         </View>
 
         <View style={{ paddingHorizontal: 18, marginBottom: 16 }}>
@@ -595,15 +671,40 @@ export default function EtatsDesLieux() {
           </View>
           <Panel f={f}><Donut pct={conformite} compact f={f} t={t} /></Panel>
         </View>
+          </>
+        )}
       </ScrollView>
 
-      <TouchableOpacity style={{
-        position: 'absolute', right: 20, bottom: 96, width: 54, height: 54, borderRadius: 27,
-        backgroundColor: C.rouge, justifyContent: 'center', alignItems: 'center',
-        shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.45, shadowRadius: 16, elevation: 10,
-      }}>
+      <TouchableOpacity
+        style={{
+          position: 'absolute', right: 20, bottom: 96, width: 54, height: 54, borderRadius: 27,
+          backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center',
+          shadowColor: C.noir, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 10,
+        }}
+        onPress={() => Alert.alert('Nouveau signalement', 'Prenez une photo du panneau pour signaler un problème. Fonctionnalité à venir.')}
+      >
         <IconCamera />
       </TouchableOpacity>
     </View>
   );
 }
+
+const mobileStyles = StyleSheet.create({
+  header: {
+    paddingTop: 12,
+    paddingBottom: 8,
+    paddingHorizontal: 20,
+  },
+  headerTitle: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 26,
+    fontWeight: '700',
+    color: '#2E2A24',
+  },
+  headerSubtitle: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    color: '#7A7166',
+    marginTop: 2,
+  },
+});

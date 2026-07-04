@@ -77,11 +77,11 @@ export async function getFormations(category) {
 }
 
 export async function getFormationsPaginated(page = 1, limit = 10, category) {
-  const params = new URLSearchParams();
-  if (category && category !== 'toutes') params.set('category', category);
-  params.set('page', String(page));
-  params.set('limit', String(limit));
-  return request(`/formations?${params.toString()}`);
+  const parts = [`page=${page}`, `limit=${limit}`];
+  if (category && category !== 'toutes') {
+    parts.unshift(`category=${encodeURIComponent(category)}`);
+  }
+  return request(`/formations?${parts.join('&')}`);
 }
 
 export async function getFormationById(id) {
