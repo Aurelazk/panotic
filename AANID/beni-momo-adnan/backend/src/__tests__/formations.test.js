@@ -183,15 +183,15 @@ describe('Formations API', () => {
       const res = await request(app)
         .patch('/api/v1/formations/fmt-1/progress')
         .set('Authorization', `Bearer ${token}`)
-        .send({ moduleId: 'mod-1', completed: true });
+        .send({ moduleId: 'fmt1-ch1-lecon1', completed: true });
       expect(res.status).toBe(200);
-      expect(res.body.modulesCompleted).toContain('mod-1');
+      expect(res.body.modulesCompleted).toContain('fmt1-ch1-lecon1');
     });
 
     it('returns 401 without token', async () => {
       const res = await request(app)
         .patch('/api/v1/formations/fmt-1/progress')
-        .send({ moduleId: 'mod-1', completed: true });
+        .send({ moduleId: 'fmt1-ch1-lecon1', completed: true });
       expect(res.status).toBe(401);
     });
   });
@@ -208,20 +208,30 @@ describe('Formations API', () => {
   });
 
   describe('POST /api/v1/formations/:id/pay', () => {
-    it('processes payment', async () => {
+    it('processes payment (simulation sans clé FedaPay)', async () => {
       const token = makeToken('pay-test-user');
+      const res = await request(app)
+        .post('/api/v1/formations/fmt-3/pay')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ phone: '22990123456' });
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('provider', 'simulation');
+      expect(res.body).toHaveProperty('status', 'approved');
+    });
+
+    it('returns 400 for a free formation', async () => {
+      const token = makeToken('pay-free-user');
       const res = await request(app)
         .post('/api/v1/formations/fmt-1/pay')
         .set('Authorization', `Bearer ${token}`)
         .send({ phone: '22990123456' });
-      expect(res.status).toBe(201);
-      expect(res.body).toHaveProperty('message', 'Paiement effectué avec succès');
+      expect(res.status).toBe(400);
     });
 
     it('returns 400 without phone', async () => {
       const token = makeToken('pay-no-phone');
       const res = await request(app)
-        .post('/api/v1/formations/fmt-1/pay')
+        .post('/api/v1/formations/fmt-3/pay')
         .set('Authorization', `Bearer ${token}`)
         .send({});
       expect(res.status).toBe(400);

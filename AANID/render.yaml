@@ -24,5 +24,9 @@ services:
         generateValue: true
       - key: AANID_REFRESH_SECRET
         generateValue: true
+      - key: FEDAPAY_SECRET_KEY
+        sync: false
+      - key: FEDAPAY_ENVIRONMENT
+        value: sandbox
       - key: PORT
         value: 10000

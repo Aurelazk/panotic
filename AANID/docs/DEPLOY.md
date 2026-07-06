@@ -32,6 +32,10 @@ DATABASE_URL=postgresql://...
    - `DATABASE_URL` → connection string Neon
    - `AANID_ACCESS_SECRET` → `openssl rand -hex 32`
    - `AANID_REFRESH_SECRET` → `openssl rand -hex 32`
+   - `FEDAPAY_SECRET_KEY` → clé secrète FedaPay (`sk_sandbox_…` ou `sk_live_…`, dashboard [fedapay.com](https://fedapay.com))
+   - `FEDAPAY_ENVIRONMENT` → `sandbox` (défaut) ou `live`
+
+> **Paiements** : sans `FEDAPAY_SECRET_KEY`, les routes de paiement (formations payantes, abonnements) fonctionnent en **mode simulation** — le paiement est accepté immédiatement, pratique en dev/démo. Avec la clé, une transaction FedaPay réelle est créée (Mobile Money MTN/Moov + cartes) et l'app ouvre la page de paiement hébergée puis vérifie le statut.
 
 ### Option B — Web Service manuel
 | Champ | Valeur |

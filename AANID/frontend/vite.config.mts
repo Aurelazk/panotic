@@ -12,6 +12,7 @@ export default defineConfig({
       { find: /^react-native-map-clustering(\/.*)?$/, replacement: path.resolve(__dirname, 'src/mocks/maps-mock.tsx') },
       { find: /^react-native-vector-icons\/.*/, replacement: path.resolve(__dirname, 'src/mocks/vector-icons-mock.tsx') },
       { find: 'react-native-vector-icons', replacement: path.resolve(__dirname, 'src/mocks/vector-icons-mock.tsx') },
+      { find: 'react-native-webview', replacement: path.resolve(__dirname, 'src/mocks/webview-mock.tsx') },
       { find: 'react-native-safe-area-context', replacement: path.resolve(__dirname, 'src/mocks/base-mock.tsx') },
       { find: 'react-native-screens', replacement: path.resolve(__dirname, 'src/mocks/screens-mock.tsx') },
     ],
