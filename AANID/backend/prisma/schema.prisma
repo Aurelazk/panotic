@@ -85,6 +85,8 @@ model Formation {
   price         Float               @default(0)
   currency      String              @default("XOF")
   isFree        Boolean             @default(true)
+  version       String?
+  pdfUrl        String?
   modules       Json
   createdAt     DateTime            @default(now())
   enrollments   FormationEnrollment[]
@@ -109,9 +111,10 @@ model FormationPayment {
   id          String    @id @default(uuid())
   userId      String
   formationId String
-  phone       String
+  phone       String?
   amount      Float
   currency    String    @default("XOF")
+  provider    String    @default("simulation")
   paidAt      DateTime  @default(now())
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)

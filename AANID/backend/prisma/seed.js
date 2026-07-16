@@ -3,6 +3,7 @@
  */
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
+const { FORMATIONS } = require('../../beni-momo-adnan/backend/src/data/formationsCatalog');
 
 const prisma = new PrismaClient();
 const BCRYPT_ROUNDS = 12;
@@ -52,46 +53,6 @@ const VILLES = [
       formations: { total: 8, gratuites: 5, payantes: 3 },
       utilisateurs: 1890,
     },
-  },
-];
-
-const FORMATIONS = [
-  {
-    id: 'fmt-1',
-    title: 'Formation sur la panneautique : domaine public',
-    description: 'Module 1 — Panneautique, réorganisation du secteur et gestion du mobilier urbain de publicité.',
-    category: 'PANNEAUTIQUE',
-    imageUrl: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0',
-    duration: 'Module 1',
-    capacity: 200,
-    enrolledCount: 18,
-    price: 0,
-    currency: 'XOF',
-    isFree: true,
-    modules: [
-      { id: 'mod-1', title: 'Chapitre 1 — Le panneau publicitaire', content: "Introduction à la panneautique et rôle socio-économique du panneau publicitaire.", duration: '15 min' },
-      { id: 'mod-2', title: 'Leçon 2 — Constat général', content: "Pollution visuelle, délabrement des supports et nécessité de réglementation.", duration: '12 min' },
-      { id: 'mod-3', title: 'Chapitre 2 — Réorganisation du secteur', content: 'Audit, état des lieux, zonage, lots et concession des espaces publicitaires.', duration: '25 min' },
-      { id: 'mod-4', title: 'Chapitre 3 — Évaluation du système', content: "Mécanisme d'évaluation scientifique du secteur.", duration: '10 min' },
-      { id: 'mod-5', title: 'Chapitre 4 — Mise à jour', content: 'Pérennisation et alignement avec l\'urbanisation.', duration: '10 min' },
-      { id: 'mod-6', title: 'Questionnaire — Module 1', content: 'Révisions et auto-évaluation.', duration: '20 min' },
-    ],
-  },
-  {
-    id: 'fmt-2',
-    title: 'Gestion des déchets urbains',
-    description: 'Bonnes pratiques de gestion des déchets en milieu urbain.',
-    category: 'ENVIRONNEMENT',
-    imageUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b',
-    duration: '2 semaines',
-    capacity: 100,
-    enrolledCount: 45,
-    price: 0,
-    currency: 'XOF',
-    isFree: true,
-    modules: [
-      { id: 'mod-4', title: 'Tri et collecte', content: 'Les bases du tri sélectif.', duration: '3 jours' },
-    ],
   },
 ];
 

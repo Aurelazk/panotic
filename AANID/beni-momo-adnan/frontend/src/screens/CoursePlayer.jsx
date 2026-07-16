@@ -5,8 +5,7 @@ import { WebView } from 'react-native-webview';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight, faCheck, faCircleCheck, faFilePdf } from '@fortawesome/free-solid-svg-icons';
 import { getFormationById, updateProgress } from '../services/formationService';
-
-const { getApiOrigin } = require('@aanid/shared/api');
+import { getApiOrigin } from '@aanid/shared/api';
 
 function buildPdfUrl(pdfUrl) {
   if (!pdfUrl) return null;
