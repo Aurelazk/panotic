@@ -78,8 +78,8 @@ export default function LoginScreen({ navigation }: any) {
           <Text style={styles.cardTitle}>Connexion</Text>
           <Text style={styles.cardSubtitle}>Connectez-vous pour continuer</Text>
 
-          <CustomInput icon="✉️" placeholder="Adresse email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-          <CustomInput icon="🔒" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
+          <CustomInput icon="envelope" placeholder="Adresse email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+          <CustomInput icon="lock" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
 
           <TouchableOpacity style={styles.forgotRow}>
             <Text style={styles.forgotText}>Mot de passe oublié ?</Text>

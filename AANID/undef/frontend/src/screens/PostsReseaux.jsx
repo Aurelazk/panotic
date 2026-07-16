@@ -3,12 +3,19 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput,
   Modal, ScrollView, Alert, Dimensions, Image, Animated, RefreshControl,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 const { width } = Dimensions.get('window');
+const C = {
+  primary: '#C19A6B', primaryDark: '#9C7C4F', secondary: '#8C6A43',
+  background: '#F9F1E5', backgroundAlt: '#F2E7D3', surface: '#FFFFFF',
+  text: '#2E2A24', textSecondary: '#7A7166', muted: '#A89E90',
+  border: '#E8DCC8', success: '#6E8B5B', error: '#C75D4F', white: '#FFFFFF',
+};
 
 const THEMES = ['Tous', 'Environnement', 'Santé', 'Famille', 'Urbanisme'];
 const VILLES = ['Toutes', 'Cotonou', 'Abomey-Calavi', 'Porto-Novo', 'Parakou', 'Lokossa', 'Ouidah'];
-const ACCENTS = ['#2E86C1', '#E74C3C', '#2ECC71', '#F5A623', '#9B59B6', '#1ABC9C'];
+const ACCENTS = [C.primaryDark, C.error, C.success, '#D9A441', C.secondary, '#B08C5E'];
 
 const GALLERY_IMAGES = [
   { id: 'g1', uri: 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400&q=80' },
@@ -28,37 +35,37 @@ const GALLERY_IMAGES = [
 const MOCK_POSTS = [
   {
     id: '1', author: '@KoffiD', time: '1h', location: 'Cotonou',
-    text: 'Inauguration du nouveau marché central de Dantokpa après rénovation. 1200 commerçants déjà installés. Un pas de plus pour la modernisation de Cotonou 🇧🇯',
+    text: 'Inauguration du nouveau marché central de Dantokpa après rénovation. 1200 commerçants déjà installés. Un pas de plus pour la modernisation de Cotonou.',
     likes: 89, comments: 24, shares: 34, theme: 'Urbanisme', ville: 'Cotonou',
     images: ['https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=400&q=80'],
   },
   {
     id: '2', author: '@MariamB', time: '3h', location: 'Porto-Novo',
-    text: 'Sensibilisation au palais royal : atelier sur la gestion des déchets plastiques dans le plateau. Ensemble, préservons notre patrimoine ! 🌍',
+    text: 'Sensibilisation au palais royal : atelier sur la gestion des déchets plastiques dans le plateau. Ensemble, préservons notre patrimoine !',
     likes: 56, comments: 14, shares: 22, theme: 'Environnement', ville: 'Porto-Novo',
     images: ['https://images.unsplash.com/photo-1532375810709-75b2da00537c?w=400&q=80'],
   },
   {
     id: '3', author: '@ArmelZ', time: '5h', location: 'Abomey-Calavi',
-    text: 'La nouvelle piste cyclable reliant Calavi à Cotonou est enfin ouverte. 12km de mobilité douce pour désengorger le trafic. À tester ce week-end ! 🚲',
+    text: 'La nouvelle piste cyclable reliant Calavi à Cotonou est enfin ouverte. 12km de mobilité douce pour désengorger le trafic. À tester ce week-end !',
     likes: 134, comments: 42, shares: 67, theme: 'Urbanisme', ville: 'Abomey-Calavi',
     images: ['https://images.unsplash.com/photo-1571068316344-75bc76f77890?w=400&q=80'],
   },
   {
     id: '4', author: '@SikaA', time: '8h', location: 'Parakou',
-    text: 'Campagne de vaccination gratuite pour les enfants de 0-5 ans à l\'hôpital de Parakou. Merci aux équipes mobiles qui parcourent les villages 🏥',
+    text: 'Campagne de vaccination gratuite pour les enfants de 0-5 ans à l\'hôpital de Parakou. Merci aux équipes mobiles qui parcourent les villages.',
     likes: 72, comments: 19, shares: 45, theme: 'Santé', ville: 'Parakou',
     images: ['https://images.unsplash.com/photo-1584515933487-779824d29309?w=400&q=80'],
   },
   {
     id: '5', author: '@GillesT', time: '12h', location: 'Lokossa',
-    text: 'Réunion de quartier sur l\'électrification rurale : 3 nouveaux villages raccordés au réseau électrique ce mois-ci. Le développement avance ! ⚡',
+    text: 'Réunion de quartier sur l\'électrification rurale : 3 nouveaux villages raccordés au réseau électrique ce mois-ci. Le développement avance !',
     likes: 48, comments: 11, shares: 28, theme: 'Famille', ville: 'Lokossa',
     images: ['https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=400&q=80'],
   },
   {
     id: '6', author: '@YvetteN', time: '1j', location: 'Ouidah',
-    text: 'Festival des arts vodun : les préparatifs vont bon train pour la grande célébration de janvier. Artisans, musiciens et danseurs au rendez-vous ! 🎭',
+    text: 'Festival des arts vodun : les préparatifs vont bon train pour la grande célébration de janvier. Artisans, musiciens et danseurs au rendez-vous !',
     likes: 95, comments: 31, shares: 52, theme: 'Famille', ville: 'Ouidah',
     images: ['https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=400&q=80'],
   },
@@ -131,11 +138,12 @@ function PostCard({ item, onPress, onLike, index }) {
               <Image source={{ uri: item.images[0] }} style={cd.img} resizeMode="cover" />
               <View style={cd.imgOverlay} />
               <View style={cd.locBadge}>
-                <Text style={cd.locBadgeText}>📍 {item.location}</Text>
+                <Icon name="location-dot" size={11} color={C.white} />
+                <Text style={cd.locBadgeText}>{item.location}</Text>
               </View>
               {heartShow && (
                 <View style={cd.heartBurst}>
-                  <Text style={cd.heartBurstText}>❤️</Text>
+                  <Icon name="heart" size={72} color={C.white} solid />
                 </View>
               )}
             </View>
@@ -149,19 +157,19 @@ function PostCard({ item, onPress, onLike, index }) {
             style={cd.actionBtn}
             onPress={() => { setLiked(v => !v); onLike?.(item.id); }}
           >
-            <Text style={cd.actionIcon}>{liked ? '❤️' : '🤍'}</Text>
+            <Icon name="heart" size={17} color={liked ? C.error : C.textSecondary} solid={liked} />
             <Text style={[cd.actionCount, liked && cd.likedCount]}>{liked ? item.likes + 1 : item.likes}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={cd.actionBtn} onPress={() => onPress(item)}>
-            <Text style={cd.actionIcon}>💬</Text>
+            <Icon name="comment" size={17} color={C.textSecondary} />
             <Text style={cd.actionCount}>{item.comments}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={cd.actionBtn}>
-            <Text style={cd.actionIcon}>↗</Text>
+            <Icon name="share-nodes" size={17} color={C.textSecondary} />
             <Text style={cd.actionCount}>{item.shares}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={cd.saveBtn}>
-            <Text style={cd.saveIcon}>🔖</Text>
+            <Icon name="bookmark" size={17} color={C.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -181,7 +189,7 @@ const cd = StyleSheet.create({
   cardGlow: {
     position: 'absolute', top: -60, right: -60,
     width: 160, height: 160, borderRadius: 80,
-    backgroundColor: 'rgba(245,166,35,0.04)',
+    backgroundColor: 'rgba(193,154,107,0.06)',
   },
   head: { marginBottom: 10 },
   authorRow: { flexDirection: 'row', alignItems: 'center' },
@@ -189,12 +197,12 @@ const cd = StyleSheet.create({
   avatar: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
   avatarLetter: { fontSize: 17, fontWeight: '700' },
   authorMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  authorName: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
+  authorName: { fontSize: 15, fontWeight: '700', color: C.text },
   themeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 4 },
   themeDot: { width: 5, height: 5, borderRadius: 3 },
   themeText: { fontSize: 11, fontWeight: '600' },
-  timeLoc: { fontSize: 12, color: '#B0A89A', marginTop: 2 },
-  body: { fontSize: 15, color: '#1A1A1A', lineHeight: 24, letterSpacing: 0.1 },
+  timeLoc: { fontSize: 12, color: C.muted, marginTop: 2 },
+  body: { fontSize: 15, color: C.text, lineHeight: 24, letterSpacing: 0.1 },
   imgBox: { position: 'relative', marginTop: 14, borderRadius: 16, overflow: 'hidden' },
   img: { width: '100%', height: 240 },
   imgOverlay: {
@@ -203,7 +211,8 @@ const cd = StyleSheet.create({
   },
   locBadge: {
     position: 'absolute', bottom: 10, left: 12,
-    backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 10,
+    backgroundColor: 'rgba(46,42,36,0.72)', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 10,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
   },
   locBadgeText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
   heartBurst: {
@@ -215,8 +224,8 @@ const cd = StyleSheet.create({
   actions: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   actionIcon: { fontSize: 16 },
-  actionCount: { fontSize: 13, color: '#8A8272', fontWeight: '600' },
-  likedCount: { color: '#E74C3C' },
+  actionCount: { fontSize: 13, color: C.textSecondary, fontWeight: '600' },
+  likedCount: { color: C.error },
   saveBtn: { marginLeft: 'auto', opacity: 0.4 },
   saveIcon: { fontSize: 15 },
 });
@@ -227,9 +236,12 @@ function StepDot({ step, current, label }) {
   return (
     <View style={sd.row}>
       <View style={[sd.dot, isActive && sd.dotActive, isNow && sd.dotNow]}>
-        <Text style={[sd.dotText, isActive && sd.dotTextActive]}>
-          {isNow ? '●' : isActive ? '✓' : '○'}
-        </Text>
+        <Icon
+          name={isActive ? 'check' : 'circle'}
+          size={isNow ? 11 : 10}
+          color={isActive ? C.white : C.muted}
+          solid={isNow}
+        />
       </View>
       <Text style={[sd.label, isActive && sd.labelActive]}>{label}</Text>
     </View>
@@ -239,12 +251,12 @@ function StepDot({ step, current, label }) {
 const sd = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
-  dotActive: { backgroundColor: '#2E86C1' },
-  dotNow: { backgroundColor: '#2E86C1', transform: [{ scale: 1.2 }] },
-  dotText: { fontSize: 12, color: '#B0A89A' },
+  dotActive: { backgroundColor: C.primary },
+  dotNow: { backgroundColor: C.primaryDark, transform: [{ scale: 1.2 }] },
+  dotText: { fontSize: 12, color: C.muted },
   dotTextActive: { color: '#FFF' },
-  label: { fontSize: 12, color: '#B0A89A', fontWeight: '500' },
-  labelActive: { color: '#2E86C1', fontWeight: '600' },
+  label: { fontSize: 12, color: C.muted, fontWeight: '500' },
+  labelActive: { color: C.primaryDark, fontWeight: '600' },
 });
 
 export default function PostsReseaux() {
@@ -296,7 +308,7 @@ export default function PostsReseaux() {
     }
     setPosts(prev => [{
       id: String(Date.now()), author: '@Moi', time: 'à l\'instant',
-      location: 'Cotonou', text: newPostText || '📸 Nouvelle publication',
+      location: 'Cotonou', text: newPostText || 'Nouvelle publication',
       likes: 0, comments: 0, shares: 0, theme: newPostTheme, ville: 'Cotonou',
       images: selectedMedia.map(m => m.uri),
     }, ...prev]);
@@ -306,17 +318,6 @@ export default function PostsReseaux() {
   return (
     <View style={s.root}>
       <View style={s.bgOrb1} /><View style={s.bgOrb2} /><View style={s.bgOrb3} />
-
-      {/* Header */}
-      <View style={s.header}>
-        <View style={s.headerContent}>
-          <Image source={{ uri: '/aanid_logo.jpeg' }} style={s.logoImg} resizeMode="contain" />
-          <View style={s.headerRight}>
-            <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnText}>🔔</Text></TouchableOpacity>
-            <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnText}>👤</Text></TouchableOpacity>
-          </View>
-        </View>
-      </View>
 
       <FlatList
         style={s.list}
@@ -331,15 +332,18 @@ export default function PostsReseaux() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#2E86C1"
-            colors={['#2E86C1', '#2ECC71', '#F5A623']}
-            progressBackgroundColor="#FFF"
+            tintColor={C.primary}
+            colors={[C.primary, C.success]}
+            progressBackgroundColor={C.surface}
           />
         }
         ListHeaderComponent={
           <View>
             <View style={s.hero}>
-              <Text style={s.heroPre}>● Fil d'actualité</Text>
+              <View style={s.heroPreRow}>
+                <Icon name="newspaper" size={12} color={C.primaryDark} />
+                <Text style={s.heroPre}>Fil d'actualité</Text>
+              </View>
               <Text style={s.heroTitle}>Posts & Réseaux</Text>
               <View style={s.heroStats}>
                 <View style={s.heroStat}>
@@ -361,7 +365,7 @@ export default function PostsReseaux() {
 
             <View style={s.searchRow}>
               <View style={s.searchWrap}>
-                <Text style={s.searchIcon}>🔍</Text>
+                <Icon name="magnifying-glass" size={14} color={C.muted} style={s.searchIcon} />
                 <TextInput
                   style={s.searchInput}
                   placeholder="Rechercher par ville, thème..."
@@ -370,7 +374,7 @@ export default function PostsReseaux() {
                   onChangeText={setSearchQuery}
                 />
                 <TouchableOpacity style={s.filterBtn} onPress={() => setShowFilters(v => !v)}>
-                  <Text style={[s.filterIcon, showFilters && { color: '#2E86C1' }]}>☰</Text>
+                  <Icon name="sliders" size={17} color={showFilters ? C.primaryDark : C.muted} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -397,7 +401,7 @@ export default function PostsReseaux() {
         }
         ListEmptyComponent={
           <View style={s.empty}>
-            <View style={s.emptyGlow}><Text style={s.emptyIcon}>🌍</Text></View>
+            <View style={s.emptyGlow}><Icon name="earth-africa" size={34} color={C.primaryDark} /></View>
             <Text style={s.emptyTitle}>Aucun post trouvé</Text>
             <Text style={s.emptyDesc}>Modifie tes filtres ou explore d'autres villes du Bénin.</Text>
             <TouchableOpacity style={s.emptyBtn} onPress={() => { setFilterVille('Toutes'); setFilterTheme('Tous'); setSearchQuery(''); }}>
@@ -408,7 +412,7 @@ export default function PostsReseaux() {
       />
 
       <TouchableOpacity style={s.fab} onPress={() => setShowCreatePost(true)} activeOpacity={0.85}>
-        <View style={s.fabInner}><Text style={s.fabIcon}>+</Text></View>
+        <View style={s.fabInner}><Icon name="plus" size={22} color={C.white} /></View>
       </TouchableOpacity>
 
       {/* ─── CREATE POST ─── */}
@@ -445,7 +449,7 @@ export default function PostsReseaux() {
                       <View key={m.id} style={cp.previewPage}>
                         <Image source={{ uri: m.uri }} style={cp.previewImg} resizeMode="cover" />
                         <TouchableOpacity style={cp.removeBtn} onPress={() => setSelectedMedia(prev => prev.filter(p => p.id !== m.id))}>
-                          <Text style={cp.removeBtnText}>✕</Text>
+                          <Icon name="xmark" size={14} color={C.white} />
                         </TouchableOpacity>
                         <View style={cp.counterBadge}><Text style={cp.counterText}>{i + 1}/{selectedMedia.length}</Text></View>
                       </View>
@@ -454,13 +458,13 @@ export default function PostsReseaux() {
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cp.thumbRow}>
                     {selectedMedia.map(m => <Image key={m.id} source={{ uri: m.uri }} style={cp.thumb} resizeMode="cover" />)}
                     <TouchableOpacity style={cp.addMore} onPress={() => setShowMediaPicker(true)}>
-                      <Text style={cp.addMoreIcon}>+</Text>
+                      <Icon name="plus" size={16} color={C.white} />
                     </TouchableOpacity>
                   </ScrollView>
                 </View>
               ) : (
                 <TouchableOpacity style={cp.addMedia} onPress={() => setShowMediaPicker(true)}>
-                  <View style={cp.addMediaCircle}><Text style={cp.addMediaIcon}>📷</Text></View>
+                  <View style={cp.addMediaCircle}><Icon name="camera" size={24} color={C.primaryDark} /></View>
                   <Text style={cp.addMediaTitle}>Ajouter des photos</Text>
                   <Text style={cp.addMediaSub}>Jusqu'à 6 photos · Galerie</Text>
                 </TouchableOpacity>
@@ -481,12 +485,12 @@ export default function PostsReseaux() {
 
               <View style={cp.options}>
                 <View style={cp.optRow}>
-                  <Text style={cp.optLabel}>📍 Localisation</Text>
+                  <View style={cp.optLabelRow}><Icon name="location-dot" size={14} color={C.primaryDark} /><Text style={cp.optLabel}>Localisation</Text></View>
                   <Text style={cp.optValue}>Cotonou, Bénin</Text>
                 </View>
                 <View style={cp.optDiv} />
                 <View style={cp.optRow}>
-                  <Text style={cp.optLabel}>🏷️ Thème</Text>
+                  <View style={cp.optLabelRow}><Icon name="tag" size={14} color={C.primaryDark} /><Text style={cp.optLabel}>Thème</Text></View>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                     {THEMES.filter(t => t !== 'Tous').map(t => (
                       <TouchableOpacity key={t} style={[cp.themeChip, newPostTheme === t && cp.themeChipOn]} onPress={() => setNewPostTheme(t)}>
@@ -497,7 +501,7 @@ export default function PostsReseaux() {
                 </View>
                 <View style={cp.optDiv} />
                 <View style={cp.optRow}>
-                  <Text style={cp.optLabel}>🔒 Visibilité</Text>
+                  <View style={cp.optLabelRow}><Icon name="lock" size={14} color={C.primaryDark} /><Text style={cp.optLabel}>Visibilité</Text></View>
                   <Text style={cp.optValue}>Public</Text>
                 </View>
               </View>
@@ -539,7 +543,7 @@ export default function PostsReseaux() {
                     <Image source={{ uri: item.uri }} style={gp.img} resizeMode="cover" />
                     {sel && (
                       <View style={gp.overlay}>
-                        <View style={gp.check}><Text style={gp.checkText}>✓</Text></View>
+                        <View style={gp.check}><Icon name="check" size={13} color={C.white} /></View>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -573,7 +577,7 @@ export default function PostsReseaux() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={s.detailAuthor}>{showPostDetail.author}</Text>
-                    <Text style={s.detailMeta}>{showPostDetail.time} · 📍 {showPostDetail.location}</Text>
+                    <Text style={s.detailMeta}>{showPostDetail.time} · {showPostDetail.location}</Text>
                   </View>
                   <View style={[s.detailBadge, { backgroundColor: ACCENTS[0] + '12' }]}>
                     <Text style={[s.detailBadgeText, { color: ACCENTS[0] }]}>{showPostDetail.theme}</Text>
@@ -584,14 +588,14 @@ export default function PostsReseaux() {
                   <View style={s.detailImgWrap}>
                     <Image source={{ uri: showPostDetail.images[0] }} style={s.detailImg} resizeMode="cover" />
                     <View style={s.detailImgOverlay} />
-                    <View style={s.detailLocBadge}><Text style={s.detailLocBadgeText}>📍 {showPostDetail.location}</Text></View>
+                    <View style={s.detailLocBadge}><Icon name="location-dot" size={11} color={C.white} /><Text style={s.detailLocBadgeText}>{showPostDetail.location}</Text></View>
                   </View>
                 )}
                 <View style={s.detailDiv} />
                 <View style={s.detailActions}>
-                  {['❤️', '💬', '↗'].map((ico, i) => (
+                  {['heart', 'comment', 'share-nodes'].map((iconName, i) => (
                     <TouchableOpacity key={i} style={s.detailAction}>
-                      <Text style={s.detailActionIcon}>{ico}</Text>
+                      <Icon name={iconName} size={17} color={C.textSecondary} />
                       <Text style={s.detailActionCount}>{[showPostDetail.likes, showPostDetail.comments, showPostDetail.shares][i]}</Text>
                     </TouchableOpacity>
                   ))}
@@ -599,9 +603,9 @@ export default function PostsReseaux() {
                 <View style={s.commentsSection}>
                   <Text style={s.commentsTitle}>Commentaires</Text>
                   {[
-                    { author: '@PaulT', text: 'Super initiative pour Cotonou ! 🇧🇯', likes: 5, time: '2h' },
+                    { author: '@PaulT', text: 'Super initiative pour Cotonou !', likes: 5, time: '2h' },
                     { author: '@KoffiB', text: 'Quand à Parakou ?', likes: 2, time: '1h' },
-                    { author: '@MariamB', text: 'Enfin une bonne nouvelle ✨', likes: 8, time: '30min' },
+                    { author: '@MariamB', text: 'Enfin une bonne nouvelle.', likes: 8, time: '30min' },
                   ].map((c, i) => (
                     <View key={i} style={s.comment}>
                       <View style={[s.commentAvatar, { backgroundColor: ACCENTS[i] + '15' }]}>
@@ -614,7 +618,7 @@ export default function PostsReseaux() {
                         </View>
                         <Text style={s.commentText}>{c.text}</Text>
                         <View style={s.commentActions}>
-                          <Text style={s.commentAction}>♥ {c.likes}</Text>
+                          <View style={s.commentLike}><Icon name="heart" size={11} color={C.textSecondary} /><Text style={s.commentAction}>{c.likes}</Text></View>
                           <Text style={s.commentAction}>Répondre</Text>
                         </View>
                       </View>
@@ -634,9 +638,9 @@ export default function PostsReseaux() {
                 />
                 <TouchableOpacity
                   style={[s.commentSend, !commentText.trim() && s.dim]}
-                  onPress={() => { if (commentText.trim()) { Alert.alert('✓ Commentaire ajouté'); setCommentText(''); } }}
+                  onPress={() => { if (commentText.trim()) { Alert.alert('Commentaire ajouté'); setCommentText(''); } }}
                 >
-                  <Text style={s.commentSendText}>→</Text>
+                  <Icon name="paper-plane" size={15} color={C.white} solid />
                 </TouchableOpacity>
               </View>
             )}
@@ -648,11 +652,11 @@ export default function PostsReseaux() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F5F5DC' },
+  root: { flex: 1, backgroundColor: C.background },
   dim: { opacity: 0.4 },
-  bgOrb1: { position: 'absolute', top: -120, right: -80, width: 260, height: 260, borderRadius: 130, backgroundColor: 'rgba(245,166,35,0.05)' },
-  bgOrb2: { position: 'absolute', top: 350, left: -100, width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(46,134,193,0.03)' },
-  bgOrb3: { position: 'absolute', bottom: 200, right: -60, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(46,134,193,0.04)' },
+  bgOrb1: { position: 'absolute', top: -120, right: -80, width: 260, height: 260, borderRadius: 130, backgroundColor: 'rgba(193,154,107,0.08)' },
+  bgOrb2: { position: 'absolute', top: 350, left: -100, width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(156,124,79,0.04)' },
+  bgOrb3: { position: 'absolute', bottom: 200, right: -60, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(140,106,67,0.05)' },
   header: { paddingHorizontal: 20, paddingTop: 12 },
   headerContent: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -667,41 +671,42 @@ const s = StyleSheet.create({
   list: { flex: 1 },
   listContent: { padding: 20, paddingBottom: 120 },
   hero: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 },
-  heroPre: { fontSize: 12, fontWeight: '600', color: '#8A8272', letterSpacing: 1.5, marginBottom: 6 },
-  heroTitle: { fontSize: 34, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.8 },
+  heroPreRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 6 },
+  heroPre: { fontSize: 12, fontWeight: '600', color: C.primaryDark, letterSpacing: 1.2 },
+  heroTitle: { fontSize: 32, fontWeight: '800', color: C.text, letterSpacing: -0.6 },
   heroStats: { flexDirection: 'row', alignItems: 'center', marginTop: 14, backgroundColor: 'rgba(255,255,255,0.55)', borderRadius: 16, padding: 16, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   heroStat: { alignItems: 'center', paddingHorizontal: 12 },
   heroStatDiv: { width: 1, height: 28, backgroundColor: 'rgba(0,0,0,0.06)' },
-  heroStatNum: { fontSize: 19, fontWeight: '800', color: '#1A1A1A' },
-  heroStatLabel: { fontSize: 11, color: '#B0A89A', fontWeight: '500', marginTop: 2 },
+  heroStatNum: { fontSize: 19, fontWeight: '800', color: C.text },
+  heroStatLabel: { fontSize: 11, color: C.muted, fontWeight: '500', marginTop: 2 },
   searchRow: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.82)', borderRadius: 16, paddingHorizontal: 14, height: 48, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' },
-  searchIcon: { fontSize: 14, marginRight: 10, opacity: 0.35 },
-  searchInput: { flex: 1, fontSize: 15, color: '#1A1A1A', outlineStyle: 'none' },
-  filterBtn: { padding: 6 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 16, paddingHorizontal: 14, height: 48, borderWidth: 1, borderColor: C.border },
+  searchIcon: { marginRight: 10 },
+  searchInput: { flex: 1, fontSize: 15, color: C.text, outlineStyle: 'none' },
+  filterBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center', marginRight: -10 },
   filterIcon: { fontSize: 18, color: '#B0A89A' },
   filtersWrap: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 },
   chip: { paddingHorizontal: 18, paddingVertical: 9, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.72)', marginRight: 8, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)' },
-  chipOn: { backgroundColor: '#1A1A1A', borderColor: '#1A1A1A' },
-  chipText: { fontSize: 13, color: '#8A8272', fontWeight: '500' },
+  chipOn: { backgroundColor: C.primary, borderColor: C.primary },
+  chipText: { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
   chipTextOn: { color: '#FFF' },
-  fab: { position: 'absolute', bottom: 28, right: 20, width: 60, height: 60, borderRadius: 30, backgroundColor: '#2E86C1', shadowColor: '#2E86C1', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.35, shadowRadius: 16, elevation: 8, justifyContent: 'center', alignItems: 'center' },
+  fab: { position: 'absolute', bottom: 28, right: 20, width: 60, height: 60, borderRadius: 30, backgroundColor: C.primaryDark, shadowColor: C.text, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.24, shadowRadius: 16, elevation: 8, justifyContent: 'center', alignItems: 'center' },
   fabInner: { justifyContent: 'center', alignItems: 'center' },
   fabIcon: { fontSize: 30, color: '#FFF', fontWeight: '300', marginTop: -2 },
   empty: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, marginTop: 40 },
-  emptyGlow: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(245,166,35,0.08)', justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
+  emptyGlow: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(193,154,107,0.14)', justifyContent: 'center', alignItems: 'center', marginBottom: 18 },
   emptyIcon: { fontSize: 36, opacity: 0.3 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: '#1A1A1A', marginBottom: 8 },
-  emptyDesc: { fontSize: 14, color: '#B0A89A', textAlign: 'center', lineHeight: 22 },
-  emptyBtn: { marginTop: 20, backgroundColor: '#1A1A1A', borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: C.text, marginBottom: 8 },
+  emptyDesc: { fontSize: 14, color: C.muted, textAlign: 'center', lineHeight: 22 },
+  emptyBtn: { marginTop: 20, backgroundColor: C.primaryDark, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 14 },
   emptyBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modal: { backgroundColor: '#F5F5DC', borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '92%', paddingBottom: 40 },
+  modal: { backgroundColor: C.background, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 24, maxHeight: '92%', paddingBottom: 40 },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.1)', alignSelf: 'center', marginBottom: 16 },
   modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  modalCancel: { fontSize: 15, color: '#8A8272', fontWeight: '500' },
-  modalTitle: { fontSize: 17, fontWeight: '700', color: '#1A1A1A' },
-  publishBtn: { backgroundColor: '#2E86C1', borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8 },
+  modalCancel: { fontSize: 15, color: C.textSecondary, fontWeight: '500' },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: C.text },
+  publishBtn: { backgroundColor: C.primaryDark, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 8 },
   publishBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
   stepsBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 16 },
   stepsDash: { width: 30, height: 1, backgroundColor: 'rgba(0,0,0,0.08)' },
@@ -709,36 +714,37 @@ const s = StyleSheet.create({
   detailRing: { width: 50, height: 50, borderRadius: 25, borderWidth: 2, justifyContent: 'center', alignItems: 'center' },
   detailAvatar: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
   detailAvatarText: { fontSize: 17, fontWeight: '700' },
-  detailAuthor: { fontSize: 15, fontWeight: '700', color: '#1A1A1A' },
-  detailMeta: { fontSize: 12, color: '#B0A89A', marginTop: 1 },
+  detailAuthor: { fontSize: 15, fontWeight: '700', color: C.text },
+  detailMeta: { fontSize: 12, color: C.muted, marginTop: 1 },
   detailBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 8 },
   detailBadgeText: { fontSize: 12, fontWeight: '600' },
-  detailBody: { fontSize: 15, color: '#1A1A1A', lineHeight: 24, marginBottom: 14 },
+  detailBody: { fontSize: 15, color: C.text, lineHeight: 24, marginBottom: 14 },
   detailImgWrap: { position: 'relative', borderRadius: 16, overflow: 'hidden', marginBottom: 16 },
   detailImg: { width: '100%', height: 280 },
   detailImgOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '40%', backgroundColor: 'rgba(0,0,0,0.2)' },
-  detailLocBadge: { position: 'absolute', bottom: 10, left: 12, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 10 },
+  detailLocBadge: { position: 'absolute', bottom: 10, left: 12, backgroundColor: 'rgba(46,42,36,0.72)', paddingHorizontal: 14, paddingVertical: 5, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
   detailLocBadgeText: { color: '#FFF', fontSize: 12, fontWeight: '600' },
   detailDiv: { height: 1, backgroundColor: 'rgba(0,0,0,0.04)', marginVertical: 16 },
   detailActions: { flexDirection: 'row', alignItems: 'center', gap: 20 },
   detailAction: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   detailActionIcon: { fontSize: 16 },
-  detailActionCount: { fontSize: 13, color: '#8A8272', fontWeight: '600' },
+  detailActionCount: { fontSize: 13, color: C.textSecondary, fontWeight: '600' },
   commentsSection: { marginTop: 24 },
-  commentsTitle: { fontSize: 15, fontWeight: '700', color: '#1A1A1A', marginBottom: 14 },
+  commentsTitle: { fontSize: 15, fontWeight: '700', color: C.text, marginBottom: 14 },
   comment: { flexDirection: 'row', gap: 10, marginBottom: 14 },
   commentAvatar: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
   commentAvatarText: { fontSize: 14, fontWeight: '600' },
   commentBody: { flex: 1, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 14, padding: 12 },
   commentHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 3 },
-  commentAuthor: { fontSize: 13, fontWeight: '700', color: '#1A1A1A' },
-  commentTime: { fontSize: 11, color: '#B0A89A' },
+  commentAuthor: { fontSize: 13, fontWeight: '700', color: C.text },
+  commentTime: { fontSize: 11, color: C.muted },
   commentText: { fontSize: 14, color: '#5A5242', lineHeight: 20 },
   commentActions: { flexDirection: 'row', gap: 14, marginTop: 6 },
-  commentAction: { fontSize: 12, color: '#8A8272', fontWeight: '500' },
+  commentLike: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  commentAction: { fontSize: 12, color: C.textSecondary, fontWeight: '500' },
   commentInput: { flexDirection: 'row', alignItems: 'center', marginTop: 16, gap: 8, backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 16, padding: 6, borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)' },
-  commentInputField: { flex: 1, fontSize: 14, color: '#1A1A1A', paddingHorizontal: 12, paddingVertical: 8 },
-  commentSend: { backgroundColor: '#2E86C1', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11 },
+  commentInputField: { flex: 1, fontSize: 14, color: C.text, paddingHorizontal: 12, paddingVertical: 8 },
+  commentSend: { backgroundColor: C.primaryDark, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 11 },
   commentSendText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
 });
 
@@ -755,33 +761,34 @@ const cp = StyleSheet.create({
   addMore: { width: 40, height: 40, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   addMoreIcon: { color: '#FFF', fontSize: 20, fontWeight: '300' },
   addMedia: { backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 20, borderWidth: 2, borderColor: 'rgba(0,0,0,0.06)', borderStyle: 'dashed', padding: 40, alignItems: 'center', marginBottom: 16 },
-  addMediaCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#F0EDE0', justifyContent: 'center', alignItems: 'center', marginBottom: 14 },
+  addMediaCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: C.backgroundAlt, justifyContent: 'center', alignItems: 'center', marginBottom: 14 },
   addMediaIcon: { fontSize: 26 },
-  addMediaTitle: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 4 },
-  addMediaSub: { fontSize: 13, color: '#B0A89A' },
+  addMediaTitle: { fontSize: 18, fontWeight: '700', color: C.text, marginBottom: 4 },
+  addMediaSub: { fontSize: 13, color: C.muted },
   captionRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginBottom: 16 },
   captionAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F0EDE0', justifyContent: 'center', alignItems: 'center' },
-  captionAvatarText: { fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
-  captionInput: { flex: 1, fontSize: 15, color: '#1A1A1A', lineHeight: 22, maxHeight: 100, paddingTop: 6 },
+  captionAvatarText: { fontSize: 14, fontWeight: '700', color: C.text },
+  captionInput: { flex: 1, fontSize: 15, color: C.text, lineHeight: 22, maxHeight: 100, paddingTop: 6 },
   options: { backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 16, padding: 4, marginBottom: 16 },
   optRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  optLabel: { fontSize: 15, color: '#1A1A1A' },
-  optValue: { fontSize: 14, color: '#2E86C1', fontWeight: '500' },
+  optLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  optLabel: { fontSize: 15, color: C.text },
+  optValue: { fontSize: 14, color: C.primaryDark, fontWeight: '500' },
   optDiv: { height: 1, backgroundColor: 'rgba(0,0,0,0.04)', marginHorizontal: 16 },
   themeChip: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.8)', marginLeft: 6, borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)' },
-  themeChipOn: { backgroundColor: '#1A1A1A', borderColor: '#1A1A1A' },
-  themeChipText: { fontSize: 12, color: '#8A8272', fontWeight: '500' },
+  themeChipOn: { backgroundColor: C.primary, borderColor: C.primary },
+  themeChipText: { fontSize: 12, color: C.textSecondary, fontWeight: '500' },
   themeChipTextOn: { color: '#FFF' },
-  publishBar: { backgroundColor: '#2E86C1', borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  publishBar: { backgroundColor: C.primaryDark, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   publishBarText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
 
 const gp = StyleSheet.create({
   stats: { paddingHorizontal: 4, paddingBottom: 12 },
-  statsText: { fontSize: 13, color: '#8A8272', fontWeight: '500' },
+  statsText: { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
   item: { width: (width - 48 - 16) / 3, height: (width - 48 - 16) / 3, margin: 2, borderRadius: 8, overflow: 'hidden' },
   img: { width: '100%', height: '100%' },
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(46,134,193,0.3)', justifyContent: 'center', alignItems: 'center' },
-  check: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#2E86C1', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF' },
+  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(156,124,79,0.32)', justifyContent: 'center', alignItems: 'center' },
+  check: { width: 26, height: 26, borderRadius: 13, backgroundColor: C.primaryDark, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: C.white },
   checkText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 });

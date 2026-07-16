@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import { COLORS, FONT_FAMILY } from '../constants/theme';
 
 interface Props {
@@ -17,7 +18,7 @@ export default function CustomInput({ placeholder, value, onChangeText, secureTe
 
   return (
     <View style={styles.container}>
-      {icon && <Text style={styles.icon}>{icon}</Text>}
+      {icon && <Icon name={icon} size={17} color={COLORS.primaryDark} solid style={styles.icon} />}
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -29,8 +30,13 @@ export default function CustomInput({ placeholder, value, onChangeText, secureTe
         autoCapitalize={autoCapitalize}
       />
       {secureTextEntry && (
-        <TouchableOpacity onPress={() => setShow(!show)}>
-          <Text style={styles.toggle}>{show ? '🙈' : '👁'}</Text>
+        <TouchableOpacity
+          onPress={() => setShow(!show)}
+          style={styles.toggle}
+          accessibilityRole="button"
+          accessibilityLabel={show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+        >
+          <Icon name={show ? 'eye-slash' : 'eye'} size={17} color={COLORS.textSecondary} />
         </TouchableOpacity>
       )}
     </View>
@@ -49,7 +55,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  icon: { fontSize: 18, marginRight: 10 },
+  icon: { marginRight: 10 },
   input: { flex: 1, fontSize: 15, color: COLORS.text, outlineStyle: 'none', outlineWidth: 0, fontFamily: FONT_FAMILY },
-  toggle: { fontSize: 18, marginLeft: 8 },
+  toggle: { width: 44, height: 44, marginRight: -12, justifyContent: 'center', alignItems: 'center' },
 });

@@ -11,6 +11,7 @@ import {
   Modal,
   SafeAreaView,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import * as authService from '../services/authService';
 import PasswordStrengthBar from '../components/PasswordStrengthBar';
 import { colors, spacing, radius, typography, shadows, PASSWORD_RE } from '../theme';
@@ -101,7 +102,7 @@ function InfoRow({ label, value }) {
 function FeatureItem({ label }) {
   return (
     <View style={styles.featureRow}>
-      <Text style={[styles.featureCheck, { color: colors.green }]}>✓</Text>
+      <Icon name="check" size={14} color={colors.green} />
       <Text style={styles.featureLabel}>{label}</Text>
     </View>
   );
@@ -312,7 +313,7 @@ function ChangePasswordModal({ visible, onClose }) {
           {success ? (
             <View style={styles.successBox}>
               <View style={styles.successIconBox}>
-                <Text style={styles.successIconText}>✓</Text>
+                <Icon name="check" size={22} color={colors.white} />
               </View>
               <Text style={styles.successText}>Mot de passe modifié avec succès.</Text>
               <Text style={styles.successHint}>Vos autres sessions ont été déconnectées.</Text>

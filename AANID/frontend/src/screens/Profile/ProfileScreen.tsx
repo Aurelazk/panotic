@@ -7,14 +7,23 @@ import {
   faRightFromBracket, faChevronRight, faGear, faPen,
   faTrophy, faFlag, faSeedling, faHouse,
 } from '@fortawesome/free-solid-svg-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootState } from '../../store';
 import { logout } from '../../store/slices/authSlice';
 import { COLORS, FONT_FAMILY } from '../../constants/theme';
+
+const ACCESS_TOKEN_KEY = '@aanid/v1/access_token';
+const REFRESH_TOKEN_KEY = '@aanid/v1/refresh_token';
 
 export default function ProfileScreen({ navigation }: any) {
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const initials = user?.email?.charAt(0).toUpperCase() || 'C';
+
+  const handleLogout = async () => {
+    await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]).catch(() => {});
+    dispatch(logout());
+  };
 
   const MenuRow = ({ icon, color, label, desc, screen, last }: any) => (
     <TouchableOpacity
@@ -101,7 +110,7 @@ export default function ProfileScreen({ navigation }: any) {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8} onPress={() => dispatch(logout())}>
+        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.8} onPress={handleLogout}>
           <FontAwesomeIcon icon={faRightFromBracket} style={{ fontSize: 16 }} color={COLORS.error} />
           <Text style={styles.logoutText}>Déconnexion</Text>
         </TouchableOpacity>

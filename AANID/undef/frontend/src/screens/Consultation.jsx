@@ -4,30 +4,37 @@ import {
   TextInput, Modal, Alert, SafeAreaView, KeyboardAvoidingView,
   Platform, Animated, Dimensions, StatusBar, Image,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 
 const { width } = Dimensions.get('window');
+const C = {
+  primary: '#C19A6B', primaryDark: '#9C7C4F', secondary: '#8C6A43', secondaryDark: '#6E5333',
+  background: '#F9F1E5', backgroundAlt: '#F2E7D3', surface: '#FFFFFF',
+  text: '#2E2A24', textSecondary: '#7A7166', muted: '#A89E90',
+  border: '#E8DCC8', success: '#6E8B5B', error: '#C75D4F', white: '#FFFFFF',
+};
 
 const SERVICES = [
   {
-    id: '1', icon: '📊', title: 'Études panneautique',
+    id: '1', icon: 'chart-column', title: 'Études panneautique',
     short: 'Analyse complète de l\'état de votre panneautique urbaine.',
     desc: 'Diagnostic approfondi de l\'affichage publicitaire. Notre équipe réalise un état des lieux complet et vous livre des recommandations actionnables, avec cartographie et rapport détaillé.',
     features: ['Cartographie précise des panneaux', 'Conformité aux normes', 'Recommandations stratégiques', 'Rapport PDF + données brutes'],
-    color: '#2E86C1', price: 'Sur devis',
+    color: C.primaryDark, price: 'Sur devis',
   },
   {
-    id: '2', icon: '🔄', title: 'Réforme publicitaire',
+    id: '2', icon: 'rotate', title: 'Réforme publicitaire',
     short: 'Diagnostic et stratégies pour réformer l\'exploitation.',
     desc: 'Accompagnement sur mesure pour moderniser la réglementation et l\'exploitation des panneaux publicitaires dans votre région, de l\'audit à la mise en œuvre.',
     features: ['Audit réglementaire complet', 'Nouvelles stratégies', 'Plans d\'action détaillés', 'Suivi de mise en œuvre'],
-    color: '#2ECC71', price: 'À partir de 1.5M FCFA',
+    color: C.success, price: 'À partir de 1.5M FCFA',
   },
   {
-    id: '3', icon: '📈', title: 'Études de marché',
+    id: '3', icon: 'chart-line', title: 'Études de marché',
     short: 'Analyse du potentiel et positionnement concurrentiel.',
     desc: 'Évaluations précises du marché publicitaire local pour optimiser votre développement, votre tarification et votre positionnement stratégique.',
     features: ['Analyse concurrentielle', 'Potentiel publicitaire', 'Étude tarifaire', 'Tendances et opportunités'],
-    color: '#F5A623', price: 'À partir de 800k FCFA',
+    color: '#D9A441', price: 'À partir de 800k FCFA',
   },
 ];
 
@@ -60,7 +67,7 @@ function FloatingInput({ label, value, onChangeText, placeholder, error, ...prop
   const labelStyle = {
     top: anim.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }),
     fontSize: anim.interpolate({ inputRange: [0, 1], outputRange: [15, 11] }),
-    color: anim.interpolate({ inputRange: [0, 1], outputRange: ['#B0A89A', '#2E86C1'] }),
+    color: anim.interpolate({ inputRange: [0, 1], outputRange: [C.muted, C.primaryDark] }),
   };
 
   return (
@@ -69,7 +76,7 @@ function FloatingInput({ label, value, onChangeText, placeholder, error, ...prop
       <TextInput
         style={fi.input}
         placeholder={focused ? placeholder : ''}
-        placeholderTextColor="#B0A89A"
+        placeholderTextColor={C.muted}
         value={value}
         onChangeText={onChangeText}
         onFocus={() => setFocused(true)}
@@ -90,16 +97,16 @@ const fi = StyleSheet.create({
     marginBottom: 14, overflow: 'hidden',
   },
   wrapFocused: {
-    borderColor: '#2E86C1',
-    shadowColor: '#2E86C1', shadowOffset: { width: 0, height: 0 },
+    borderColor: C.primary,
+    shadowColor: C.primaryDark, shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.08, shadowRadius: 6, elevation: 1,
   },
   wrapError: { borderColor: '#E74C3C' },
   label: { position: 'absolute', left: 16, fontWeight: '500' },
-  input: { fontSize: 15, color: '#1A1A1A', paddingVertical: 8, outlineStyle: 'none', marginTop: 4 },
+  input: { fontSize: 15, color: C.text, paddingVertical: 8, outlineStyle: 'none', marginTop: 4 },
   focusLine: {
     position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
-    backgroundColor: '#2E86C1', opacity: 0.3,
+    backgroundColor: C.primary, opacity: 0.3,
   },
   errorText: { fontSize: 11, color: '#E74C3C', fontWeight: '500', marginTop: 2 },
 });
@@ -133,7 +140,7 @@ function ServiceCard({ service, onPress, index }) {
         <View style={[sc.accentBar, { backgroundColor: service.color }]} />
         <View style={sc.body}>
           <View style={[sc.iconWrap, { backgroundColor: service.color + '12' }]}>
-            <Text style={sc.icon}>{service.icon}</Text>
+            <Icon name={service.icon} size={22} color={service.color} />
           </View>
           <View style={sc.priceBadge}>
             <Text style={[sc.priceText, { color: service.color }]}>{service.price}</Text>
@@ -172,8 +179,8 @@ const sc = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
   },
   priceText: { fontSize: 12, fontWeight: '700' },
-  title: { fontSize: 18, fontWeight: '700', color: '#1A1A1A', marginBottom: 8 },
-  desc: { fontSize: 14, color: '#8A8272', lineHeight: 21, marginBottom: 14 },
+  title: { fontSize: 18, fontWeight: '700', color: C.text, marginBottom: 8 },
+  desc: { fontSize: 14, color: C.textSecondary, lineHeight: 21, marginBottom: 14 },
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   link: { fontSize: 14, fontWeight: '600' },
   arrow: { fontSize: 16, fontWeight: '600', marginTop: -1 },
@@ -205,8 +212,8 @@ const ps = StyleSheet.create({
     marginBottom: 0,
   },
   stepNum: { fontSize: 32, fontWeight: '800', color: 'rgba(0,0,0,0.04)', marginBottom: 4, letterSpacing: -1 },
-  title: { fontSize: 16, fontWeight: '700', color: '#1A1A1A', marginBottom: 6 },
-  desc: { fontSize: 13, color: '#8A8272', lineHeight: 20 },
+  title: { fontSize: 16, fontWeight: '700', color: C.text, marginBottom: 6 },
+  desc: { fontSize: 13, color: C.textSecondary, lineHeight: 20 },
   connector: { width: 1, height: 24, backgroundColor: 'rgba(0,0,0,0.06)', alignSelf: 'center' },
 });
 
@@ -240,13 +247,13 @@ const tc = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03, shadowRadius: 8, elevation: 1,
   },
-  quote: { fontSize: 36, color: '#2E86C1', opacity: 0.15, marginBottom: -8, fontWeight: '700' },
+  quote: { fontSize: 36, color: C.primaryDark, opacity: 0.15, marginBottom: -8, fontWeight: '700' },
   text: { fontSize: 14, color: '#5A5242', lineHeight: 22, fontStyle: 'italic', marginBottom: 16 },
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#2E86C1', justifyContent: 'center', alignItems: 'center' },
+  avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.primaryDark, justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
-  author: { fontSize: 13, fontWeight: '700', color: '#1A1A1A' },
-  role: { fontSize: 11, color: '#B0A89A', marginTop: 1 },
+  author: { fontSize: 13, fontWeight: '700', color: C.text },
+  role: { fontSize: 11, color: C.muted, marginTop: 1 },
 });
 
 export default function Consultation() {
@@ -310,7 +317,7 @@ export default function Consultation() {
   const handleSubmit = () => {
     if (!validateStep(2)) return;
     setSubmitted(true);
-    Alert.alert('Demande envoyée ✓', 'Notre équipe vous recontactera sous 48h.');
+    Alert.alert('Demande envoyée', 'Notre équipe vous recontactera sous 48h.');
   };
 
   const resetForm = () => {
@@ -329,7 +336,7 @@ export default function Consultation() {
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5DC" />
+      <StatusBar barStyle="dark-content" backgroundColor={C.background} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Animated.ScrollView
           style={s.container}
@@ -338,17 +345,6 @@ export default function Consultation() {
           scrollEventThrottle={16}
         >
           <View style={s.bgOrb1} /><View style={s.bgOrb2} /><View style={s.bgOrb3} /><View style={s.bgOrb4} />
-
-          {/* Header */}
-          <View style={s.header}>
-            <View style={s.headerContent}>
-              <Image source={{ uri: '/aanid_logo.jpeg' }} style={s.logoImg} resizeMode="contain" />
-              <View style={s.headerRight}>
-                <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnText}>🔔</Text></TouchableOpacity>
-                <TouchableOpacity style={s.iconBtn}><Text style={s.iconBtnText}>👤</Text></TouchableOpacity>
-              </View>
-            </View>
-          </View>
 
           {/* Hero */}
           <Animated.View style={[s.hero, { opacity: heroOpacity }]}>
@@ -465,7 +461,7 @@ export default function Consultation() {
           {/* CTA */}
           <View style={[s.section, { paddingBottom: 120 }]}>
             <TouchableOpacity style={s.ctaCard} onPress={() => setShowForm(true)} activeOpacity={0.93}>
-              <Text style={s.ctaGlow}>✦</Text>
+              <Icon name="wand-magic-sparkles" size={28} color="rgba(255,255,255,0.25)" style={s.ctaGlow} />
               <Text style={s.ctaTitle}>Prêt à moderniser{'\n'}votre panneautique ?</Text>
               <Text style={s.ctaDesc}>Contactez nos experts dès aujourd'hui. Devis gratuit sous 48h.</Text>
               <View style={s.ctaBtn}>
@@ -485,13 +481,13 @@ export default function Consultation() {
                   <Text style={s.modalCancel}>← Retour</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setSelectedService(null)}>
-                  <Text style={s.modalCancel}>✕</Text>
+                  <Icon name="xmark" size={18} color={C.textSecondary} />
                 </TouchableOpacity>
               </View>
               {selectedService && (
                 <ScrollView showsVerticalScrollIndicator={false}>
                   <View style={[s.detailIconWrap, { backgroundColor: selectedService.color + '12' }]}>
-                    <Text style={s.detailIcon}>{selectedService.icon}</Text>
+                    <Icon name={selectedService.icon} size={26} color={selectedService.color} />
                   </View>
                   <View style={s.detailPriceRow}>
                     <Text style={[s.detailPrice, { color: selectedService.color }]}>{selectedService.price}</Text>
@@ -556,7 +552,7 @@ export default function Consultation() {
                             onPress={() => { setServiceType(s.title); setErrors(prev => ({ ...prev, serviceType: undefined })); }}
                           >
                             <Text style={[s.chipText, serviceType === s.title && { color: '#FFF' }]}>
-                              {s.icon} {s.title}
+                              {s.title}
                             </Text>
                           </TouchableOpacity>
                         ))}
@@ -650,7 +646,7 @@ export default function Consultation() {
                 <View style={s.success}>
                   <View style={s.successGlow} />
                   <View style={s.successIconWrap}>
-                    <Text style={s.successIcon}>✓</Text>
+                    <Icon name="check" size={26} color={C.white} />
                   </View>
                   <Text style={s.successTitle}>Demande envoyée !</Text>
                   <Text style={s.successDesc}>
@@ -674,12 +670,12 @@ export default function Consultation() {
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F5DC' },
+  safe: { flex: 1, backgroundColor: C.background },
   container: { flex: 1 },
-  bgOrb1: { position: 'absolute', top: -80, left: -60, width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(46,134,193,0.04)' },
-  bgOrb2: { position: 'absolute', top: 350, right: -100, width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(245,166,35,0.03)' },
-  bgOrb3: { position: 'absolute', bottom: 300, left: -50, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(46,134,193,0.03)' },
-  bgOrb4: { position: 'absolute', bottom: -60, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(46,134,193,0.04)' },
+  bgOrb1: { position: 'absolute', top: -80, left: -60, width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(193,154,107,0.07)' },
+  bgOrb2: { position: 'absolute', top: 350, right: -100, width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(156,124,79,0.04)' },
+  bgOrb3: { position: 'absolute', bottom: 300, left: -50, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(140,106,67,0.04)' },
+  bgOrb4: { position: 'absolute', bottom: -60, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(193,154,107,0.06)' },
   header: { paddingHorizontal: 20, paddingTop: 12 },
   headerContent: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -693,13 +689,13 @@ const s = StyleSheet.create({
   iconBtnText: { fontSize: 16 },
   hero: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
   heroBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 },
-  heroBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#2ECC71' },
+  heroBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.success },
   heroBadgeDiv: { width: 1, height: 12, backgroundColor: 'rgba(0,0,0,0.08)' },
-  heroBadgeText: { fontSize: 12, color: '#8A8272', fontWeight: '600', letterSpacing: 0.5 },
-  heroTitle: { fontSize: 38, fontWeight: '800', color: '#1A1A1A', lineHeight: 46, letterSpacing: -1, marginBottom: 14 },
-  heroDesc: { fontSize: 15, color: '#8A8272', lineHeight: 24, marginBottom: 28 },
+  heroBadgeText: { fontSize: 12, color: C.textSecondary, fontWeight: '600', letterSpacing: 0.5 },
+  heroTitle: { fontSize: 38, fontWeight: '800', color: C.text, lineHeight: 46, letterSpacing: -1, marginBottom: 14 },
+  heroDesc: { fontSize: 15, color: C.textSecondary, lineHeight: 24, marginBottom: 28 },
   heroBtn: {
-    backgroundColor: '#1A1A1A', paddingVertical: 18, paddingHorizontal: 28,
+    backgroundColor: C.primaryDark, paddingVertical: 18, paddingHorizontal: 28,
     borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     shadowColor: '#000', shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12, shadowRadius: 16, elevation: 4,
@@ -707,12 +703,12 @@ const s = StyleSheet.create({
   heroBtnText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
   heroBtnArrow: { color: '#FFF', fontSize: 20, fontWeight: '300', marginTop: -1 },
   heroMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16, flexWrap: 'wrap' },
-  heroMetaText: { fontSize: 13, color: '#B0A89A', fontWeight: '500' },
-  heroMetaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#B0A89A' },
+  heroMetaText: { fontSize: 13, color: C.muted, fontWeight: '500' },
+  heroMetaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: C.muted },
   section: { paddingHorizontal: 20, paddingTop: 28 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  sectionLabel: { fontSize: 12, fontWeight: '700', color: '#1A1A1A', letterSpacing: 1 },
-  sectionAction: { fontSize: 13, color: '#2E86C1', fontWeight: '500' },
+  sectionLabel: { fontSize: 12, fontWeight: '700', color: C.text, letterSpacing: 1 },
+  sectionAction: { fontSize: 13, color: C.primaryDark, fontWeight: '500' },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
   statCard: {
     backgroundColor: 'rgba(255,255,255,0.85)',
@@ -721,11 +717,11 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.03, shadowRadius: 6, elevation: 1,
   },
-  statNum: { fontSize: 28, fontWeight: '800', color: '#1A1A1A', marginBottom: 4 },
-  statLabel: { fontSize: 13, color: '#8A8272', fontWeight: '500' },
+  statNum: { fontSize: 28, fontWeight: '800', color: C.text, marginBottom: 4 },
+  statLabel: { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
   processRow: { marginTop: 14 },
   ctaCard: {
-    backgroundColor: '#1A1A1A', borderRadius: 24, padding: 28,
+    backgroundColor: C.secondaryDark, borderRadius: 24, padding: 28,
     shadowColor: '#000', shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15, shadowRadius: 20, elevation: 6,
     overflow: 'hidden',
@@ -734,14 +730,14 @@ const s = StyleSheet.create({
   ctaTitle: { fontSize: 24, fontWeight: '800', color: '#FFF', lineHeight: 32, marginBottom: 8, letterSpacing: -0.3 },
   ctaDesc: { fontSize: 14, color: 'rgba(255,255,255,0.6)', marginBottom: 20 },
   ctaBtn: { backgroundColor: '#FFF', borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
-  ctaBtnText: { fontSize: 16, fontWeight: '700', color: '#1A1A1A' },
+  ctaBtnText: { fontSize: 16, fontWeight: '700', color: C.text },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
   tag: {
     backgroundColor: 'rgba(255,255,255,0.8)',
     paddingHorizontal: 16, paddingVertical: 10,
     borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
   },
-  tagText: { fontSize: 13, color: '#8A8272', fontWeight: '600' },
+  tagText: { fontSize: 13, color: C.textSecondary, fontWeight: '600' },
   trustRow: { marginTop: 14 },
   trustBadge: {
     backgroundColor: 'rgba(255,255,255,0.75)',
@@ -749,54 +745,54 @@ const s = StyleSheet.create({
     borderRadius: 14, marginRight: 10,
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
   },
-  trustBadgeText: { fontSize: 13, color: '#1A1A1A', fontWeight: '600' },
+  trustBadgeText: { fontSize: 13, color: C.text, fontWeight: '600' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modal: {
-    backgroundColor: '#F5F5DC',
+    backgroundColor: C.background,
     borderTopLeftRadius: 28, borderTopRightRadius: 28,
     padding: 24, maxHeight: '85%', paddingBottom: 40,
   },
   modalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.1)', alignSelf: 'center', marginBottom: 16 },
   modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  modalCancel: { fontSize: 15, color: '#8A8272', fontWeight: '500' },
-  modalTitle: { fontSize: 17, fontWeight: '700', color: '#1A1A1A' },
+  modalCancel: { fontSize: 15, color: C.textSecondary, fontWeight: '500' },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: C.text },
   stepIndicator: {
     backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: 8,
     paddingHorizontal: 10, paddingVertical: 4,
   },
-  stepIndicatorText: { fontSize: 12, color: '#8A8272', fontWeight: '600' },
+  stepIndicatorText: { fontSize: 12, color: C.textSecondary, fontWeight: '600' },
   stepBar: { height: 3, backgroundColor: 'rgba(0,0,0,0.06)', borderRadius: 2, marginBottom: 16 },
-  stepBarFill: { height: '100%', backgroundColor: '#2E86C1', borderRadius: 2 },
+  stepBarFill: { height: '100%', backgroundColor: C.primary, borderRadius: 2 },
   detailIconWrap: { width: 60, height: 60, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   detailIcon: { fontSize: 28 },
   detailPriceRow: { marginBottom: 12 },
   detailPrice: { fontSize: 16, fontWeight: '800' },
-  detailTitle: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', marginBottom: 14, letterSpacing: -0.3 },
-  detailDesc: { fontSize: 15, color: '#8A8272', lineHeight: 24, marginBottom: 20 },
+  detailTitle: { fontSize: 26, fontWeight: '800', color: C.text, marginBottom: 14, letterSpacing: -0.3 },
+  detailDesc: { fontSize: 15, color: C.textSecondary, lineHeight: 24, marginBottom: 20 },
   detailDivider: { height: 1, backgroundColor: 'rgba(0,0,0,0.05)', marginBottom: 20 },
-  detailSub: { fontSize: 12, fontWeight: '700', color: '#1A1A1A', letterSpacing: 1, marginBottom: 14 },
+  detailSub: { fontSize: 12, fontWeight: '700', color: C.text, letterSpacing: 1, marginBottom: 14 },
   featureRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   featureDot: { width: 8, height: 8, borderRadius: 4, marginRight: 14 },
-  featureText: { fontSize: 15, color: '#1A1A1A', flex: 1 },
+  featureText: { fontSize: 15, color: C.text, flex: 1 },
   detailActions: { gap: 10, marginTop: 28 },
   primaryBtn: { borderRadius: 16, paddingVertical: 18, alignItems: 'center' },
   primaryBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   secondaryBtn: { backgroundColor: '#FFF', borderRadius: 16, paddingVertical: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)' },
-  secondaryBtnText: { color: '#1A1A1A', fontSize: 16, fontWeight: '600' },
-  formLabel: { fontSize: 13, fontWeight: '700', color: '#1A1A1A', marginBottom: 10, marginTop: 16 },
+  secondaryBtnText: { color: C.text, fontSize: 16, fontWeight: '600' },
+  formLabel: { fontSize: 13, fontWeight: '700', color: C.text, marginBottom: 10, marginTop: 16 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   chip: {
     paddingHorizontal: 16, paddingVertical: 10,
     borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.85)',
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
   },
-  chipOn: { backgroundColor: '#1A1A1A', borderColor: '#1A1A1A' },
-  chipText: { fontSize: 13, color: '#8A8272', fontWeight: '600' },
+  chipOn: { backgroundColor: C.primary, borderColor: C.primary },
+  chipText: { fontSize: 13, color: C.textSecondary, fontWeight: '600' },
   chipTextOn: { color: '#FFF' },
   textarea: {
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 14, padding: 16,
-    fontSize: 15, color: '#1A1A1A', minHeight: 110,
+    fontSize: 15, color: C.text, minHeight: 110,
     textAlignVertical: 'top', marginBottom: 12, lineHeight: 22,
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
   },
@@ -808,18 +804,18 @@ const s = StyleSheet.create({
     paddingVertical: 18, alignItems: 'center',
     borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
   },
-  backBtnText: { color: '#1A1A1A', fontSize: 16, fontWeight: '600' },
+  backBtnText: { color: C.text, fontSize: 16, fontWeight: '600' },
   nextBtn: {
-    flex: 1, backgroundColor: '#2E86C1', borderRadius: 16,
+    flex: 1, backgroundColor: C.primaryDark, borderRadius: 16,
     paddingVertical: 18, alignItems: 'center',
-    shadowColor: '#2E86C1', shadowOffset: { width: 0, height: 4 },
+    shadowColor: C.primaryDark, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
   },
   nextBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   submitBtn: {
-    flex: 1, backgroundColor: '#2ECC71', borderRadius: 16,
+    flex: 1, backgroundColor: C.success, borderRadius: 16,
     paddingVertical: 18, alignItems: 'center',
-    shadowColor: '#2ECC71', shadowOffset: { width: 0, height: 4 },
+    shadowColor: C.success, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2, shadowRadius: 8, elevation: 4,
   },
   submitText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
@@ -830,17 +826,17 @@ const s = StyleSheet.create({
   },
   successIconWrap: {
     width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#2ECC71', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: C.success, justifyContent: 'center', alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#2ECC71', shadowOffset: { width: 0, height: 6 },
+    shadowColor: C.success, shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
   successIcon: { fontSize: 36, color: '#FFF', fontWeight: '700' },
-  successTitle: { fontSize: 24, fontWeight: '800', color: '#1A1A1A', marginBottom: 10 },
-  successDesc: { fontSize: 15, color: '#8A8272', textAlign: 'center', lineHeight: 24, marginBottom: 16 },
+  successTitle: { fontSize: 24, fontWeight: '800', color: C.text, marginBottom: 10 },
+  successDesc: { fontSize: 15, color: C.textSecondary, textAlign: 'center', lineHeight: 24, marginBottom: 16 },
   successMeta: {
-    backgroundColor: 'rgba(46,134,193,0.08)', borderRadius: 12,
+    backgroundColor: 'rgba(193,154,107,0.12)', borderRadius: 12,
     paddingHorizontal: 20, paddingVertical: 10, marginBottom: 24,
   },
-  successMetaText: { fontSize: 13, color: '#2E86C1', fontWeight: '500' },
+  successMetaText: { fontSize: 13, color: C.primaryDark, fontWeight: '500' },
 });

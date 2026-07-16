@@ -14,6 +14,7 @@ import {
   Platform,
   SafeAreaView,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import * as authService from '../services/authService';
 import PasswordStrengthBar from '../components/PasswordStrengthBar';
 import { colors, spacing, radius, typography, shadows, PASSWORD_RE } from '../theme';
@@ -90,7 +91,7 @@ function Checkbox({ checked, onToggle, children }) {
   return (
     <TouchableOpacity style={styles.checkRow} onPress={() => onToggle(!checked)} activeOpacity={0.7}>
       <View style={[styles.checkBox, checked && styles.checkBoxChecked]}>
-        {checked ? <Text style={styles.checkMark}>✓</Text> : null}
+        {checked ? <Icon name="check" size={12} color={colors.white} /> : null}
       </View>
       <View style={styles.checkLabelContainer}>{children}</View>
     </TouchableOpacity>
@@ -111,7 +112,7 @@ function RolePicker({ value, onChange }) {
           activeOpacity={0.7}
         >
           <Text style={styles.pickerText}>{selected.label}</Text>
-          <Text style={styles.pickerChevron}>▾</Text>
+          <Icon name="chevron-down" size={12} color={colors.placeholder} />
         </TouchableOpacity>
       </View>
 
@@ -131,7 +132,7 @@ function RolePicker({ value, onChange }) {
                     {item.label}
                   </Text>
                   {item.value === value && (
-                    <Text style={styles.pickerCheck}>✓</Text>
+                    <Icon name="check" size={14} color={colors.primary} />
                   )}
                 </TouchableOpacity>
               )}

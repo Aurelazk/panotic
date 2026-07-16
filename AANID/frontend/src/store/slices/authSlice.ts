@@ -18,12 +18,14 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  restoring: boolean;
 }
 
 const initialState: AuthState = {
-  user: { id: 'dev-1', email: 'dev@aanid.bj', firstName: 'Dev', lastName: 'User', role: 'admin' },
-  token: 'dev-token',
-  isAuthenticated: true,
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  restoring: true,
 };
 
 const authSlice = createSlice({
@@ -34,6 +36,10 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
+      state.restoring = false;
+    },
+    restoreFinished: (state) => {
+      state.restoring = false;
     },
     logout: (state) => {
       state.user = null;
@@ -49,11 +55,12 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout, setVille } = authSlice.actions;
+export const { setCredentials, restoreFinished, logout, setVille } = authSlice.actions;
 export default authSlice.reducer;
 
 export const selectCurrentUser = (state: { auth: AuthState }) => state.auth.user;
 export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+export const selectAuthRestoring = (state: { auth: AuthState }) => state.auth.restoring;
 export const selectCurrentVille = (state: { auth: AuthState }) => ({
   villeId: state.auth.user?.villeId || null,
   villeNom: state.auth.user?.villeNom || null,

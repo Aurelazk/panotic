@@ -7,7 +7,7 @@ import FormationNavigator from './FormationNavigator';
 import TopNavbar from '../components/TopNavbar';
 
 import Villes from '@aanid/beni-momo-adnan-frontend/src/screens/Villes';
-import SocialScreen from '../screens/Placeholder/SocialScreen';
+import SocialScreen from '../screens/Social/SocialScreen';
 import EtatsDesLieux from '@aanid/bryan-fanou-frontend/src/screens/EtatsDesLieux';
 import CarteInteractive from '@aanid/rayan-frontend/src/screens/CarteInteractive';
 
