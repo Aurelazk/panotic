@@ -1,117 +1,37 @@
 const express = require('express');
+const store = require('./postStore');
+
 const router = express.Router();
 
 // ============================================
 // POSTS / RÉSEAUX
 // ============================================
 
-// Base de données en mémoire pour les posts
-let posts = [
-  {
-    id: '1',
-    author: '@JeanD',
-    avatar: '👤',
-    time: '2h ago',
-    location: 'Abomey-Calavi',
-    text: 'La nouvelle piste cyclable est enfin ouverte ! Une belle avancée pour la mobilité douce.',
-    image: null,
-    likes: 42,
-    comments: [
-      { id: 'c1', author: '@PaulT', text: 'Super initiative ! 👍', likes: 3 },
-      { id: 'c2', author: '@KoffiB', text: 'Quand est-ce que ça arrive dans notre quartier ?', likes: 1 },
-    ],
-    shares: 5,
-    theme: 'Urbanisme',
-    ville: 'Abomey-Calavi',
-  },
-  {
-    id: '2',
-    author: '@MarieL',
-    avatar: '👤',
-    time: '5h ago',
-    location: 'Porto-Novo',
-    text: 'Signalement: Panneau publicitaire dégradé près du marché.',
-    image: null,
-    likes: 18,
-    comments: [],
-    shares: 3,
-    theme: 'Environnement',
-    ville: 'Porto-Novo',
-  },
-  {
-    id: '3',
-    author: '@PaulT',
-    avatar: '👤',
-    time: '1j ago',
-    location: 'Cotonou',
-    text: 'Campagne de sensibilisation sur le tri des déchets ce samedi au stade. Venez nombreux ! ♻️',
-    image: null,
-    likes: 67,
-    comments: [],
-    shares: 15,
-    theme: 'Environnement',
-    ville: 'Cotonou',
-  },
-  {
-    id: '4',
-    author: '@SophieK',
-    avatar: '👤',
-    time: '2j ago',
-    location: 'Parakou',
-    text: 'Atelier santé gratuit pour les seniors ce mercredi à la mairie. Inscriptions ouvertes.',
-    image: null,
-    likes: 34,
-    comments: [],
-    shares: 7,
-    theme: 'Santé',
-    ville: 'Parakou',
-  },
-  {
-    id: '5',
-    author: '@AlexD',
-    avatar: '👤',
-    time: '3j ago',
-    location: 'Cotonou',
-    text: 'Réunion de quartier sur les projets d\'urbanisme : venez donner votre avis !',
-    image: null,
-    likes: 25,
-    comments: [],
-    shares: 4,
-    theme: 'Urbanisme',
-    ville: 'Cotonou',
-  },
-];
-
 // GET /posts - Liste des posts avec filtres optionnels
-router.get('/posts', (req, res) => {
-  const { ville, theme, search } = req.query;
-  let result = [...posts];
-
-  if (ville && ville !== 'Toutes') {
-    result = result.filter(p => p.ville === ville);
+router.get('/posts', async (req, res) => {
+  try {
+    const result = await store.listPosts(req.query);
+    res.json({ success: true, data: result, count: result.length });
+  } catch (err) {
+    console.error('[undef] listPosts:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
-  if (theme && theme !== 'Tous') {
-    result = result.filter(p => p.theme === theme);
-  }
-  if (search) {
-    const q = search.toLowerCase();
-    result = result.filter(p =>
-      p.text.toLowerCase().includes(q) || p.author.toLowerCase().includes(q)
-    );
-  }
-
-  res.json({ success: true, data: result, count: result.length });
 });
 
 // GET /posts/:id - Détail d'un post
-router.get('/posts/:id', (req, res) => {
-  const post = posts.find(p => p.id === req.params.id);
-  if (!post) return res.status(404).json({ success: false, message: 'Post introuvable' });
-  res.json({ success: true, data: post });
+router.get('/posts/:id', async (req, res) => {
+  try {
+    const post = await store.findPost(req.params.id);
+    if (!post) return res.status(404).json({ success: false, message: 'Post introuvable' });
+    res.json({ success: true, data: post });
+  } catch (err) {
+    console.error('[undef] findPost:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // POST /posts - Créer un post
-router.post('/posts', (req, res) => {
+router.post('/posts', async (req, res) => {
   const { text, author, location, theme, ville } = req.body;
 
   if (!text || !text.trim()) {
@@ -133,23 +53,29 @@ router.post('/posts', (req, res) => {
     ville: ville || 'Cotonou',
   };
 
-  posts.unshift(newPost);
-  res.status(201).json({ success: true, data: newPost });
+  try {
+    await store.createPost(newPost);
+    res.status(201).json({ success: true, data: newPost });
+  } catch (err) {
+    console.error('[undef] createPost:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // POST /posts/:id/like - Liker un post
-router.post('/posts/:id/like', (req, res) => {
-  const post = posts.find(p => p.id === req.params.id);
-  if (!post) return res.status(404).json({ success: false, message: 'Post introuvable' });
-  post.likes += 1;
-  res.json({ success: true, data: { likes: post.likes } });
+router.post('/posts/:id/like', async (req, res) => {
+  try {
+    const likes = await store.likePost(req.params.id);
+    if (likes === null) return res.status(404).json({ success: false, message: 'Post introuvable' });
+    res.json({ success: true, data: { likes } });
+  } catch (err) {
+    console.error('[undef] likePost:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // POST /posts/:id/comment - Ajouter un commentaire
-router.post('/posts/:id/comment', (req, res) => {
-  const post = posts.find(p => p.id === req.params.id);
-  if (!post) return res.status(404).json({ success: false, message: 'Post introuvable' });
-
+router.post('/posts/:id/comment', async (req, res) => {
   const { text, author } = req.body;
   if (!text || !text.trim()) {
     return res.status(400).json({ success: false, message: 'Le commentaire est obligatoire' });
@@ -162,24 +88,31 @@ router.post('/posts/:id/comment', (req, res) => {
     likes: 0,
   };
 
-  post.comments.push(newComment);
-  res.status(201).json({ success: true, data: newComment, totalComments: post.comments.length });
+  try {
+    const result = await store.addComment(req.params.id, newComment);
+    if (!result) return res.status(404).json({ success: false, message: 'Post introuvable' });
+    res.status(201).json({ success: true, data: result.comment, totalComments: result.totalComments });
+  } catch (err) {
+    console.error('[undef] addComment:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // DELETE /posts/:id - Supprimer un post
-router.delete('/posts/:id', (req, res) => {
-  const index = posts.findIndex(p => p.id === req.params.id);
-  if (index === -1) return res.status(404).json({ success: false, message: 'Post introuvable' });
-  posts.splice(index, 1);
-  res.json({ success: true, message: 'Post supprimé' });
+router.delete('/posts/:id', async (req, res) => {
+  try {
+    const deleted = await store.deletePost(req.params.id);
+    if (!deleted) return res.status(404).json({ success: false, message: 'Post introuvable' });
+    res.json({ success: true, message: 'Post supprimé' });
+  } catch (err) {
+    console.error('[undef] deletePost:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // ============================================
 // CONSULTATION
 // ============================================
-
-// Demandes de consultation
-let consultations = [];
 
 const SERVICES = [
   {
@@ -236,7 +169,7 @@ router.get('/consultation/services/:id', (req, res) => {
 });
 
 // POST /consultation/request - Soumettre une demande de consultation
-router.post('/consultation/request', (req, res) => {
+router.post('/consultation/request', async (req, res) => {
   const { serviceType, clientType, ville, description, budget, email, telephone } = req.body;
 
   // Validation
@@ -265,26 +198,38 @@ router.post('/consultation/request', (req, res) => {
     createdAt: new Date().toISOString(),
   };
 
-  consultations.push(newRequest);
-  res.status(201).json({
-    success: true,
-    message: 'Votre demande a été envoyée ! Notre équipe vous contactera sous 48h.',
-    data: newRequest,
-  });
+  try {
+    await store.createConsultation(newRequest);
+    res.status(201).json({
+      success: true,
+      message: 'Votre demande a été envoyée ! Notre équipe vous contactera sous 48h.',
+      data: newRequest,
+    });
+  } catch (err) {
+    console.error('[undef] createConsultation:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // GET /consultation/requests - Liste des demandes (admin)
-router.get('/consultation/requests', (req, res) => {
-  res.json({ success: true, data: consultations, count: consultations.length });
+router.get('/consultation/requests', async (req, res) => {
+  try {
+    const consultations = await store.listConsultations();
+    res.json({ success: true, data: consultations, count: consultations.length });
+  } catch (err) {
+    console.error('[undef] listConsultations:', err.message);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
 });
 
 // GET /health - Health check pour le module
-router.get('/undef/health', (req, res) => {
+router.get('/undef/health', async (req, res) => {
   res.json({
     status: 'ok',
     module: 'undef (Posts/Réseaux & Consultation)',
-    postsCount: posts.length,
-    consultationsCount: consultations.length,
+    storage: store.dbEnabled() ? 'postgres' : 'memory',
+    postsCount: await store.countPosts().catch(() => null),
+    consultationsCount: await store.countConsultations().catch(() => null),
   });
 });
 

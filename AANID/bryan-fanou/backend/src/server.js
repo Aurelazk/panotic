@@ -1,8 +1,9 @@
 const express = require('express');
+const store = require('./etatStore');
 
 const router = express.Router();
 
-// ─── In-memory data ───────────────────────────────────────────────────────────
+// ─── Données analytiques (mock statique) ──────────────────────────────────────
 
 const kpis = {
   panneauxRecenses: { valeur: 1284, delta: 6.2, direction: 'up', details: 'dont 812 modernes' },
@@ -37,16 +38,7 @@ const CATEGORIES_SIGNALEMENT = [
 
 const ZONES = ['Akpakpa', 'Ganhi', 'Dantokpa', 'Haie Vive', 'Cadjèhoun', 'Fidjrossè'];
 
-const now = Date.now();
 const H = 3600 * 1000;
-
-let nextId = 5;
-const signalements = [
-  { id: 'sig-1', titre: 'Panneau dégradé — Av. Steinmetz', zone: 'Akpakpa', categorie: 'Panneau dégradé', description: 'Structure rouillée et affiche déchirée.', createdAt: new Date(now - 2 * H).toISOString(), type: 'photo', statut: 'Urgent', statutColor: STATUT_COLORS.Urgent },
-  { id: 'sig-2', titre: 'Panneau obsolète — Rond-point Étoile Rouge', zone: 'Ganhi', categorie: 'Panneau obsolète', description: 'Campagne expirée depuis plusieurs mois.', createdAt: new Date(now - 5 * H).toISOString(), type: 'vidéo', statut: 'En cours', statutColor: STATUT_COLORS['En cours'] },
-  { id: 'sig-3', titre: 'Emplacement inapproprié — Marché Dantokpa', zone: 'Dantokpa', categorie: 'Emplacement inapproprié', description: 'Panneau gênant la circulation piétonne.', createdAt: new Date(now - 24 * H).toISOString(), type: null, statut: 'Nouveau', statutColor: STATUT_COLORS.Nouveau },
-  { id: 'sig-4', titre: 'Besoin de maintenance — Bd. de la Marina', zone: 'Haie Vive', categorie: 'Besoin de maintenance', description: 'Éclairage du panneau hors service.', createdAt: new Date(now - 48 * H).toISOString(), type: null, statut: 'Résolu', statutColor: STATUT_COLORS.Résolu },
-];
 
 const CATEGORY_COLORS = {
   'Panneau dégradé': '#D4654A',
@@ -64,7 +56,11 @@ const categoryBaseCounts = {
   'Besoin de maintenance': 3,
 };
 
-function computeCategories() {
+function withColor(signalement) {
+  return { ...signalement, statutColor: STATUT_COLORS[signalement.statut] || STATUT_COLORS.Nouveau };
+}
+
+function computeCategories(signalements) {
   const counts = { ...categoryBaseCounts };
   signalements.forEach(s => {
     if (counts[s.categorie] != null) counts[s.categorie] += 1;
@@ -102,7 +98,7 @@ const conformite = {
   aRevoir: false,
 };
 
-function filterSignalements(query) {
+function filterSignalements(signalements, query) {
   const { statut, categorie, zone, since } = query;
   let filtered = signalements;
   if (statut && statut !== 'tous') {
@@ -126,24 +122,30 @@ function filterSignalements(query) {
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
-router.get('/etats-lieux', (req, res) => {
-  res.json({
-    kpis: {
-      ...kpis,
-      signalementsActifs: {
-        ...kpis.signalementsActifs,
-        valeur: kpis.signalementsActifs.valeur + (signalements.length - 4),
+router.get('/etats-lieux', async (req, res) => {
+  try {
+    const signalements = (await store.listSignalements()).map(withColor);
+    res.json({
+      kpis: {
+        ...kpis,
+        signalementsActifs: {
+          ...kpis.signalementsActifs,
+          valeur: kpis.signalementsActifs.valeur + (signalements.length - 4),
+        },
       },
-    },
-    evolution,
-    signalements: [...signalements].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    categories: computeCategories(),
-    zones: ZONES,
-    statuts: STATUTS,
-    typesSignalement: CATEGORIES_SIGNALEMENT,
-    carte,
-    conformite,
-  });
+      evolution,
+      signalements,
+      categories: computeCategories(signalements),
+      zones: ZONES,
+      statuts: STATUTS,
+      typesSignalement: CATEGORIES_SIGNALEMENT,
+      carte,
+      conformite,
+    });
+  } catch (err) {
+    console.error('[etats-lieux] list:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.get('/etats-lieux/kpis', (req, res) => {
@@ -154,12 +156,18 @@ router.get('/etats-lieux/evolution', (req, res) => {
   res.json(evolution);
 });
 
-router.get('/etats-lieux/signalements', (req, res) => {
-  res.json(filterSignalements(req.query));
+router.get('/etats-lieux/signalements', async (req, res) => {
+  try {
+    const signalements = (await store.listSignalements()).map(withColor);
+    res.json(filterSignalements(signalements, req.query));
+  } catch (err) {
+    console.error('[etats-lieux] signalements:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // POST /etats-lieux/signalements — créer un signalement
-router.post('/etats-lieux/signalements', (req, res) => {
+router.post('/etats-lieux/signalements', async (req, res) => {
   const { titre, zone, categorie, description } = req.body || {};
 
   if (!titre || typeof titre !== 'string' || !titre.trim()) {
@@ -173,7 +181,7 @@ router.post('/etats-lieux/signalements', (req, res) => {
   }
 
   const signalement = {
-    id: `sig-${nextId++}`,
+    id: `sig-${Date.now()}`,
     titre: titre.trim(),
     zone: zone.trim(),
     categorie,
@@ -181,32 +189,44 @@ router.post('/etats-lieux/signalements', (req, res) => {
     createdAt: new Date().toISOString(),
     type: null,
     statut: 'Nouveau',
-    statutColor: STATUT_COLORS.Nouveau,
   };
-  signalements.unshift(signalement);
 
-  res.status(201).json(signalement);
+  try {
+    const created = await store.createSignalement(signalement);
+    res.status(201).json(withColor(created));
+  } catch (err) {
+    console.error('[etats-lieux] create:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 // PATCH /etats-lieux/signalements/:id — changer le statut
-router.patch('/etats-lieux/signalements/:id', (req, res) => {
-  const signalement = signalements.find(s => s.id === req.params.id);
-  if (!signalement) {
-    return res.status(404).json({ error: 'Signalement non trouvé' });
-  }
-
+router.patch('/etats-lieux/signalements/:id', async (req, res) => {
   const { statut } = req.body || {};
   if (!STATUTS.includes(statut)) {
     return res.status(400).json({ error: `Statut invalide. Valeurs possibles : ${STATUTS.join(', ')}` });
   }
 
-  signalement.statut = statut;
-  signalement.statutColor = STATUT_COLORS[statut];
-  res.json(signalement);
+  try {
+    const updated = await store.updateStatut(req.params.id, statut);
+    if (!updated) {
+      return res.status(404).json({ error: 'Signalement non trouvé' });
+    }
+    res.json(withColor(updated));
+  } catch (err) {
+    console.error('[etats-lieux] update:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
-router.get('/etats-lieux/categories', (req, res) => {
-  res.json(computeCategories());
+router.get('/etats-lieux/categories', async (req, res) => {
+  try {
+    const signalements = await store.listSignalements();
+    res.json(computeCategories(signalements));
+  } catch (err) {
+    console.error('[etats-lieux] categories:', err.message);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.get('/etats-lieux/carte', (req, res) => {
