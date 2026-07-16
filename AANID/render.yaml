@@ -24,6 +24,24 @@ services:
         generateValue: true
       - key: AANID_REFRESH_SECRET
         generateValue: true
+      - key: API_PUBLIC_URL
+        value: https://aanid-api.onrender.com
+      - key: OAUTH_APP_REDIRECT_URIS
+        value: aanid://oauth/callback
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
+      - key: FACEBOOK_GRAPH_VERSION
+        value: v23.0
+      - key: X_CLIENT_ID
+        sync: false
+      - key: X_CLIENT_SECRET
+        sync: false
       - key: FEDAPAY_SECRET_KEY
         sync: false
       - key: FEDAPAY_ENVIRONMENT

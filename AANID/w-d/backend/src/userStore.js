@@ -8,6 +8,13 @@ const memoryUsers = new Map();
 const memoryRefreshTokens = new Set();
 const memoryVerificationTokens = new Map();
 const memoryPasswordResetTokens = new Map();
+const memoryOAuthAccounts = new Map();
+const memoryOAuthAttempts = new Map();
+const memoryOAuthExchanges = new Map();
+
+function tokenHash(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
 
 function dbEnabled() {
   return useDb;
@@ -163,6 +170,108 @@ async function consumePasswordResetToken(token) {
   return { email: record.email, expiresAt: record.expiresAt.getTime() };
 }
 
+async function saveOAuthAttempt({ state, provider, codeVerifier, redirectUri, expiresAt }) {
+  const stateHash = tokenHash(state);
+  if (!useDb) {
+    memoryOAuthAttempts.set(stateHash, { provider, codeVerifier, redirectUri, expiresAt });
+    return;
+  }
+  await prisma.oAuthAttempt.create({
+    data: { stateHash, provider, codeVerifier, redirectUri, expiresAt },
+  });
+}
+
+async function consumeOAuthAttempt(state) {
+  const stateHash = tokenHash(state);
+  if (!useDb) {
+    const attempt = memoryOAuthAttempts.get(stateHash);
+    memoryOAuthAttempts.delete(stateHash);
+    return attempt || null;
+  }
+  const attempt = await prisma.oAuthAttempt.findUnique({ where: { stateHash } });
+  if (!attempt) return null;
+  await prisma.oAuthAttempt.delete({ where: { id: attempt.id } });
+  return attempt;
+}
+
+async function findOrCreateOAuthUser({ provider, providerUserId, email, fullName, avatarUrl }) {
+  const normalizedEmail = email?.trim().toLowerCase() || `${provider}-${providerUserId}@oauth.aanid.local`;
+  const accountKey = `${provider}:${providerUserId}`;
+
+  if (!useDb) {
+    const linkedUserId = memoryOAuthAccounts.get(accountKey);
+    if (linkedUserId) return findUserById(linkedUserId);
+
+    let user = memoryUsers.get(normalizedEmail);
+    if (!user) {
+      user = await createUser({
+        fullName: fullName || `${provider} user`,
+        email: normalizedEmail,
+        phone: null,
+        city: null,
+        passwordHash: null,
+        role: 'CITOYEN',
+        emailVerified: true,
+      });
+    }
+    memoryOAuthAccounts.set(accountKey, user.id);
+    return user;
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const existingAccount = await tx.oAuthAccount.findUnique({
+      where: { provider_providerUserId: { provider, providerUserId } },
+      include: { user: true },
+    });
+    if (existingAccount) return existingAccount.user;
+
+    let user = await tx.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user) {
+      user = await tx.user.create({
+        data: {
+          fullName: fullName || `${provider} user`,
+          email: normalizedEmail,
+          passwordHash: null,
+          role: 'CITOYEN',
+          emailVerified: true,
+        },
+      });
+    } else if (!user.emailVerified) {
+      user = await tx.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true },
+      });
+    }
+
+    await tx.oAuthAccount.create({
+      data: { provider, providerUserId, userId: user.id, email: email || null, avatarUrl: avatarUrl || null },
+    });
+    return user;
+  });
+}
+
+async function saveOAuthExchange(code, userId, expiresAt) {
+  const codeHash = tokenHash(code);
+  if (!useDb) {
+    memoryOAuthExchanges.set(codeHash, { userId, expiresAt });
+    return;
+  }
+  await prisma.oAuthExchange.create({ data: { codeHash, userId, expiresAt } });
+}
+
+async function consumeOAuthExchange(code) {
+  const codeHash = tokenHash(code);
+  if (!useDb) {
+    const exchange = memoryOAuthExchanges.get(codeHash);
+    memoryOAuthExchanges.delete(codeHash);
+    return exchange || null;
+  }
+  const exchange = await prisma.oAuthExchange.findUnique({ where: { codeHash } });
+  if (!exchange) return null;
+  await prisma.oAuthExchange.delete({ where: { id: exchange.id } });
+  return exchange;
+}
+
 module.exports = {
   dbEnabled,
   toSafeUser,
@@ -178,4 +287,9 @@ module.exports = {
   consumeVerificationToken,
   savePasswordResetToken,
   consumePasswordResetToken,
+  saveOAuthAttempt,
+  consumeOAuthAttempt,
+  findOrCreateOAuthUser,
+  saveOAuthExchange,
+  consumeOAuthExchange,
 };

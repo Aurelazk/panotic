@@ -28,6 +28,7 @@ api.interceptors.response.use(
 );
 
 export function getApiErrorMessage(error: any, fallback = 'Une erreur est survenue.') {
+  if (error?.response?.data?.error) return error.response.data.error;
   if (error?.data?.message) return error.data.message;
   if (error?.response?.data?.message) return error.response.data.message;
   if (error?.message) return error.message;

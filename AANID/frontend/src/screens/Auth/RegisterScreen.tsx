@@ -2,10 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, StatusBar, TouchableOpacity, SafeAreaView, Modal, FlatList, ActivityIndicator, TextInput } from 'react-native';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Icon from 'react-native-vector-icons/FontAwesome6';
 import { setCredentials } from '../../store/slices/authSlice';
 import { COLORS, FONT_FAMILY } from '../../constants/theme';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
+import SocialButtons from '../../components/SocialButtons';
 import { api, getApiErrorMessage } from '../../api/client';
 
 import { API_BASE_URL } from '../../config/api';
@@ -13,18 +15,6 @@ const VILLE_ID_KEY = '@aanid/v1/ville_id';
 const VILLE_NOM_KEY = '@aanid/v1/ville_nom';
 const ACCESS_TOKEN_KEY = '@aanid/v1/access_token';
 const REFRESH_TOKEN_KEY = '@aanid/v1/refresh_token';
-
-const FLAGS = {
-  'Bénin': '🇧🇯',
-  "Côte d'Ivoire": '🇨🇮',
-  'Sénégal': '🇸🇳',
-  'Togo': '🇹🇬',
-  'Burkina Faso': '🇧🇫',
-  'Ghana': '🇬🇭',
-  'Nigeria': '🇳🇬',
-  'Mali': '🇲🇱',
-  'Niger': '🇳🇪',
-};
 
 export default function RegisterScreen({ navigation }: any) {
   const dispatch = useDispatch();
@@ -146,20 +136,20 @@ export default function RegisterScreen({ navigation }: any) {
           <Text style={styles.cardTitle}>Inscription</Text>
           <Text style={styles.cardSubtitle}>Rejoignez la communauté</Text>
 
-          <CustomInput icon="👤" placeholder="Nom complet" value={name} onChangeText={setName} />
-          <CustomInput icon="✉️" placeholder="Adresse email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-          <CustomInput icon="📞" placeholder="Téléphone" value={phone} onChangeText={setPhone} />
+          <CustomInput icon="user" placeholder="Nom complet" value={name} onChangeText={setName} />
+          <CustomInput icon="envelope" placeholder="Adresse email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+          <CustomInput icon="phone" placeholder="Téléphone" value={phone} onChangeText={setPhone} />
 
           <TouchableOpacity
             style={[styles.selector, !pays && styles.selectorEmpty]}
             onPress={() => setShowCountryPicker(true)}
             activeOpacity={0.7}
           >
-            <Text style={styles.selectorIcon}>🌍</Text>
+            <Icon name="earth-africa" size={17} color={COLORS.primaryDark} style={styles.selectorIcon} />
             <Text style={[styles.selectorText, !pays && styles.selectorTextEmpty]}>
-              {pays ? `${FLAGS[pays] || ''} ${pays}` : 'Sélectionnez votre pays'}
+              {pays || 'Sélectionnez votre pays'}
             </Text>
-            <Text style={styles.selectorArrow}>▼</Text>
+            <Icon name="chevron-down" size={12} color={COLORS.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -167,16 +157,18 @@ export default function RegisterScreen({ navigation }: any) {
             onPress={() => pays ? setShowCityPicker(true) : null}
             activeOpacity={pays ? 0.7 : 1}
           >
-            <Text style={styles.selectorIcon}>📍</Text>
+            <Icon name="location-dot" size={17} color={COLORS.primaryDark} style={styles.selectorIcon} />
             <Text style={[styles.selectorText, !villeId && styles.selectorTextEmpty]}>
               {villeNom || (pays ? 'Sélectionnez votre ville' : 'Choisissez d\'abord un pays')}
             </Text>
-            <Text style={styles.selectorArrow}>▼</Text>
+            <Icon name="chevron-down" size={12} color={COLORS.textSecondary} />
           </TouchableOpacity>
 
-          <CustomInput icon="🔒" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
+          <CustomInput icon="lock" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
 
           <CustomButton title="S'inscrire" onPress={handleRegister} loading={submitting} />
+
+          <SocialButtons />
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Déjà un compte ? </Text>
@@ -193,8 +185,8 @@ export default function RegisterScreen({ navigation }: any) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Choisir un pays</Text>
-              <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+              <TouchableOpacity style={styles.iconButton} onPress={() => setShowCountryPicker(false)} accessibilityLabel="Fermer">
+                <Icon name="xmark" size={18} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -218,9 +210,9 @@ export default function RegisterScreen({ navigation }: any) {
                     setShowCountryPicker(false);
                   }}
                 >
-                  <Text style={styles.pickerItemFlag}>{FLAGS[item] || '🌍'}</Text>
+                  <Icon name="earth-africa" size={17} color={COLORS.primaryDark} style={styles.pickerItemFlag} />
                   <Text style={styles.pickerItemText}>{item}</Text>
-                  {pays === item && <Text style={styles.pickerCheck}>✓</Text>}
+                  {pays === item && <Icon name="check" size={16} color={COLORS.primaryDark} />}
                 </TouchableOpacity>
               )}
             />
@@ -234,13 +226,13 @@ export default function RegisterScreen({ navigation }: any) {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Choisir une ville</Text>
-              <TouchableOpacity onPress={() => { setShowCityPicker(false); setCitySearch(''); }}>
-                <Text style={styles.modalClose}>✕</Text>
+              <TouchableOpacity style={styles.iconButton} onPress={() => { setShowCityPicker(false); setCitySearch(''); }} accessibilityLabel="Fermer">
+                <Icon name="xmark" size={18} color={COLORS.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalSearch}>
-              <Text style={styles.modalSearchIcon}>🔍</Text>
+              <Icon name="magnifying-glass" size={15} color={COLORS.textTertiary} style={styles.modalSearchIcon} />
               <TextInput
                 style={styles.modalSearchInput}
                 placeholder="Rechercher une ville..."
@@ -274,7 +266,7 @@ export default function RegisterScreen({ navigation }: any) {
                     <Text style={styles.pickerItemTitle}>{item.nom}</Text>
                     <Text style={styles.pickerItemSub}>{item.region}</Text>
                   </View>
-                  {villeId === item.id && <Text style={styles.pickerCheck}>✓</Text>}
+                  {villeId === item.id && <Icon name="check" size={16} color={COLORS.primaryDark} />}
                 </TouchableOpacity>
               )}
             />
@@ -286,13 +278,13 @@ export default function RegisterScreen({ navigation }: any) {
       <Modal visible={showWelcome} animationType="fade" transparent>
         <View style={styles.welcomeOverlay}>
           <View style={styles.welcomeCard}>
-            <Text style={styles.welcomeIcon}>🎉</Text>
+            <Icon name="circle-check" size={52} color={COLORS.success} style={styles.welcomeIcon} />
             <Text style={styles.welcomeTitle}>Bienvenue, {name.split(' ')[0]} !</Text>
             <Text style={styles.welcomeSubtitle}>
               Vous êtes maintenant membre de la communauté AANID
             </Text>
             <View style={styles.welcomeCityRow}>
-              <Text style={styles.welcomeCityPin}>📍</Text>
+              <Icon name="location-dot" size={16} color={COLORS.primaryDark} style={styles.welcomeCityPin} />
               <Text style={styles.welcomeCityName}>{villeNom}</Text>
             </View>
             <ActivityIndicator size="small" color={COLORS.primary} style={{ marginTop: 20 }} />
@@ -329,7 +321,7 @@ const styles = StyleSheet.create({
   },
   selectorEmpty: { borderColor: COLORS.primary, borderStyle: 'dashed' },
   selectorDisabled: { opacity: 0.5 },
-  selectorIcon: { fontSize: 16, marginRight: 10 },
+  selectorIcon: { marginRight: 10 },
   selectorText: { flex: 1, fontSize: 15, color: COLORS.text, fontWeight: '500', fontFamily: FONT_FAMILY },
   selectorTextEmpty: { color: COLORS.placeholder, fontWeight: '400' },
   selectorArrow: { fontSize: 10, color: COLORS.textTertiary },
@@ -338,16 +330,16 @@ const styles = StyleSheet.create({
   modalContent: { backgroundColor: COLORS.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '70%', paddingBottom: 40 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, fontFamily: FONT_FAMILY },
-  modalClose: { fontSize: 20, color: COLORS.textTertiary, padding: 4 },
+  iconButton: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center', margin: -10 },
   modalSearch: { flexDirection: 'row', alignItems: 'center', margin: 16, backgroundColor: COLORS.backgroundAlt, borderRadius: 12, paddingHorizontal: 14, height: 44 },
-  modalSearchIcon: { fontSize: 14, marginRight: 8 },
+  modalSearchIcon: { marginRight: 8 },
   modalSearchInput: { flex: 1, fontSize: 14, color: COLORS.text, padding: 0, fontFamily: FONT_FAMILY },
   modalList: { paddingHorizontal: 16, paddingBottom: 16 },
   modalEmpty: { textAlign: 'center', color: COLORS.textTertiary, marginTop: 30, fontSize: 14, fontFamily: FONT_FAMILY },
 
   pickerItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12, marginBottom: 4 },
   pickerItemActive: { backgroundColor: COLORS.chipBg },
-  pickerItemFlag: { fontSize: 20, marginRight: 12 },
+  pickerItemFlag: { marginRight: 12 },
   pickerItemText: { fontSize: 15, fontWeight: '600', color: COLORS.text, flex: 1, fontFamily: FONT_FAMILY },
   pickerItemInfo: { flex: 1 },
   pickerItemTitle: { fontSize: 15, fontWeight: '600', color: COLORS.text, fontFamily: FONT_FAMILY },
@@ -357,10 +349,10 @@ const styles = StyleSheet.create({
 
   welcomeOverlay: { flex: 1, backgroundColor: COLORS.overlay, justifyContent: 'center', alignItems: 'center', padding: 32 },
   welcomeCard: { backgroundColor: COLORS.white, borderRadius: 24, padding: 36, alignItems: 'center', width: '100%', maxWidth: 320 },
-  welcomeIcon: { fontSize: 48, marginBottom: 16 },
+  welcomeIcon: { marginBottom: 16 },
   welcomeTitle: { fontSize: 22, fontWeight: '800', color: COLORS.text, textAlign: 'center', fontFamily: FONT_FAMILY },
   welcomeSubtitle: { fontSize: 13, color: COLORS.textSecondary, textAlign: 'center', marginTop: 8, lineHeight: 18, fontFamily: FONT_FAMILY },
   welcomeCityRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16, backgroundColor: COLORS.chipBg, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
-  welcomeCityPin: { fontSize: 16, marginRight: 8 },
+  welcomeCityPin: { marginRight: 8 },
   welcomeCityName: { fontSize: 16, fontWeight: '700', color: COLORS.primaryDark, fontFamily: FONT_FAMILY },
 });

@@ -53,6 +53,31 @@ curl https://VOTRE-SERVICE.onrender.com/health
 
 > **Note Render free** : le service s'endort après ~15 min sans trafic. Le premier appel peut prendre 30–60 s (cold start).
 
+### Connexion Google, Facebook et X
+
+Créer une application OAuth dans chacun des tableaux de bord développeur, puis enregistrer exactement ces URL de callback :
+
+```text
+https://aanid-api.onrender.com/api/v1/auth/oauth/google/callback
+https://aanid-api.onrender.com/api/v1/auth/oauth/facebook/callback
+https://aanid-api.onrender.com/api/v1/auth/oauth/x/callback
+```
+
+Ajouter ensuite dans Render :
+
+```text
+API_PUBLIC_URL=https://aanid-api.onrender.com
+OAUTH_APP_REDIRECT_URIS=aanid://oauth/callback
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+FACEBOOK_APP_ID=...
+FACEBOOK_APP_SECRET=...
+X_CLIENT_ID=...
+X_CLIENT_SECRET=...
+```
+
+Pour X, activer OAuth 2.0 avec le flux « Authorization Code + PKCE » et les permissions `tweet.read users.read`. Pour Facebook, demander `email` et `public_profile`. Tant qu'une paire de clés est absente, le bouton correspondant reste indisponible.
+
 ---
 
 ## 3. Migrations & seed (local ou CI)
@@ -177,6 +202,7 @@ L'APK prêt à installer se trouve aussi à la racine du repo : `app-debug.apk` 
 - [ ] Secrets JWT générés (`AANID_ACCESS_SECRET`, `AANID_REFRESH_SECRET`)
 - [ ] `PRODUCTION_API_ORIGIN` pointe vers l'URL Render
 - [ ] Login appelle `/api/v1/auth/login` (plus de mock-token)
+- [ ] Callbacks OAuth et clés Google/Meta/X configurés sur Render
 - [ ] Health check OK
 - [ ] APK testé sur émulateur + appareil physique
 - [ ] Carte affiche les tuiles OSM/CARTO (connexion Internet requise)

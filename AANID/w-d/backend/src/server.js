@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const userStore = require('./userStore');
+const mailer = require('./mailer');
+const { createOAuthRouter } = require('./oauth');
 
 const router = express.Router();
 
@@ -188,6 +190,13 @@ function safeUser(user) {
   return userStore.toSafeUser(user);
 }
 
+async function issueSession(user) {
+  const accessToken = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user.id);
+  await persistRefreshToken(refreshToken, user.id);
+  return { accessToken, refreshToken, user: safeUser(user) };
+}
+
 // ─── Helper: get client IP ────────────────────────────────────────────────────
 
 function clientIp(req) {
@@ -201,6 +210,8 @@ function clientIp(req) {
 // ─────────────────────────────────────────────────────────────────────────────
 // ROUTES — Authentification
 // ─────────────────────────────────────────────────────────────────────────────
+
+router.use(createOAuthRouter({ userStore, issueSession }));
 
 // POST /auth/register
 router.post('/auth/register', async (req, res) => {
@@ -265,7 +276,8 @@ router.post('/auth/register', async (req, res) => {
         normalizedEmail,
         new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
       );
-      if (process.env.NODE_ENV !== 'production') {
+      await mailer.sendVerificationEmail(normalizedEmail, verificationToken);
+      if (process.env.NODE_ENV !== 'production' && !mailer.isConfigured()) {
         console.log(`[AANID:DEV] Verification token for ${normalizedEmail}: ${verificationToken}`);
       }
     }
@@ -310,6 +322,13 @@ router.post('/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Identifiants incorrects' });
     }
 
+    if (!user.passwordHash) {
+      return res.status(401).json({
+        error: 'Ce compte utilise une connexion sociale. Connectez-vous avec Google, Facebook ou X.',
+        code: 'SOCIAL_LOGIN_REQUIRED',
+      });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
       return res.status(401).json({ error: 'Identifiants incorrects' });
@@ -324,15 +343,7 @@ router.post('/auth/login', async (req, res) => {
 
     resetRateLimit(rateLimitKey);
 
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user.id);
-    await persistRefreshToken(refreshToken, user.id);
-
-    return res.status(200).json({
-      accessToken,
-      refreshToken,
-      user: safeUser(user),
-    });
+    return res.status(200).json(await issueSession(user));
   } catch (err) {
     console.error('[AANID] login error:', err.message);
     return res.status(500).json({ error: 'Erreur serveur' });
@@ -432,7 +443,8 @@ router.post('/auth/resend-verification', async (req, res) => {
     new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
   );
 
-  if (process.env.NODE_ENV !== 'production') {
+  await mailer.sendVerificationEmail(normalizedEmail, verificationToken);
+  if (process.env.NODE_ENV !== 'production' && !mailer.isConfigured()) {
     console.log(`[AANID:DEV] New verification token for ${normalizedEmail}: ${verificationToken}`);
   }
 
@@ -459,7 +471,8 @@ router.post('/auth/forgot-password', async (req, res) => {
       normalizedEmail,
       new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS),
     );
-    if (process.env.NODE_ENV !== 'production') {
+    await mailer.sendPasswordResetEmail(normalizedEmail, resetToken);
+    if (process.env.NODE_ENV !== 'production' && !mailer.isConfigured()) {
       console.log(`[AANID:DEV] Password reset token for ${normalizedEmail}: ${resetToken}`);
     }
   }
@@ -566,6 +579,11 @@ router.patch('/profile/password', authenticateToken, async (req, res) => {
   try {
     const user = await userStore.findUserById(req.user.sub);
     if (!user) return res.status(404).json({ error: 'Profil introuvable' });
+    if (!user.passwordHash) {
+      return res.status(400).json({
+        error: 'Ce compte social n’a pas encore de mot de passe. Utilisez « Mot de passe oublié » pour en définir un.',
+      });
+    }
 
     const { currentPassword, newPassword } = req.body ?? {};
 
