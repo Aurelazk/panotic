@@ -4,6 +4,9 @@
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const { FORMATIONS } = require('../../beni-momo-adnan/backend/src/data/formationsCatalog');
+const carteStore = require('../../rayann/backend/src/carteStore');
+const postStore = require('../../undef/backend/src/postStore');
+const etatStore = require('../../bryan-fanou/backend/src/etatStore');
 
 const prisma = new PrismaClient();
 const BCRYPT_ROUNDS = 12;
@@ -98,6 +101,38 @@ async function main() {
     },
   });
   console.log('  ✓ compte démo demo@aanid.bj / Demo1234!');
+
+  // ─── Carte interactive (rayann) ──────────────────────────────────────────
+  // Villes minimales : créées seulement si absentes (ne pas écraser les villes riches)
+  for (const v of carteStore.SEED_VILLES) {
+    await prisma.ville.upsert({
+      where: { id: v.id },
+      update: {},
+      create: v,
+    });
+  }
+  for (const s of carteStore.SEED_SIGNALEMENTS) {
+    await prisma.signalement.upsert({ where: { id: s.id }, update: {}, create: s });
+  }
+  for (const p of carteStore.SEED_PANNEAUX) {
+    await prisma.panneau.upsert({ where: { id: p.id }, update: {}, create: p });
+  }
+  for (const z of carteStore.SEED_ZONES) {
+    await prisma.zone.upsert({ where: { id: z.id }, update: {}, create: z });
+  }
+  console.log(`  ✓ carte : ${carteStore.SEED_SIGNALEMENTS.length} signalements, ${carteStore.SEED_PANNEAUX.length} panneaux, ${carteStore.SEED_ZONES.length} zones`);
+
+  // ─── Posts / Réseaux (undef) ─────────────────────────────────────────────
+  for (const p of postStore.SEED_POSTS) {
+    await prisma.post.upsert({ where: { id: p.id }, update: {}, create: p });
+  }
+  console.log(`  ✓ ${postStore.SEED_POSTS.length} posts`);
+
+  // ─── États des lieux (bryan-fanou) ───────────────────────────────────────
+  for (const s of etatStore.SEED_SIGNALEMENTS) {
+    await prisma.etatSignalement.upsert({ where: { id: s.id }, update: {}, create: s });
+  }
+  console.log(`  ✓ ${etatStore.SEED_SIGNALEMENTS.length} signalements états des lieux`);
 
   console.log('✅ Seed terminé');
 }

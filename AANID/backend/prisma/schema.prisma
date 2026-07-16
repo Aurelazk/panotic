@@ -29,7 +29,7 @@ model User {
   email          String           @unique
   phone          String?
   city           String?
-  passwordHash   String
+  passwordHash   String?
   role           UserRole         @default(CITOYEN)
   subscription   SubscriptionPlan @default(FREE)
   emailVerified  Boolean          @default(false)
@@ -39,6 +39,8 @@ model User {
   enrollments    FormationEnrollment[]
   payments       FormationPayment[]
   badges         FormationBadge[]
+  oauthAccounts  OAuthAccount[]
+  oauthExchanges OAuthExchange[]
 }
 
 model RefreshToken {
@@ -62,6 +64,40 @@ model PasswordResetToken {
   id        String   @id @default(uuid())
   token     String   @unique
   email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model OAuthAccount {
+  id             String   @id @default(uuid())
+  provider       String
+  providerUserId String
+  userId         String
+  email          String?
+  avatarUrl      String?
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([provider, providerUserId])
+  @@unique([provider, userId])
+}
+
+model OAuthAttempt {
+  id           String   @id @default(uuid())
+  stateHash    String   @unique
+  provider     String
+  codeVerifier String?
+  redirectUri  String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+}
+
+model OAuthExchange {
+  id        String   @id @default(uuid())
+  codeHash  String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
@@ -229,4 +265,29 @@ model Post {
   theme    String?
   ville    String?
   createdAt DateTime @default(now())
+}
+
+// Signalements du module États des Lieux (bryan-fanou) — taxonomie propre au module
+model EtatSignalement {
+  id          String   @id
+  titre       String
+  zone        String
+  categorie   String
+  description String   @default("")
+  type        String?
+  statut      String   @default("Nouveau")
+  createdAt   DateTime @default(now())
+}
+
+model ConsultationRequest {
+  id          String   @id
+  serviceType String
+  clientType  String
+  ville       String
+  description String
+  budget      String?
+  email       String
+  telephone   String
+  status      String   @default("en_attente")
+  createdAt   DateTime @default(now())
 }
