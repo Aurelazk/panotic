@@ -5,6 +5,7 @@ import {
   Platform, Animated, Dimensions, StatusBar, Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import { submitConsultationRequest } from '../services/consultationService';
 
 const { width } = Dimensions.get('window');
 const C = {
@@ -55,6 +56,20 @@ function useAnimatedValue(initial = 0) {
   return useRef(new Animated.Value(initial)).current;
 }
 
+function SectionLabel({ children }) {
+  return (
+    <View style={sl.row}>
+      <Icon name="caret-down" size={12} color={C.primaryDark} />
+      <Text style={sl.text}>{children}</Text>
+    </View>
+  );
+}
+
+const sl = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  text: { fontSize: 12, fontWeight: '700', color: C.text, letterSpacing: 1 },
+});
+
 function FloatingInput({ label, value, onChangeText, placeholder, error, ...props }) {
   const [focused, setFocused] = useState(false);
   const anim = useRef(new Animated.Value(value ? 1 : 0)).current;
@@ -91,9 +106,9 @@ function FloatingInput({ label, value, onChangeText, placeholder, error, ...prop
 
 const fi = StyleSheet.create({
   wrap: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: C.surface,
     borderRadius: 14, paddingHorizontal: 16, paddingTop: 18, paddingBottom: 6,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    borderWidth: 1, borderColor: C.border,
     marginBottom: 14, overflow: 'hidden',
   },
   wrapFocused: {
@@ -101,14 +116,14 @@ const fi = StyleSheet.create({
     shadowColor: C.primaryDark, shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.08, shadowRadius: 6, elevation: 1,
   },
-  wrapError: { borderColor: '#E74C3C' },
+  wrapError: { borderColor: C.error },
   label: { position: 'absolute', left: 16, fontWeight: '500' },
   input: { fontSize: 15, color: C.text, paddingVertical: 8, outlineStyle: 'none', marginTop: 4 },
   focusLine: {
     position: 'absolute', bottom: 0, left: 0, right: 0, height: 2,
     backgroundColor: C.primary, opacity: 0.3,
   },
-  errorText: { fontSize: 11, color: '#E74C3C', fontWeight: '500', marginTop: 2 },
+  errorText: { fontSize: 11, color: C.error, fontWeight: '500', marginTop: 2 },
 });
 
 function AnimatedNumber({ n, suffix = '' }) {
@@ -149,7 +164,7 @@ function ServiceCard({ service, onPress, index }) {
           <Text style={sc.desc}>{service.short}</Text>
           <View style={sc.linkRow}>
             <Text style={[sc.link, { color: service.color }]}>En savoir plus</Text>
-            <Text style={[sc.arrow, { color: service.color }]}>→</Text>
+            <Icon name="arrow-right" size={12} color={service.color} />
           </View>
         </View>
       </TouchableOpacity>
@@ -159,11 +174,11 @@ function ServiceCard({ service, onPress, index }) {
 
 const sc = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    borderRadius: 20, marginBottom: 14, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06, shadowRadius: 16, elevation: 3,
+    backgroundColor: C.surface,
+    borderRadius: 16, marginBottom: 14, overflow: 'hidden',
+    borderWidth: 1, borderColor: C.border,
+    shadowColor: C.text, shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06, shadowRadius: 4, elevation: 1,
   },
   accentBar: { height: 4 },
   body: { padding: 22 },
@@ -174,9 +189,9 @@ const sc = StyleSheet.create({
   icon: { fontSize: 22 },
   priceBadge: {
     position: 'absolute', top: 22, right: 22,
-    backgroundColor: 'rgba(255,255,255,0.9)',
+    backgroundColor: C.background,
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1, borderColor: C.border,
   },
   priceText: { fontSize: 12, fontWeight: '700' },
   title: { fontSize: 18, fontWeight: '700', color: C.text, marginBottom: 8 },
@@ -206,9 +221,9 @@ function ProcessStepCard({ stepData, index }) {
 
 const ps = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: C.surface,
     borderRadius: 16, padding: 20,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    borderWidth: 1, borderColor: C.border,
     marginBottom: 0,
   },
   stepNum: { fontSize: 32, fontWeight: '800', color: 'rgba(0,0,0,0.04)', marginBottom: 4, letterSpacing: -1 },
@@ -225,7 +240,7 @@ function TestimonialCard({ t, index }) {
   return (
     <Animated.View style={{ opacity: anim, transform: [{ scale: anim }] }}>
       <View style={tc.card}>
-        <Text style={tc.quote}>"</Text>
+        <Icon name="quote-left" size={20} color={C.primaryDark} style={tc.quote} />
         <Text style={tc.text}>{t.text}</Text>
         <View style={tc.authorRow}>
           <View style={tc.avatar}><Text style={tc.avatarText}>{t.author[0]}</Text></View>
@@ -241,14 +256,14 @@ function TestimonialCard({ t, index }) {
 
 const tc = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 18, padding: 22,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: C.surface, borderRadius: 16, padding: 22,
+    borderWidth: 1, borderColor: C.border,
     marginBottom: 12,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03, shadowRadius: 8, elevation: 1,
+    shadowColor: C.text, shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
   },
-  quote: { fontSize: 36, color: C.primaryDark, opacity: 0.15, marginBottom: -8, fontWeight: '700' },
-  text: { fontSize: 14, color: '#5A5242', lineHeight: 22, fontStyle: 'italic', marginBottom: 16 },
+  quote: { marginBottom: 10, opacity: 0.35 },
+  text: { fontSize: 14, color: C.textSecondary, lineHeight: 22, fontStyle: 'italic', marginBottom: 16 },
   authorRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.primaryDark, justifyContent: 'center', alignItems: 'center' },
   avatarText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
@@ -314,10 +329,28 @@ export default function Consultation() {
     setErrors({});
   };
 
-  const handleSubmit = () => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
     if (!validateStep(2)) return;
-    setSubmitted(true);
-    Alert.alert('Demande envoyée', 'Notre équipe vous recontactera sous 48h.');
+    setSubmitting(true);
+    try {
+      await submitConsultationRequest({
+        serviceType,
+        clientType,
+        ville: ville.trim(),
+        description: description.trim(),
+        budget: budget.trim() || null,
+        nom: nom.trim(),
+        email: email.trim(),
+        telephone: telephone.trim(),
+      });
+      setSubmitted(true);
+    } catch (e) {
+      Alert.alert('Envoi impossible', e.message || 'Vérifiez votre connexion puis réessayez.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -344,8 +377,6 @@ export default function Consultation() {
           onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
           scrollEventThrottle={16}
         >
-          <View style={s.bgOrb1} /><View style={s.bgOrb2} /><View style={s.bgOrb3} /><View style={s.bgOrb4} />
-
           {/* Hero */}
           <Animated.View style={[s.hero, { opacity: heroOpacity }]}>
             <View style={s.heroBadge}>
@@ -373,7 +404,7 @@ export default function Consultation() {
                 activeOpacity={0.9}
               >
                 <Text style={s.heroBtnText}>Demander une étude</Text>
-                <Text style={s.heroBtnArrow}>→</Text>
+                <Icon name="arrow-right" size={16} color={C.white} />
               </TouchableOpacity>
             </Animated.View>
             <View style={s.heroMeta}>
@@ -387,7 +418,7 @@ export default function Consultation() {
 
           {/* Stats */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>▼ Chiffres clés</Text>
+            <SectionLabel>Chiffres clés</SectionLabel>
             <View style={s.statsGrid}>
               {[
                 { num: 50, suffix: '+', label: 'Études réalisées' },
@@ -408,8 +439,8 @@ export default function Consultation() {
           {/* Services */}
           <View style={s.section}>
             <View style={s.sectionHead}>
-              <Text style={s.sectionLabel}>▼ Nos services</Text>
-              <TouchableOpacity><Text style={s.sectionAction}>Tout voir →</Text></TouchableOpacity>
+              <SectionLabel>Nos services</SectionLabel>
+              <TouchableOpacity style={s.sectionActionRow}><Text style={s.sectionAction}>Tout voir</Text><Icon name="arrow-right" size={11} color={C.primaryDark} /></TouchableOpacity>
             </View>
             {SERVICES.map((svc, i) => (
               <ServiceCard key={svc.id} service={svc} index={i} onPress={setSelectedService} />
@@ -418,7 +449,7 @@ export default function Consultation() {
 
           {/* How it works */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>▼ Comment ça marche</Text>
+            <SectionLabel>Comment ça marche</SectionLabel>
             <View style={s.processRow}>
               {PROCESS_STEPS.map((step, i) => (
                 <ProcessStepCard key={step.step} stepData={step} index={i} />
@@ -428,7 +459,7 @@ export default function Consultation() {
 
           {/* Clients */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>▼ Clientèle</Text>
+            <SectionLabel>Clientèle</SectionLabel>
             <View style={s.tagRow}>
               {CLIENT_TYPES.map(ct => (
                 <View key={ct} style={s.tag}>
@@ -440,7 +471,7 @@ export default function Consultation() {
 
           {/* Testimonials */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>▼ Témoignages</Text>
+            <SectionLabel>Témoignages</SectionLabel>
             {TESTIMONIALS.map((t, i) => (
               <TestimonialCard key={i} t={t} index={i} />
             ))}
@@ -448,7 +479,7 @@ export default function Consultation() {
 
           {/* Trust */}
           <View style={s.section}>
-            <Text style={s.sectionLabel}>▼ Ils nous font confiance</Text>
+            <SectionLabel>Ils nous font confiance</SectionLabel>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.trustRow}>
               {['ANCB', 'Mairie Cotonou', 'Régie Pub', 'Min. Communication', 'CCIB'].map((name, i) => (
                 <View key={i} style={s.trustBadge}>
@@ -465,7 +496,7 @@ export default function Consultation() {
               <Text style={s.ctaTitle}>Prêt à moderniser{'\n'}votre panneautique ?</Text>
               <Text style={s.ctaDesc}>Contactez nos experts dès aujourd'hui. Devis gratuit sous 48h.</Text>
               <View style={s.ctaBtn}>
-                <Text style={s.ctaBtnText}>Démarrer →</Text>
+                <View style={s.ctaBtnRow}><Text style={s.ctaBtnText}>Démarrer</Text><Icon name="arrow-right" size={14} color={C.text} /></View>
               </View>
             </TouchableOpacity>
           </View>
@@ -477,8 +508,9 @@ export default function Consultation() {
             <View style={s.modal}>
               <View style={s.modalHandle} />
               <View style={s.modalHead}>
-                <TouchableOpacity onPress={() => setSelectedService(null)}>
-                  <Text style={s.modalCancel}>← Retour</Text>
+                <TouchableOpacity style={s.backRow} onPress={() => setSelectedService(null)}>
+                  <Icon name="arrow-left" size={14} color={C.textSecondary} />
+                  <Text style={s.modalCancel}>Retour</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => setSelectedService(null)}>
                   <Icon name="xmark" size={18} color={C.textSecondary} />
@@ -525,8 +557,9 @@ export default function Consultation() {
             <View style={[s.modal, { maxHeight: '94%' }]}>
               <View style={s.modalHandle} />
               <View style={s.modalHead}>
-                <TouchableOpacity onPress={formStep > 1 ? prevStep : resetForm}>
-                  <Text style={s.modalCancel}>← {formStep > 1 ? 'Étape précédente' : 'Retour'}</Text>
+                <TouchableOpacity style={s.backRow} onPress={formStep > 1 ? prevStep : resetForm}>
+                  <Icon name="arrow-left" size={14} color={C.textSecondary} />
+                  <Text style={s.modalCancel}>{formStep > 1 ? 'Étape précédente' : 'Retour'}</Text>
                 </TouchableOpacity>
                 <Text style={s.modalTitle}>Demande d'étude</Text>
                 <View style={s.stepIndicator}>
@@ -628,16 +661,16 @@ export default function Consultation() {
                   <View style={s.formNav}>
                     {formStep > 1 && (
                       <TouchableOpacity style={s.backBtn} onPress={prevStep}>
-                        <Text style={s.backBtnText}>← Retour</Text>
+                        <View style={s.btnIconRow}><Icon name="arrow-left" size={13} color={C.text} /><Text style={s.backBtnText}>Retour</Text></View>
                       </TouchableOpacity>
                     )}
                     {formStep < 2 ? (
                       <TouchableOpacity style={s.nextBtn} onPress={nextStep}>
-                        <Text style={s.nextBtnText}>Continuer →</Text>
+                        <View style={s.btnIconRow}><Text style={s.nextBtnText}>Continuer</Text><Icon name="arrow-right" size={13} color={C.white} /></View>
                       </TouchableOpacity>
                     ) : (
-                      <TouchableOpacity style={s.submitBtn} onPress={handleSubmit}>
-                        <Text style={s.submitText}>Soumettre la demande</Text>
+                      <TouchableOpacity style={[s.submitBtn, submitting && { opacity: 0.6 }]} onPress={handleSubmit} disabled={submitting}>
+                        <Text style={s.submitText}>{submitting ? 'Envoi en cours…' : 'Soumettre la demande'}</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -672,21 +705,6 @@ export default function Consultation() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: C.background },
   container: { flex: 1 },
-  bgOrb1: { position: 'absolute', top: -80, left: -60, width: 220, height: 220, borderRadius: 110, backgroundColor: 'rgba(193,154,107,0.07)' },
-  bgOrb2: { position: 'absolute', top: 350, right: -100, width: 300, height: 300, borderRadius: 150, backgroundColor: 'rgba(156,124,79,0.04)' },
-  bgOrb3: { position: 'absolute', bottom: 300, left: -50, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(140,106,67,0.04)' },
-  bgOrb4: { position: 'absolute', bottom: -60, right: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: 'rgba(193,154,107,0.06)' },
-  header: { paddingHorizontal: 20, paddingTop: 12 },
-  headerContent: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
-  },
-  logoImg: { width: 28, height: 28 },
-  headerRight: { flexDirection: 'row', gap: 6 },
-  iconBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.04)', justifyContent: 'center', alignItems: 'center' },
-  iconBtnText: { fontSize: 16 },
   hero: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 8 },
   heroBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 14 },
   heroBadgeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.success },
@@ -709,13 +727,17 @@ const s = StyleSheet.create({
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   sectionLabel: { fontSize: 12, fontWeight: '700', color: C.text, letterSpacing: 1 },
   sectionAction: { fontSize: 13, color: C.primaryDark, fontWeight: '500' },
+  sectionActionRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  backRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  btnIconRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  ctaBtnRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
   statCard: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: C.surface,
     borderRadius: 16, padding: 18, width: (width - 50) / 2,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03, shadowRadius: 6, elevation: 1,
+    borderWidth: 1, borderColor: C.border,
+    shadowColor: C.text, shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
   },
   statNum: { fontSize: 28, fontWeight: '800', color: C.text, marginBottom: 4 },
   statLabel: { fontSize: 13, color: C.textSecondary, fontWeight: '500' },
@@ -733,17 +755,17 @@ const s = StyleSheet.create({
   ctaBtnText: { fontSize: 16, fontWeight: '700', color: C.text },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
   tag: {
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: C.surface,
     paddingHorizontal: 16, paddingVertical: 10,
-    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 12, borderWidth: 1, borderColor: C.border,
   },
   tagText: { fontSize: 13, color: C.textSecondary, fontWeight: '600' },
   trustRow: { marginTop: 14 },
   trustBadge: {
-    backgroundColor: 'rgba(255,255,255,0.75)',
+    backgroundColor: C.surface,
     paddingHorizontal: 20, paddingVertical: 12,
     borderRadius: 14, marginRight: 10,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.04)',
+    borderWidth: 1, borderColor: C.border,
   },
   trustBadgeText: { fontSize: 13, color: C.text, fontWeight: '600' },
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
@@ -777,32 +799,32 @@ const s = StyleSheet.create({
   detailActions: { gap: 10, marginTop: 28 },
   primaryBtn: { borderRadius: 16, paddingVertical: 18, alignItems: 'center' },
   primaryBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-  secondaryBtn: { backgroundColor: '#FFF', borderRadius: 16, paddingVertical: 18, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)' },
+  secondaryBtn: { backgroundColor: C.surface, borderRadius: 16, paddingVertical: 18, alignItems: 'center', borderWidth: 1, borderColor: C.border },
   secondaryBtnText: { color: C.text, fontSize: 16, fontWeight: '600' },
   formLabel: { fontSize: 13, fontWeight: '700', color: C.text, marginBottom: 10, marginTop: 16 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
   chip: {
     paddingHorizontal: 16, paddingVertical: 10,
-    borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.85)',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    borderRadius: 12, backgroundColor: C.surface,
+    borderWidth: 1, borderColor: C.border,
   },
   chipOn: { backgroundColor: C.primary, borderColor: C.primary },
   chipText: { fontSize: 13, color: C.textSecondary, fontWeight: '600' },
   chipTextOn: { color: '#FFF' },
   textarea: {
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: C.surface,
     borderRadius: 14, padding: 16,
     fontSize: 15, color: C.text, minHeight: 110,
     textAlignVertical: 'top', marginBottom: 12, lineHeight: 22,
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    borderWidth: 1, borderColor: C.border,
   },
-  textareaError: { borderColor: '#E74C3C' },
-  errorText: { fontSize: 12, color: '#E74C3C', fontWeight: '500', marginBottom: 8, marginTop: -4 },
+  textareaError: { borderColor: C.error },
+  errorText: { fontSize: 12, color: C.error, fontWeight: '500', marginBottom: 8, marginTop: -4 },
   formNav: { flexDirection: 'row', gap: 12, marginTop: 12, marginBottom: 20 },
   backBtn: {
-    flex: 1, backgroundColor: '#FFF', borderRadius: 16,
+    flex: 1, backgroundColor: C.surface, borderRadius: 16,
     paddingVertical: 18, alignItems: 'center',
-    borderWidth: 1, borderColor: 'rgba(0,0,0,0.06)',
+    borderWidth: 1, borderColor: C.border,
   },
   backBtnText: { color: C.text, fontSize: 16, fontWeight: '600' },
   nextBtn: {
@@ -822,7 +844,7 @@ const s = StyleSheet.create({
   success: { alignItems: 'center', paddingVertical: 48 },
   successGlow: {
     position: 'absolute', top: 40, width: 120, height: 120,
-    borderRadius: 60, backgroundColor: 'rgba(46,204,113,0.06)',
+    borderRadius: 60, backgroundColor: 'rgba(110,139,91,0.08)',
   },
   successIconWrap: {
     width: 80, height: 80, borderRadius: 40,

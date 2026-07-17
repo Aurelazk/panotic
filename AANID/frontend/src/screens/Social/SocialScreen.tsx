@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import { useSelector } from 'react-redux';
 import PostsReseaux from '@aanid/undef-frontend/src/screens/PostsReseaux';
 import Consultation from '@aanid/undef-frontend/src/screens/Consultation';
+import { selectCurrentUser } from '../../store/slices/authSlice';
 import { COLORS, FONT_FAMILY } from '../../constants/theme';
 
 const SECTIONS = [
@@ -14,6 +16,8 @@ type SectionKey = (typeof SECTIONS)[number]['key'];
 
 export default function SocialScreen() {
   const [section, setSection] = useState<SectionKey>('fil');
+  const user = useSelector(selectCurrentUser);
+  const author = `@${(user?.firstName || user?.fullName || 'Citoyen').split(' ')[0]}`;
 
   return (
     <View style={styles.container}>
@@ -36,7 +40,7 @@ export default function SocialScreen() {
         })}
       </View>
       <View style={styles.content}>
-        {section === 'fil' ? <PostsReseaux /> : <Consultation />}
+        {section === 'fil' ? <PostsReseaux author={author} /> : <Consultation />}
       </View>
     </View>
   );

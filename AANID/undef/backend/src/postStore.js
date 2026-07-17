@@ -7,14 +7,14 @@ const SEED_POSTS = [
   {
     id: '1',
     author: '@JeanD',
-    avatar: '👤',
+    avatar: null,
     time: '2h ago',
     location: 'Abomey-Calavi',
     text: 'La nouvelle piste cyclable est enfin ouverte ! Une belle avancée pour la mobilité douce.',
     image: null,
     likes: 42,
     comments: [
-      { id: 'c1', author: '@PaulT', text: 'Super initiative ! 👍', likes: 3 },
+      { id: 'c1', author: '@PaulT', text: 'Super initiative !', likes: 3 },
       { id: 'c2', author: '@KoffiB', text: 'Quand est-ce que ça arrive dans notre quartier ?', likes: 1 },
     ],
     shares: 5,
@@ -24,7 +24,7 @@ const SEED_POSTS = [
   {
     id: '2',
     author: '@MarieL',
-    avatar: '👤',
+    avatar: null,
     time: '5h ago',
     location: 'Porto-Novo',
     text: 'Signalement: Panneau publicitaire dégradé près du marché.',
@@ -38,10 +38,10 @@ const SEED_POSTS = [
   {
     id: '3',
     author: '@PaulT',
-    avatar: '👤',
+    avatar: null,
     time: '1j ago',
     location: 'Cotonou',
-    text: 'Campagne de sensibilisation sur le tri des déchets ce samedi au stade. Venez nombreux ! ♻️',
+    text: 'Campagne de sensibilisation sur le tri des déchets ce samedi au stade. Venez nombreux !',
     image: null,
     likes: 67,
     comments: [],
@@ -52,7 +52,7 @@ const SEED_POSTS = [
   {
     id: '4',
     author: '@SophieK',
-    avatar: '👤',
+    avatar: null,
     time: '2j ago',
     location: 'Parakou',
     text: 'Atelier santé gratuit pour les seniors ce mercredi à la mairie. Inscriptions ouvertes.',
@@ -66,7 +66,7 @@ const SEED_POSTS = [
   {
     id: '5',
     author: '@AlexD',
-    avatar: '👤',
+    avatar: null,
     time: '3j ago',
     location: 'Cotonou',
     text: 'Réunion de quartier sur les projets d\'urbanisme : venez donner votre avis !',

@@ -30,22 +30,36 @@ router.get('/posts/:id', async (req, res) => {
   }
 });
 
+// Image acceptée : URL http(s) ou data URI (photo importée, max ~1,5 Mo encodée)
+const MAX_IMAGE_LENGTH = 1_500_000;
+function sanitizeImage(image) {
+  if (typeof image !== 'string' || !image) return null;
+  if (image.length > MAX_IMAGE_LENGTH) return undefined;
+  if (/^https?:\/\//.test(image) || /^data:image\/(png|jpe?g|webp|gif);base64,/.test(image)) return image;
+  return null;
+}
+
 // POST /posts - Créer un post
 router.post('/posts', async (req, res) => {
-  const { text, author, location, theme, ville } = req.body;
+  const { text, author, location, theme, ville, image } = req.body;
 
   if (!text || !text.trim()) {
     return res.status(400).json({ success: false, message: 'Le texte est obligatoire' });
   }
 
+  const safeImage = sanitizeImage(image);
+  if (safeImage === undefined) {
+    return res.status(400).json({ success: false, message: 'Image trop lourde (1 Mo maximum)' });
+  }
+
   const newPost = {
     id: String(Date.now()),
     author: author || '@Anonyme',
-    avatar: '👤',
+    avatar: null,
     time: 'À l\'instant',
     location: location || 'Non spécifiée',
     text: text.trim(),
-    image: null,
+    image: safeImage,
     likes: 0,
     comments: [],
     shares: 0,
@@ -117,7 +131,7 @@ router.delete('/posts/:id', async (req, res) => {
 const SERVICES = [
   {
     id: '1',
-    icon: '📊',
+    icon: 'chart-column',
     title: 'Études sur la panneautique',
     shortDesc: 'Analyse complète de l\'état actuel de votre panneautique urbaine.',
     desc: 'Analyse approfondie de l\'état actuel de la panneautique dans votre ville.',
@@ -130,7 +144,7 @@ const SERVICES = [
   },
   {
     id: '2',
-    icon: '🔄',
+    icon: 'rotate',
     title: 'Réforme du secteur publicitaire',
     shortDesc: 'Diagnostic, propositions de nouvelles stratégies, plans d\'action.',
     desc: 'Accompagnement complet pour réformer le secteur de l\'affichage publicitaire.',
@@ -143,7 +157,7 @@ const SERVICES = [
   },
   {
     id: '3',
-    icon: '📈',
+    icon: 'chart-line',
     title: 'Études de marché',
     shortDesc: 'Analyse de la concurrence, potentiel publicitaire, tarification.',
     desc: 'Études de marché complètes pour évaluer le potentiel publicitaire.',
