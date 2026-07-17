@@ -1,15 +1,35 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const app = express();
+
+app.set('trust proxy', 1); // derrière le proxy Render : IP client réelle
+app.use(helmet());
 
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 app.use(cors({
   origin: corsOrigin === '*' ? true : corsOrigin.split(',').map((s) => s.trim()),
   credentials: true,
 }));
-app.use(express.json({ limit: '10mb' }));
+// 4 Mo : suffisant pour une photo de post en data URI (limite serveur : 1,5 Mo)
+app.use(express.json({ limit: '4mb' }));
+
+// Rate limit global en mémoire : 300 requêtes / minute / IP
+const RATE_LIMIT = 300;
+const RATE_WINDOW_MS = 60 * 1000;
+const rateBuckets = new Map();
+setInterval(() => rateBuckets.clear(), RATE_WINDOW_MS).unref();
+app.use('/api', (req, res, next) => {
+  const ip = req.ip || 'unknown';
+  const count = (rateBuckets.get(ip) || 0) + 1;
+  rateBuckets.set(ip, count);
+  if (count > RATE_LIMIT) {
+    return res.status(429).json({ error: 'Trop de requêtes. Réessayez dans une minute.' });
+  }
+  next();
+});
 
 // Redis optionnel (dev local)
 let redisClient = null;
