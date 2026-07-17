@@ -236,30 +236,89 @@ async function getUserBadges(userId) {
 }
 
 // ─── Paiements ──────────────────────────────────────────────────────────────
+// Deux modes : paiement unique (formations sans paymentPlan) et paiement en
+// tranches (formations avec paymentPlan). Chaque paiement de tranche est une
+// ligne distincte, identifiée par son champ `tranche`.
 
-async function hasUserPaid(formationId, userId) {
+async function listUserPayments(formationId, userId) {
   if (!useDb) {
-    return (memoryPayments.get(formationId) || []).some((p) => p.userId === userId);
+    return (memoryPayments.get(formationId) || []).filter((p) => p.userId === userId);
   }
-  const payment = await prisma.formationPayment.findUnique({
-    where: { userId_formationId: { userId, formationId } },
+  return prisma.formationPayment.findMany({
+    where: { userId, formationId },
+    orderBy: { paidAt: 'asc' },
   });
-  return Boolean(payment);
 }
 
-async function recordPayment(formationId, userId, phone, amount, currency, provider) {
+/**
+ * État du paiement d'un utilisateur pour une formation.
+ * @returns {{ totalPaid, paidTranches, nextTranche, isFullyPaid }}
+ */
+async function getPaymentState(formation, userId) {
+  const payments = userId ? await listUserPayments(formation.id, userId) : [];
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const plan = formation.paymentPlan;
+
+  if (!plan || !Array.isArray(plan.tranches)) {
+    return {
+      totalPaid,
+      paidTranches: [],
+      nextTranche: null,
+      isFullyPaid: formation.isFree || payments.length > 0,
+    };
+  }
+
+  const paidTranches = plan.tranches
+    .filter((t) => payments.some((p) => p.tranche === t.id))
+    .map((t) => t.id);
+  const nextTranche = plan.tranches.find((t) => !paidTranches.includes(t.id)) || null;
+  return {
+    totalPaid,
+    paidTranches,
+    nextTranche,
+    isFullyPaid: formation.isFree || !nextTranche,
+  };
+}
+
+async function hasUserPaid(formationId, userId) {
+  const formation = await getFormationCore(formationId);
+  if (!formation) return false;
+  const state = await getPaymentState(formation, userId);
+  return state.isFullyPaid;
+}
+
+async function recordPayment(formationId, userId, phone, amount, currency, provider, tranche = null) {
+  // 'full' = paiement unique d'une formation sans plan par tranches
+  const trancheKey = tranche || 'full';
+
   if (!useDb) {
     const list = memoryPayments.get(formationId) || [];
-    if (list.some((p) => p.userId === userId)) return;
-    list.push({ userId, phone, amount, currency, provider, paidAt: new Date().toISOString() });
+    if (list.some((p) => p.userId === userId && p.tranche === trancheKey)) return;
+    list.push({ userId, phone, amount, currency, provider, tranche: trancheKey, paidAt: new Date().toISOString() });
     memoryPayments.set(formationId, list);
     return;
   }
 
   await prisma.formationPayment.upsert({
-    where: { userId_formationId: { userId, formationId } },
+    where: { userId_formationId_tranche: { userId, formationId, tranche: trancheKey } },
     update: {},
-    create: { userId, formationId, phone, amount, currency, provider },
+    create: { userId, formationId, phone, amount, currency, provider, tranche: trancheKey },
+  });
+}
+
+/**
+ * Annote chaque module avec `locked` selon les tranches payées, et masque le
+ * contenu des modules verrouillés. Sans paymentPlan, rien n'est verrouillé.
+ */
+function decorateModules(formation, paidTranches) {
+  const modules = Array.isArray(formation.modules) ? formation.modules : [];
+  if (!formation.paymentPlan) {
+    return modules.map((m) => ({ ...m, locked: false }));
+  }
+  return modules.map((m) => {
+    const locked = Boolean(m.trancheId) && !paidTranches.includes(m.trancheId);
+    if (!locked) return { ...m, locked: false };
+    return { ...m, locked: true, content: '' };
   });
 }
 
@@ -276,4 +335,7 @@ module.exports = {
   getUserBadges,
   hasUserPaid,
   recordPayment,
+  listUserPayments,
+  getPaymentState,
+  decorateModules,
 };

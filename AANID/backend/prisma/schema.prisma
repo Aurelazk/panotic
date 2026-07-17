@@ -41,6 +41,16 @@ model User {
   badges         FormationBadge[]
   oauthAccounts  OAuthAccount[]
   oauthExchanges OAuthExchange[]
+  forfait        UserSubscription?
+}
+
+// Forfaits AANID (Amateur / Professionnel / Régie) — module beni-momo-adnan
+model UserSubscription {
+  userId      String   @id
+  plan        String
+  activatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RefreshToken {
@@ -124,6 +134,7 @@ model Formation {
   version       String?
   pdfUrl        String?
   modules       Json
+  paymentPlan   Json?
   createdAt     DateTime            @default(now())
   enrollments   FormationEnrollment[]
   payments      FormationPayment[]
@@ -151,11 +162,14 @@ model FormationPayment {
   amount      Float
   currency    String    @default("XOF")
   provider    String    @default("simulation")
+  tranche     String?
   paidAt      DateTime  @default(now())
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, formationId])
+  // Une même tranche ne peut être payée qu'une fois par utilisateur
+  @@unique([userId, formationId, tranche])
+  @@index([userId, formationId])
 }
 
 model FormationBadge {

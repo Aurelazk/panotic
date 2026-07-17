@@ -1,8 +1,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-const fedapay = require('./fedapay');
+const kkiapay = require('./kkiapay');
 const formationStore = require('./formationStore');
+const subscriptionStore = require('./subscriptionStore');
 
 const router = express.Router();
 
@@ -90,10 +91,20 @@ router.get('/formations/:id', async (req, res) => {
 
   const userId = req.headers['authorization'] ? getUserFromToken(req) : null;
   const enrollment = userId ? await formationStore.getEnrollment(formation.id, userId) : null;
+  const paymentState = await formationStore.getPaymentState(formation, userId);
 
   res.json({
     ...formation,
+    modules: formationStore.decorateModules(formation, paymentState.paidTranches),
     isEnrolled: !!enrollment,
+    payment: formation.paymentPlan ? {
+      plan: formation.paymentPlan,
+      paidTranches: paymentState.paidTranches,
+      totalPaid: paymentState.totalPaid,
+      remaining: Math.max(0, (formation.paymentPlan.total || formation.price) - paymentState.totalPaid),
+      nextTranche: paymentState.nextTranche,
+      isFullyPaid: paymentState.isFullyPaid,
+    } : null,
     userProgress: enrollment ? {
       modulesCompleted: enrollment.modulesCompleted,
       completedAt: enrollment.completedAt || null,
@@ -105,6 +116,26 @@ router.get('/formations/:id', async (req, res) => {
 // POST /formations/:id/enroll
 router.post('/formations/:id/enroll', authenticateToken, async (req, res) => {
   const userId = req.user.sub;
+
+  // Formations payantes : l'inscription exige au minimum la première tranche
+  // (plan par tranches) ou le paiement complet (paiement unique).
+  const formation = await formationStore.getFormationCore(req.params.id);
+  if (formation && !formation.isFree) {
+    const state = await formationStore.getPaymentState(formation, userId);
+    const firstTranche = formation.paymentPlan?.tranches?.[0];
+    const inscriptionOk = firstTranche
+      ? state.paidTranches.includes(firstTranche.id)
+      : state.isFullyPaid;
+    if (!inscriptionOk) {
+      return res.status(402).json({
+        error: firstTranche
+          ? `Payez d'abord la tranche « ${firstTranche.label} » (${firstTranche.amount.toLocaleString()} FCFA) pour vous inscrire.`
+          : 'Payez cette formation pour vous inscrire.',
+        code: 'PAYMENT_REQUIRED',
+      });
+    }
+  }
+
   const { error } = await formationStore.enrollUser(req.params.id, userId);
 
   if (error === 'not_found') return res.status(404).json({ error: 'Formation non trouvée' });
@@ -133,6 +164,20 @@ router.patch('/formations/:id/progress', authenticateToken, async (req, res) => 
   }
 
   const userId = req.user.sub;
+
+  // Un module verrouillé (tranche non payée) ne peut pas être suivi
+  const formation = await formationStore.getFormationCore(req.params.id);
+  if (formation?.paymentPlan) {
+    const state = await formationStore.getPaymentState(formation, userId);
+    const mod = (formation.modules || []).find((m) => m.id === moduleId);
+    if (mod?.trancheId && !state.paidTranches.includes(mod.trancheId)) {
+      return res.status(402).json({
+        error: 'Ce module est verrouillé. Payez la tranche correspondante pour y accéder.',
+        code: 'MODULE_LOCKED',
+      });
+    }
+  }
+
   const result = await formationStore.updateModuleProgress(req.params.id, userId, moduleId, completed);
 
   if (result.error === 'not_enrolled') {
@@ -156,14 +201,23 @@ router.patch('/formations/:id/progress', authenticateToken, async (req, res) => 
   });
 });
 
-// ─── Paiement Mobile Money (FedaPay ou simulation) ──────────────────────────
+// ─── Paiement Mobile Money (KKiaPay ou simulation) ──────────────────────────
+// Flux KKiaPay : le frontend ouvre le widget avec la clé publique, obtient un
+// transactionId, puis rappelle POST /pay avec ce transactionId pour vérification.
 
-// Transactions FedaPay en attente : `${formationId}:${userId}` -> transactionId
-const pendingTransactions = {};
+// GET /payments/config — config publique du widget (pas d'auth : clé publique)
+router.get('/payments/config', (req, res) => {
+  res.json({
+    provider: kkiapay.isConfigured() ? 'kkiapay' : 'simulation',
+    ...kkiapay.publicConfig(),
+  });
+});
 
-// POST /formations/:id/pay
+// POST /formations/:id/pay — { phone, transactionId? }
+// Formations avec paymentPlan : chaque appel paie la PROCHAINE tranche due
+// (dans l'ordre du plan). Sans plan : paiement unique du prix total.
 router.post('/formations/:id/pay', authenticateToken, async (req, res) => {
-  const { phone } = req.body;
+  const { phone, transactionId } = req.body || {};
   if (!phone) {
     return res.status(400).json({ error: 'Numéro de téléphone requis' });
   }
@@ -177,43 +231,83 @@ router.post('/formations/:id/pay', authenticateToken, async (req, res) => {
   }
 
   const userId = req.user.sub;
-  const alreadyPaid = await formationStore.hasUserPaid(formation.id, userId);
-  if (alreadyPaid) {
+  const state = await formationStore.getPaymentState(formation, userId);
+  if (state.isFullyPaid) {
     return res.status(409).json({ error: 'Paiement déjà effectué pour cette formation' });
   }
 
-  if (fedapay.isConfigured()) {
-    try {
-      const { transactionId, paymentUrl } = await fedapay.createTransaction({
-        amount: formation.price,
-        description: `AANID — ${formation.title}`,
-        phone,
+  const plan = formation.paymentPlan;
+  const tranche = plan ? state.nextTranche : null;
+  const dueAmount = tranche ? tranche.amount : formation.price;
+  const trancheInfo = tranche ? { tranche: { id: tranche.id, label: tranche.label, amount: tranche.amount } } : {};
+
+  const planProgress = async () => {
+    const after = await formationStore.getPaymentState(formation, userId);
+    return plan ? {
+      totalPaid: after.totalPaid,
+      remaining: Math.max(0, (plan.total || formation.price) - after.totalPaid),
+      paidTranches: after.paidTranches,
+      nextTranche: after.nextTranche,
+      isFullyPaid: after.isFullyPaid,
+    } : {};
+  };
+
+  if (kkiapay.isConfigured()) {
+    if (!transactionId) {
+      // Le client doit d'abord ouvrir le widget KKiaPay
+      return res.status(200).json({
+        provider: 'kkiapay',
+        status: 'requires_widget',
+        formationId: formation.id,
+        amount: dueAmount,
+        currency: formation.currency,
+        ...trancheInfo,
+        ...kkiapay.publicConfig(),
       });
-      pendingTransactions[`${formation.id}:${userId}`] = transactionId;
+    }
+    try {
+      const tx = await kkiapay.verifyTransaction(transactionId);
+      if (!kkiapay.isPaidStatus(tx.status)) {
+        const failed = kkiapay.isFailedStatus(tx.status);
+        return res.status(failed ? 402 : 202).json({
+          provider: 'kkiapay',
+          status: failed ? 'failed' : 'pending',
+          formationId: formation.id,
+          transactionId,
+          message: failed ? 'Le paiement a échoué ou a été annulé.' : 'Paiement en cours de traitement.',
+        });
+      }
+      if (typeof tx.amount === 'number' && tx.amount < dueAmount) {
+        return res.status(402).json({ error: 'Montant payé insuffisant' });
+      }
+      await formationStore.recordPayment(formation.id, userId, phone, dueAmount, formation.currency, 'kkiapay', tranche?.id || null);
       return res.status(201).json({
-        provider: 'fedapay',
-        status: 'pending',
+        provider: 'kkiapay',
+        status: 'approved',
+        message: tranche ? `Tranche « ${tranche.label} » payée avec succès` : 'Paiement vérifié avec succès',
         formationId: formation.id,
         transactionId,
-        paymentUrl,
-        amount: formation.price,
+        amount: dueAmount,
         currency: formation.currency,
-        message: 'Transaction créée. Finalisez le paiement sur la page sécurisée FedaPay.',
+        ...trancheInfo,
+        ...(await planProgress()),
       });
     } catch (err) {
-      return res.status(502).json({ error: `Paiement indisponible : ${err.message}` });
+      return res.status(502).json({ error: `Vérification du paiement impossible : ${err.message}` });
     }
   }
 
-  // Aucune clé FedaPay configurée : simulation (dev / démo)
-  await formationStore.recordPayment(formation.id, userId, phone, formation.price, formation.currency, 'simulation');
+  // Aucune clé KKiaPay configurée : simulation (dev / démo)
+  await formationStore.recordPayment(formation.id, userId, phone, dueAmount, formation.currency, 'simulation', tranche?.id || null);
   res.status(201).json({
     provider: 'simulation',
     status: 'approved',
-    message: 'Paiement effectué avec succès',
+    message: tranche ? `Tranche « ${tranche.label} » payée avec succès` : 'Paiement effectué avec succès',
     formationId: formation.id,
-    amount: formation.price,
+    amount: dueAmount,
     currency: formation.currency,
+    ...trancheInfo,
+    ...(await planProgress()),
   });
 });
 
@@ -225,34 +319,24 @@ router.get('/formations/:id/payment-status', authenticateToken, async (req, res)
   }
 
   const userId = req.user.sub;
-  let paid = await formationStore.hasUserPaid(formation.id, userId);
-  let providerStatus = paid ? 'approved' : null;
-
-  // Une transaction FedaPay est en attente : vérifier son statut
-  const pendingKey = `${formation.id}:${userId}`;
-  const transactionId = pendingTransactions[pendingKey];
-  if (!paid && transactionId && fedapay.isConfigured()) {
-    try {
-      providerStatus = await fedapay.getTransactionStatus(transactionId);
-      if (fedapay.isPaidStatus(providerStatus)) {
-        await formationStore.recordPayment(formation.id, userId, null, formation.price, formation.currency, 'fedapay');
-        delete pendingTransactions[pendingKey];
-        paid = true;
-      } else if (fedapay.isFailedStatus(providerStatus)) {
-        delete pendingTransactions[pendingKey];
-      }
-    } catch {
-      providerStatus = 'unknown';
-    }
-  }
+  const state = await formationStore.getPaymentState(formation, userId);
+  const plan = formation.paymentPlan;
 
   res.json({
     formationId: formation.id,
     isFree: formation.isFree,
-    isPaid: paid || formation.isFree,
-    status: providerStatus,
+    isPaid: state.isFullyPaid,
+    status: state.isFullyPaid ? 'approved' : null,
     amount: formation.price,
     currency: formation.currency,
+    ...(plan ? {
+      plan,
+      totalPaid: state.totalPaid,
+      remaining: Math.max(0, (plan.total || formation.price) - state.totalPaid),
+      paidTranches: state.paidTranches,
+      nextTranche: state.nextTranche,
+      canEnroll: formation.isFree || state.paidTranches.includes(plan.tranches?.[0]?.id),
+    } : {}),
   });
 });
 
@@ -264,41 +348,19 @@ const SUBSCRIPTION_PLANS = {
   Régie: { price: 25000 },
 };
 
-// userId -> { plan, activatedAt } ; transactions en attente : userId -> { plan, transactionId }
-const subscriptions = {};
-const pendingSubscriptions = {};
-
 // GET /subscriptions/me
 router.get('/subscriptions/me', authenticateToken, async (req, res) => {
-  const userId = req.user.sub;
-
-  // Vérifier une éventuelle transaction en attente
-  const pending = pendingSubscriptions[userId];
-  if (pending && fedapay.isConfigured()) {
-    try {
-      const status = await fedapay.getTransactionStatus(pending.transactionId);
-      if (fedapay.isPaidStatus(status)) {
-        subscriptions[userId] = { plan: pending.plan, activatedAt: new Date().toISOString() };
-        delete pendingSubscriptions[userId];
-      } else if (fedapay.isFailedStatus(status)) {
-        delete pendingSubscriptions[userId];
-      }
-    } catch {
-      // statut inchangé : on renvoie l'abonnement actuel
-    }
-  }
-
-  const sub = subscriptions[userId];
+  const sub = await subscriptionStore.getSubscription(req.user.sub);
   res.json({
     plan: sub?.plan || 'Amateur',
     activatedAt: sub?.activatedAt || null,
-    pendingPlan: pendingSubscriptions[userId]?.plan || null,
+    pendingPlan: null,
   });
 });
 
-// POST /subscriptions/pay — { plan, phone }
+// POST /subscriptions/pay — { plan, phone, transactionId? }
 router.post('/subscriptions/pay', authenticateToken, async (req, res) => {
-  const { plan, phone } = req.body || {};
+  const { plan, phone, transactionId } = req.body || {};
   const planDef = SUBSCRIPTION_PLANS[plan];
   if (!planDef) {
     return res.status(400).json({ error: `Forfait invalide. Valeurs possibles : ${Object.keys(SUBSCRIPTION_PLANS).join(', ')}` });
@@ -311,34 +373,54 @@ router.post('/subscriptions/pay', authenticateToken, async (req, res) => {
   }
 
   const userId = req.user.sub;
-  if (subscriptions[userId]?.plan === plan) {
+  const current = await subscriptionStore.getSubscription(userId);
+  if (current?.plan === plan) {
     return res.status(409).json({ error: 'Vous êtes déjà abonné à ce forfait' });
   }
 
-  if (fedapay.isConfigured()) {
-    try {
-      const { transactionId, paymentUrl } = await fedapay.createTransaction({
-        amount: planDef.price,
-        description: `AANID — Abonnement ${plan}`,
-        phone,
-      });
-      pendingSubscriptions[userId] = { plan, transactionId };
-      return res.status(201).json({
-        provider: 'fedapay',
-        status: 'pending',
+  if (kkiapay.isConfigured()) {
+    if (!transactionId) {
+      return res.status(200).json({
+        provider: 'kkiapay',
+        status: 'requires_widget',
         plan,
-        transactionId,
-        paymentUrl,
         amount: planDef.price,
         currency: 'XOF',
+        ...kkiapay.publicConfig(),
+      });
+    }
+    try {
+      const tx = await kkiapay.verifyTransaction(transactionId);
+      if (!kkiapay.isPaidStatus(tx.status)) {
+        const failed = kkiapay.isFailedStatus(tx.status);
+        return res.status(failed ? 402 : 202).json({
+          provider: 'kkiapay',
+          status: failed ? 'failed' : 'pending',
+          plan,
+          transactionId,
+          message: failed ? 'Le paiement a échoué ou a été annulé.' : 'Paiement en cours de traitement.',
+        });
+      }
+      if (typeof tx.amount === 'number' && tx.amount < planDef.price) {
+        return res.status(402).json({ error: 'Montant payé insuffisant' });
+      }
+      await subscriptionStore.setSubscription(userId, plan);
+      return res.status(201).json({
+        provider: 'kkiapay',
+        status: 'approved',
+        plan,
+        transactionId,
+        amount: planDef.price,
+        currency: 'XOF',
+        message: 'Abonnement activé',
       });
     } catch (err) {
-      return res.status(502).json({ error: `Paiement indisponible : ${err.message}` });
+      return res.status(502).json({ error: `Vérification du paiement impossible : ${err.message}` });
     }
   }
 
-  // Simulation sans clé FedaPay
-  subscriptions[userId] = { plan, activatedAt: new Date().toISOString() };
+  // Simulation sans clé KKiaPay
+  await subscriptionStore.setSubscription(userId, plan);
   res.status(201).json({
     provider: 'simulation',
     status: 'approved',

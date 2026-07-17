@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput, Platform, Linking } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faSeedling, faBriefcase, faBuilding, faStar, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { openKkiapay } from '@aanid/beni-momo-adnan-frontend/src/services/kkiapayWidget';
 import { COLORS, FONT_FAMILY } from '../../constants/theme';
 import { api, getApiErrorMessage } from '../../api/client';
 
@@ -20,25 +21,13 @@ const PLANS = [
   },
 ];
 
-const POLL_INTERVAL = 4000;
-
-function openExternal(url: string) {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    window.open(url, '_blank');
-  } else {
-    Linking.openURL(url).catch(() => {});
-  }
-}
-
 export default function PricingScreen() {
   const [currentPlan, setCurrentPlan] = useState('Amateur');
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [pendingPayment, setPendingPayment] = useState<{ plan: string; paymentUrl: string } | null>(null);
   const [successPlan, setSuccessPlan] = useState<string | null>(null);
-  const pollRef = useRef<any>(null);
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -53,23 +42,6 @@ export default function PricingScreen() {
   useEffect(() => {
     fetchSubscription();
   }, [fetchSubscription]);
-
-  // Sondage du statut pendant un paiement FedaPay en attente
-  useEffect(() => {
-    if (!pendingPayment) return undefined;
-    pollRef.current = setInterval(async () => {
-      const data = await fetchSubscription();
-      if (data?.plan === pendingPayment.plan) {
-        setPendingPayment(null);
-        setSuccessPlan(data.plan);
-      } else if (data && !data.pendingPlan && data.plan !== pendingPayment.plan) {
-        // La transaction a été refusée ou annulée côté FedaPay
-        setPendingPayment(null);
-        setError('Le paiement a été refusé ou annulé. Veuillez réessayer.');
-      }
-    }, POLL_INTERVAL);
-    return () => clearInterval(pollRef.current);
-  }, [pendingPayment, fetchSubscription]);
 
   const startCheckout = (tier: string) => {
     setSelectedTier(tier);
@@ -89,15 +61,30 @@ export default function PricingScreen() {
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/subscriptions/pay', { plan: selectedTier, phone: cleaned });
-      if (data.paymentUrl) {
-        setPendingPayment({ plan: selectedTier, paymentUrl: data.paymentUrl });
-        openExternal(data.paymentUrl);
-      } else {
+      let { data } = await api.post('/subscriptions/pay', { plan: selectedTier, phone: cleaned });
+
+      if (data.status === 'requires_widget') {
+        // Ouvrir le widget KKiaPay puis vérifier la transaction côté serveur
+        const transactionId = await openKkiapay({
+          amount: data.amount,
+          publicKey: data.publicKey,
+          sandbox: data.sandbox,
+          phone: cleaned,
+        });
+        ({ data } = await api.post('/subscriptions/pay', {
+          plan: selectedTier,
+          phone: cleaned,
+          transactionId,
+        }));
+      }
+
+      if (data.status === 'approved') {
         setCurrentPlan(selectedTier);
         setSuccessPlan(selectedTier);
+        setSelectedTier(null);
+      } else {
+        setError(data.message || 'Paiement non confirmé. Veuillez réessayer.');
       }
-      setSelectedTier(null);
     } catch (e: any) {
       if (e?.response?.status === 401) {
         setError('Veuillez vous connecter pour souscrire à un forfait.');
@@ -121,20 +108,6 @@ export default function PricingScreen() {
           <View style={styles.successBanner}>
             <FontAwesomeIcon icon={faCircleCheck} size={15} color={COLORS.success} />
             <Text style={styles.successBannerText}>Abonnement {successPlan} activé !</Text>
-          </View>
-        )}
-
-        {pendingPayment && (
-          <View style={styles.pendingBanner}>
-            <ActivityIndicator size="small" color={COLORS.warning} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.pendingBannerText}>
-                Paiement du forfait {pendingPayment.plan} en attente de confirmation FedaPay…
-              </Text>
-              <TouchableOpacity onPress={() => openExternal(pendingPayment.paymentUrl)}>
-                <Text style={styles.pendingBannerLink}>Rouvrir la page de paiement</Text>
-              </TouchableOpacity>
-            </View>
           </View>
         )}
 
@@ -191,7 +164,6 @@ export default function PricingScreen() {
                   style={[styles.btn, { backgroundColor: plan.color }]}
                   activeOpacity={0.85}
                   onPress={() => startCheckout(plan.tier)}
-                  disabled={!!pendingPayment}
                 >
                   <Text style={styles.btnText}>Choisir ce plan</Text>
                 </TouchableOpacity>
@@ -255,13 +227,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, padding: 12, marginBottom: 16,
   },
   successBannerText: { fontSize: 13, fontWeight: '700', color: COLORS.success, fontFamily: FONT_FAMILY },
-  pendingBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.warning + '1F',
-    borderRadius: 12, padding: 12, marginBottom: 16,
-  },
-  pendingBannerText: { fontSize: 12.5, color: COLORS.text, fontFamily: FONT_FAMILY },
-  pendingBannerLink: { fontSize: 12, color: COLORS.primary, fontWeight: '700', marginTop: 4, textDecorationLine: 'underline', fontFamily: FONT_FAMILY },
-  errorText: { fontSize: 13, color: '#C75D4F', marginBottom: 12, fontFamily: FONT_FAMILY },
+  errorText: { fontSize: 13, color: COLORS.error, marginBottom: 12, fontFamily: FONT_FAMILY },
   card: {
     backgroundColor: COLORS.surface, borderRadius: 22, padding: 22, marginBottom: 18,
     borderWidth: 1, borderColor: '#F0E6D6',

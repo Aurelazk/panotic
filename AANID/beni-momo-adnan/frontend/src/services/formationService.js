@@ -111,10 +111,10 @@ export async function getMyBadges() {
   return authRequest('/formations/mine/badges');
 }
 
-export async function payForFormation(formationId, phone) {
+export async function payForFormation(formationId, phone, transactionId) {
   return authRequest(`/formations/${formationId}/pay`, {
     method: 'POST',
-    body: JSON.stringify({ phone }),
+    body: JSON.stringify(transactionId ? { phone, transactionId } : { phone }),
   });
 }
 

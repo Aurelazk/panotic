@@ -1,59 +1,22 @@
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet, Platform, Linking } from 'react-native';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { useState } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { WebView } from 'react-native-webview';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faCircleCheck, faLock, faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import { payForFormation, getPaymentStatus } from '../services/formationService';
-
-const POLL_INTERVAL = 4000;
-
-function openExternal(url) {
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    window.open(url, '_blank');
-  } else {
-    Linking.openURL(url).catch(() => {});
-  }
-}
+import { faChevronLeft, faCircleCheck, faLock } from '@fortawesome/free-solid-svg-icons';
+import { payForFormation } from '../services/formationService';
+import { openKkiapay } from '../services/kkiapayWidget';
 
 export default function PaiementMobile() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { formationId, amount, currency, title } = route.params;
+  const { formationId, amount, currency, title, trancheLabel } = route.params;
 
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  // Transaction FedaPay en cours : { paymentUrl, transactionId }
-  const [checkout, setCheckout] = useState(null);
-  const [verifying, setVerifying] = useState(false);
-  const pollRef = useRef(null);
-
-  const checkStatus = useCallback(async () => {
-    try {
-      const status = await getPaymentStatus(formationId);
-      if (status.isPaid) {
-        setCheckout(null);
-        setSuccess(true);
-        return true;
-      }
-      if (status.status === 'declined' || status.status === 'canceled' || status.status === 'expired') {
-        setCheckout(null);
-        setError('Le paiement a été refusé ou annulé. Veuillez réessayer.');
-        return true;
-      }
-    } catch {
-      // le sondage réessaiera
-    }
-    return false;
-  }, [formationId]);
-
-  useEffect(() => {
-    if (!checkout) return undefined;
-    pollRef.current = setInterval(checkStatus, POLL_INTERVAL);
-    return () => clearInterval(pollRef.current);
-  }, [checkout, checkStatus]);
+  // Après un paiement de tranche : reste dû et prochaine tranche éventuelle
+  const [planAfter, setPlanAfter] = useState(null);
 
   const handlePay = async () => {
     const cleaned = phone.replace(/[^0-9]/g, '');
@@ -66,27 +29,38 @@ export default function PaiementMobile() {
     setError('');
     try {
       const result = await payForFormation(formationId, cleaned);
-      if (result.paymentUrl) {
-        // FedaPay : ouvrir la page de paiement sécurisée
-        setCheckout({ paymentUrl: result.paymentUrl, transactionId: result.transactionId });
-        if (Platform.OS === 'web') {
-          openExternal(result.paymentUrl);
-        }
-      } else {
-        // Mode simulation (aucune clé FedaPay configurée côté serveur)
+
+      if (result.status === 'approved') {
+        // Mode simulation (aucune clé KKiaPay configurée côté serveur)
+        if (result.remaining !== undefined) setPlanAfter(result);
         setSuccess(true);
+        return;
       }
+
+      if (result.status === 'requires_widget') {
+        // Ouvrir le widget KKiaPay puis vérifier la transaction côté serveur
+        const transactionId = await openKkiapay({
+          amount: result.amount,
+          publicKey: result.publicKey,
+          sandbox: result.sandbox,
+          phone: cleaned,
+        });
+        const verified = await payForFormation(formationId, cleaned, transactionId);
+        if (verified.status === 'approved') {
+          if (verified.remaining !== undefined) setPlanAfter(verified);
+          setSuccess(true);
+        } else {
+          setError(verified.message || 'Paiement non confirmé. Veuillez réessayer.');
+        }
+        return;
+      }
+
+      setError(result.message || 'Paiement non confirmé. Veuillez réessayer.');
     } catch (e) {
       setError(e.message || 'Erreur de paiement');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleVerifyNow = async () => {
-    setVerifying(true);
-    await checkStatus();
-    setVerifying(false);
   };
 
   if (success) {
@@ -97,92 +71,22 @@ export default function PaiementMobile() {
             <FontAwesomeIcon icon={faCircleCheck} style={{ fontSize: 44 }} color="#6E8B5B" />
           </View>
           <Text style={styles.successTitle}>Paiement réussi !</Text>
+          {trancheLabel ? <Text style={styles.successTranche}>{trancheLabel}</Text> : null}
           <Text style={styles.successAmount}>
             {amount.toLocaleString()} {currency}
           </Text>
           <Text style={styles.successDesc}>
-            Vous pouvez maintenant vous inscrire à la formation.
+            {planAfter
+              ? planAfter.isFullyPaid
+                ? 'Formation entièrement payée. Tous les modules sont débloqués.'
+                : `Reste à payer : ${(planAfter.remaining || 0).toLocaleString()} ${currency}${planAfter.nextTranche ? `\nProchaine tranche : ${planAfter.nextTranche.label} (${planAfter.nextTranche.amount.toLocaleString()} ${currency})` : ''}`
+              : 'Vous pouvez maintenant vous inscrire à la formation.'}
           </Text>
           <TouchableOpacity
             style={styles.doneBtn}
             onPress={() => navigation.navigate('FormationDetail', { formationId })}
           >
             <Text style={styles.doneBtnText}>Continuer</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  // Paiement FedaPay en cours — natif : WebView intégrée ; web : onglet externe + suivi
-  if (checkout) {
-    if (Platform.OS !== 'web') {
-      return (
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => setCheckout(null)}>
-              <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 16 }} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Paiement sécurisé</Text>
-          </View>
-          <WebView
-            source={{ uri: checkout.paymentUrl }}
-            style={{ flex: 1 }}
-            startInLoadingState
-            renderLoading={() => (
-              <View style={styles.loaderContainer}>
-                <ActivityIndicator size="large" color="#C19A6B" />
-              </View>
-            )}
-          />
-          <View style={styles.pollBar}>
-            <ActivityIndicator size="small" color="#9C7C4F" />
-            <Text style={styles.pollBarText}>Vérification automatique du paiement…</Text>
-          </View>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => setCheckout(null)}>
-            <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 16 }} color="#fff" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Paiement en cours</Text>
-        </View>
-        <View style={styles.body}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>Formation</Text>
-            <Text style={styles.summaryTitle} numberOfLines={2}>{title}</Text>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Montant</Text>
-              <Text style={styles.summaryPrice}>{amount.toLocaleString()} {currency}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.instruction}>
-            Finalisez votre paiement sur la page sécurisée FedaPay qui vient de s'ouvrir.
-            Cette page vérifie automatiquement l'état de votre transaction.
-          </Text>
-
-          <View style={styles.waitingRow}>
-            <ActivityIndicator size="small" color="#9C7C4F" />
-            <Text style={styles.waitingText}>En attente de confirmation…</Text>
-          </View>
-
-          <TouchableOpacity style={styles.payBtn} onPress={handleVerifyNow} disabled={verifying}>
-            {verifying ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.payBtnText}>J'ai payé — Vérifier</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.reopenBtn} onPress={() => openExternal(checkout.paymentUrl)}>
-            <FontAwesomeIcon icon={faArrowUpRightFromSquare} style={{ fontSize: 12 }} color="#9C7C4F" />
-            <Text style={styles.reopenBtnText}>Rouvrir la page de paiement</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -202,6 +106,13 @@ export default function PaiementMobile() {
         <View style={styles.summaryCard}>
           <Text style={styles.summaryLabel}>Formation</Text>
           <Text style={styles.summaryTitle} numberOfLines={2}>{title}</Text>
+          {trancheLabel ? (
+            <>
+              <View style={styles.summaryDivider} />
+              <Text style={styles.summaryLabel}>Tranche</Text>
+              <Text style={styles.summaryTranche}>{trancheLabel}</Text>
+            </>
+          ) : null}
           <View style={styles.summaryDivider} />
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Montant</Text>
@@ -210,7 +121,8 @@ export default function PaiementMobile() {
         </View>
 
         <Text style={styles.instruction}>
-          Entrez votre numéro Mobile Money (MTN ou Moov) pour effectuer le paiement.
+          Entrez votre numéro Mobile Money (MTN ou Moov), puis finalisez le paiement
+          dans la fenêtre sécurisée KKiaPay.
         </Text>
 
         <View style={styles.inputGroup}>
@@ -243,7 +155,7 @@ export default function PaiementMobile() {
 
         <View style={styles.secureRow}>
           <FontAwesomeIcon icon={faLock} style={{ fontSize: 10 }} color="#A89E90" />
-          <Text style={styles.secureText}>Paiement sécurisé via FedaPay (Mobile Money & cartes)</Text>
+          <Text style={styles.secureText}>Paiement sécurisé via KKiaPay (Mobile Money & cartes)</Text>
         </View>
       </View>
     </View>
@@ -254,11 +166,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9F1E5',
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -331,40 +238,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#C19A6B',
   },
+  summaryTranche: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#9C7C4F',
+    marginTop: 4,
+  },
+  successTranche: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#9C7C4F',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
   instruction: {
     fontFamily: 'CenturyGothic',
     fontSize: 14,
     color: '#7A7166',
     lineHeight: 20,
     marginBottom: 16,
-  },
-  waitingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 20,
-  },
-  waitingText: {
-    fontFamily: 'CenturyGothic',
-    fontSize: 13,
-    color: '#9C7C4F',
-    fontWeight: '600',
-  },
-  pollBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 12,
-    backgroundColor: '#F9F1E5',
-    borderTopWidth: 1,
-    borderTopColor: '#E8DCC8',
-  },
-  pollBarText: {
-    fontFamily: 'CenturyGothic',
-    fontSize: 12,
-    color: '#9C7C4F',
   },
   inputGroup: {
     marginBottom: 16,
@@ -412,21 +306,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#fff',
-  },
-  reopenBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 14,
-    paddingVertical: 10,
-  },
-  reopenBtnText: {
-    fontFamily: 'CenturyGothic',
-    fontSize: 13,
-    color: '#9C7C4F',
-    fontWeight: '600',
-    textDecorationLine: 'underline',
   },
   secureRow: {
     flexDirection: 'row',

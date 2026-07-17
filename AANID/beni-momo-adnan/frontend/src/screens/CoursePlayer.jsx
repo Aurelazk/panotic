@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faCheck, faCircleCheck, faFilePdf } from '@fortawesome/free-solid-svg-icons';
+import { faChevronLeft, faChevronRight, faCheck, faCircleCheck, faFilePdf, faLock } from '@fortawesome/free-solid-svg-icons';
 import { getFormationById, updateProgress } from '../services/formationService';
 import { getApiOrigin } from '@aanid/shared/api';
 
@@ -106,6 +106,57 @@ export default function CoursePlayer() {
             </View>
           )}
         />
+      </View>
+    );
+  }
+
+  // Module verrouillé (tranche non payée) : proposer le paiement
+  if (currentModule.locked) {
+    const nextTranche = formation.payment?.nextTranche;
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 15 }} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle} numberOfLines={1}>{formation.title}</Text>
+            <Text style={styles.headerSubtitle}>Module verrouillé</Text>
+          </View>
+        </View>
+        <View style={styles.lockedContainer}>
+          <View style={styles.lockedIcon}>
+            <FontAwesomeIcon icon={faLock} style={{ fontSize: 30 }} color="#9C7C4F" />
+          </View>
+          <Text style={styles.lockedTitle}>{currentModule.title}</Text>
+          <Text style={styles.lockedDesc}>
+            Ce module est verrouillé. Payez la tranche correspondante pour y accéder.
+          </Text>
+          {nextTranche && (
+            <TouchableOpacity
+              style={styles.lockedPayBtn}
+              onPress={() =>
+                navigation.navigate('PaiementMobile', {
+                  formationId: formation.id,
+                  amount: nextTranche.amount,
+                  currency: formation.currency,
+                  title: formation.title,
+                  trancheLabel: nextTranche.label,
+                })
+              }
+            >
+              <Text style={styles.lockedPayBtnText}>
+                Payer « {nextTranche.label} » — {nextTranche.amount.toLocaleString()} FCFA
+              </Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={styles.lockedBackBtn}
+            onPress={() => navigation.navigate('FormationDetail', { formationId: formation.id })}
+          >
+            <Text style={styles.lockedBackBtnText}>Voir l'échéancier de paiement</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -412,6 +463,62 @@ const styles = StyleSheet.create({
     fontFamily: 'CenturyGothic',
     fontSize: 13,
     color: '#A89E90',
+    textDecorationLine: 'underline',
+  },
+  lockedContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  lockedIcon: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#F2E7D3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  lockedTitle: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2E2A24',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  lockedDesc: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    color: '#7A7166',
+    textAlign: 'center',
+    lineHeight: 21,
+    marginBottom: 24,
+  },
+  lockedPayBtn: {
+    backgroundColor: '#C19A6B',
+    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  lockedPayBtnText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  lockedBackBtn: {
+    marginTop: 14,
+    paddingVertical: 10,
+  },
+  lockedBackBtnText: {
+    fontFamily: 'CenturyGothic',
+    fontSize: 13,
+    color: '#9C7C4F',
+    fontWeight: '600',
     textDecorationLine: 'underline',
   },
 });

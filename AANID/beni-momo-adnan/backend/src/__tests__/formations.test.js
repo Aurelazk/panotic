@@ -208,7 +208,7 @@ describe('Formations API', () => {
   });
 
   describe('POST /api/v1/formations/:id/pay', () => {
-    it('processes payment (simulation sans clé FedaPay)', async () => {
+    it('processes payment (simulation sans clé KKiaPay)', async () => {
       const token = makeToken('pay-test-user');
       const res = await request(app)
         .post('/api/v1/formations/fmt-3/pay')

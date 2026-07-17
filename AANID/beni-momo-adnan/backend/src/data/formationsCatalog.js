@@ -11,17 +11,31 @@ const FORMATIONS = [
     description: "Module 1 de la formation officielle AANID sur la panneautique (domaine public) : introduction, réorganisation et réaménagement du secteur d'exploitation des panneaux publicitaires, évaluation du système, mise à jour et questionnaire.",
     category: 'PANNEAUTIQUE',
     imageUrl: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0',
-    duration: 'Module 1',
+    duration: 'Modules 1 & 2',
     capacity: 200,
     enrolledCount: 18,
-    price: 0,
+    price: 500000,
     currency: 'XOF',
-    isFree: true,
+    isFree: false,
     version: '1.0',
     pdfUrl: '/formations/assets/panneautique-v1.pdf',
+    // Paiement en tranches : chaque tranche payée débloque les modules qui portent
+    // son id (trancheId). Les tranches se paient dans l'ordre.
+    paymentPlan: {
+      total: 500000,
+      currency: 'XOF',
+      tranches: [
+        { id: 'inscription', label: 'Inscription — accès au Module 1 (cours)', amount: 100000 },
+        { id: 'module2', label: 'Accès au Module 2', amount: 250000 },
+        { id: 'mensualite-1', label: 'Mensualité 1 — suivi de formation', amount: 50000 },
+        { id: 'mensualite-2', label: 'Mensualité 2 — suivi de formation', amount: 50000 },
+        { id: 'mensualite-3', label: 'Mensualité 3 — suivi de formation', amount: 50000 },
+      ],
+    },
     modules: [
       {
         id: 'fmt1-ch1-lecon1',
+        trancheId: 'inscription',
         title: 'Chapitre 1 : Introduction — Leçon 1 : Le panneau publicitaire et son importance dans la vie socio-économique d\'un pays',
         content: "Présentation\n\nLa panneautique en tant qu'ensemble des moyens et techniques d'installation et de gestion des panneaux publicitaires est un véritable corps de métier dont l'étude est pluridisciplinaire.\n\nL'exploitation des panneaux publicitaires est une activité qui booste la concurrence entre les entreprises. Ce faisant, elle propulse l'économie grâce à l'accroissement et à l'amélioration de la compétitivité des différents acteurs de la vie économique d'un pays.\n\nComment l'exploitation des panneaux publicitaires booste-t-elle la concurrence ?\n\nVecteur de publicité, le panneau publicitaire stimule et encourage la consommation. Lorsque l'activité d'exploitation de panneaux publicitaires est bien réglementée et bien encadrée, les normes d'exercice de celle-ci garantissent l'équité dans la gestion du secteur par les autorités compétentes.\n\nIl convient toutefois de rappeler qu'on ne paie pas pour regarder un panneau publicitaire : le panneau publicitaire est le support de publicité par excellence. Cet atout intemporel fait de ce support un des plus populaires de tous les temps. Sinon le plus populaire !\n\nEn outre, par leurs aménagements, les panneaux publicitaires contribuent à l'embellissement des villes. Bien visible dans l'espace public, le panneau publicitaire participe au décor de celui-ci. Dès lors, il importe que le choix des supports ne soit plus motivé seulement par leurs aspects, leur design, mais aussi par des critères qui font qu'à la fonction première de ceux-ci s'ajoute un besoin d'esthétique pour un environnement et un cadre de vie plus beau et plus agréable à la vue.",
         duration: '15 min',
@@ -29,6 +43,7 @@ const FORMATIONS = [
       },
       {
         id: 'fmt1-ch1-lecon2',
+        trancheId: 'inscription',
         title: 'Chapitre 1 : Introduction — Leçon 2 : Constat général',
         content: "Dans beaucoup de villes à travers le monde (l'Afrique en est un bel exemple), il est fréquent de constater, et parfois dans des capitales, des cas de pléthore de panneaux publicitaires cause de pollution visuelle, d'insalubrité et d'insécurité pour des personnes et des biens. Un secteur d'exploitation des panneaux publicitaires mal organisé, mal encadré ou pas encadré du tout où règnent l'anarchie et le désordre en est la source.\n\nDans un environnement tel que celui que nous venons de décrire, l'exploitation des panneaux publicitaires devient source de maux.\n\nL'état délabré et obsolète des supports, l'absence de normes et de réglementations sont cause de la contre-productivité du secteur et facteur de dégradation de l'environnement.\n\nIl importe donc, pour le rayonnement du secteur et pour sa contribution effective au développement socio-économique des villes, que des mesures adéquates soient prises.",
         duration: '10 min',
@@ -36,6 +51,7 @@ const FORMATIONS = [
       },
       {
         id: 'fmt1-ch2-lecon3',
+        trancheId: 'inscription',
         title: 'Chapitre 2 : Réorganisation et Réaménagement du secteur — Leçon 3 : Différentes étapes (Audit, État des lieux, Zonage)',
         content: "Les différentes étapes pour une bonne réorganisation et un aménagement réussi du secteur d'exploitation des panneaux publicitaires sont :\n\n3.1/ Audit.\nAfin de permettre que l'activité d'exploitation des panneaux publicitaires participe au rayonnement d'une ville (ou d'un pays), il faut faire un audit de la gestion en cours. Il consiste :\n3.1.1/ en l'établissement de la liste exhaustive de tous les acteurs (entreprise ou personne exploitant des panneaux à des fins publicitaires),\n3.1.2/ en l'examen du mécanisme d'attribution des supports et du cahier des charges.\n\n3.2/ État des lieux.\n3.2.1/ Faire le relevé (GPS) détaillé et précis de l'ensemble des panneaux publicitaires présents,\n3.2.2/ Établir le plan piquet géolocalisable de ceux-ci.\n\n3.3/ Zonage.\nPour parvenir à un réaménagement optimal du plan d'implantation des panneaux publicitaires, il faut effectuer des délimitations suivant des normes spécifiques du territoire et proposer des supports facteurs d'embellissement et symboles de modernité.\n\nLe but du zonage est de créer les conditions pour un développement harmonieux et équilibré du paysage de l'affichage publicitaire ainsi que l'établissement de grilles tarifaires en adéquation avec les réalités économiques des villes. Il consiste donc à délimiter des espaces à cette fin.",
         duration: '20 min',
@@ -43,6 +59,7 @@ const FORMATIONS = [
       },
       {
         id: 'fmt1-ch2-etapes4a7',
+        trancheId: 'inscription',
         title: 'Chapitre 2 (suite) : Constitution des lots, Mise en concession, Attribution et Gestion des régies',
         content: "4/ Constitution des lots.\nLe terme « Mobilier Urbain de Publicité » vient s'inscrire dans un contexte où les panneaux publicitaires ne sont plus que des supports à des fins de publicité mais de véritables objets (ou meubles) d'embellissement et de décoration des villes.\n\nIl s'ensuit que la réorganisation du secteur d'exploitation des panneaux publicitaires intègre un besoin d'embellissement et de modernisation du cadre de vie des populations.\n\nAprès études et validation des supports devant être pris en compte dans le cadre du réaménagement, nous procéderons à la constitution des lots devant faire objet d'appels d'offres pour la mise en concession des différents espaces publicitaires. La constitution des lots est faite de manière à garantir l'équilibre des espaces et celui en matière de type de support des différentes régies publicitaires.\n\n5/ Mise en concession des espaces publicitaires.\nLa technique de mise en concession des espaces publicitaires est variable. Elle est fonction des réalités économiques, politico-administratives et de la législation en vigueur dans chaque pays. (NB : il faut partir d'exemples précis et traiter le sujet au cas par cas.)\n\n6/ Attribution des espaces publicitaires.\nL'attribution des espaces aux régies publicitaires est faite sur la base du cahier des charges contenu dans le dossier d'appel d'offres.\n\n7/ Gestion des régies publicitaires.\nLa gestion des régies publicitaires est faite dans certains pays par les collectivités locales. Dans d'autres, elle est du ressort du Gouvernement par l'intermédiaire du Ministère de la Communication, etc. Plus généralement il faut retenir que c'est selon les textes et dispositions en vigueur dans chaque pays. L'essentiel est que la transparence, le professionnalisme et l'efficience soient rigoureusement observés.",
         duration: '20 min',
@@ -50,6 +67,7 @@ const FORMATIONS = [
       },
       {
         id: 'fmt1-ch3',
+        trancheId: 'inscription',
         title: "Chapitre 3 : Évaluation du système d'exploitation des supports / Mobilier Urbain de Publicité",
         content: "Afin de garantir un développement harmonieux du secteur d'exploitation des panneaux publicitaires / Mobilier Urbain de Publicité, il faut dans les réformes prévoir un mécanisme d'évaluation de l'ensemble du processus depuis l'audit à la gestion des régies publicitaires.\n\nLe mécanisme d'évaluation doit être scientifiquement soutenable avec une autonomie certaine dans son pilotage.\n\nL'évaluation permet de prévenir les risques de dérapage et de sécuriser les intérêts des différents acteurs du secteur et des populations à travers leur cadre de vie sur le long terme.",
         duration: '10 min',
@@ -57,6 +75,7 @@ const FORMATIONS = [
       },
       {
         id: 'fmt1-ch4',
+        trancheId: 'inscription',
         title: 'Chapitre 4 : Mise à jour',
         content: "La mise à jour du secteur d'exploitation des panneaux publicitaires / Mobilier Urbain de Publicité est importante pour pérenniser les acquis de développement de l'activité.\n\nElle est importante aussi pour le rayonnement des villes par l'exploitation des supports de publicité et favorisera l'essor de l'activité en adéquation avec l'urbanisation.\n\nElle consiste à s'assurer que le secteur d'exploitation des panneaux publicitaires / Mobilier Urbain de Publicité, dans son évolution, soit en phase avec celle démographique et le développement infrastructurel des villes.",
         duration: '10 min',
@@ -64,10 +83,19 @@ const FORMATIONS = [
       },
       {
         id: 'fmt1-questionnaire',
+        trancheId: 'inscription',
         title: 'Questionnaires (module 1)',
         content: "Définitions :\n\n1/ Panneautique.\n2/ Zonage.\n3/ Mobilier Urbain de Publicité.\n4/ Régie publicitaire.\n5/ Pollution visuelle (dans le cadre de l'exploitation des panneaux publicitaires).\n\nQuestions :\n\n6/ En quoi consiste une réorganisation du secteur d'exploitation des panneaux publicitaires ?\n7/ En quoi consiste le réaménagement de l'espace publicitaire d'une ville du point de vue de l'exploitation du Mobilier Urbain de Publicité ?\n8/ Comment prévenir la pollution visuelle due à l'exploitation des panneaux publicitaires ?\n9/ Comment s'assurer d'une bonne rentabilité et de la pérennité du secteur d'exploitation des panneaux publicitaires ?\n10/ Peut-on installer un panneau publicitaire n'importe où ? Pourquoi ?\n11/ Quelle est l'importance du panneau publicitaire dans une ville ?\n12/ N'importe qui peut-il exercer l'activité d'exploitation de panneaux publicitaires ?",
         duration: '20 min',
         imageUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b',
+      },
+      {
+        id: 'fmt1-mod2',
+        trancheId: 'module2',
+        title: 'Module 2 : Panneautique — domaine privé',
+        content: "Module 2 de la formation officielle AANID sur la panneautique : le domaine privé.\n\nAu programme : cadre juridique de l'affichage sur propriété privée, contractualisation avec les propriétaires, fiscalité et redevances, gestion du parc privé et articulation avec le domaine public.\n\nLe contenu détaillé de ce module vous est ouvert dès le paiement de la tranche « Accès au Module 2 ».",
+        duration: 'Module 2',
+        imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa',
       },
     ],
     createdAt: '2025-10-01T00:00:00.000Z',
