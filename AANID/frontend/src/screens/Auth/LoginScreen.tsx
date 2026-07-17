@@ -81,7 +81,7 @@ export default function LoginScreen({ navigation }: any) {
           <CustomInput icon="envelope" placeholder="Adresse email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
           <CustomInput icon="lock" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
 
-          <TouchableOpacity style={styles.forgotRow}>
+          <TouchableOpacity style={styles.forgotRow} onPress={() => navigation.navigate('ForgotPassword')}>
             <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
           </TouchableOpacity>
 

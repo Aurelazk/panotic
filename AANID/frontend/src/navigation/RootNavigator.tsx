@@ -25,6 +25,21 @@ const VILLE_NOM_KEY = '@aanid/v1/ville_nom';
 
 const Stack = createNativeStackNavigator();
 
+// Les liens des emails (réinitialisation, vérification) ouvrent le bon écran :
+// web → /reset-password?token=… ; natif → aanid://reset-password?token=…
+const linking = {
+  prefixes: ['aanid://'],
+  config: {
+    screens: {
+      Login: 'login',
+      Register: 'register',
+      ForgotPassword: 'forgot-password',
+      ResetPassword: 'reset-password',
+      VerifyEmail: 'verify-email',
+    },
+  },
+};
+
 async function fetchProfile(token: string) {
   const { data } = await api.get('/profile', {
     headers: { Authorization: `Bearer ${token}` },
@@ -128,7 +143,7 @@ export default function RootNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       {isAuthenticated ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
